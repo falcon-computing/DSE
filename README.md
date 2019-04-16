@@ -1,0 +1,2 @@
+Development
+setuptools pylint pytest pytest-cov Sphinx sphinx_rtd_theme
