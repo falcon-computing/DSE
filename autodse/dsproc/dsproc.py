@@ -46,7 +46,7 @@ class DSProc():
 
         params = []
         for param_id, param_config in user_ds_config.items():
-            param = create_design_parameter_from_config(param_id, param_config)
+            param = create_design_parameter(param_id, param_config)
             if param:
                 params.append(param)
                 print (param.__dict__)
@@ -72,8 +72,7 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
     try:
         st = ast.parse(option_expr)
     except SyntaxError:
-        log.error('"options" error: Illegal option list %s',
-                      option_expr)
+        log.error('"options" error: Illegal option list %s', option_expr)
         return (False, [])
 
     # Traverse AST of the option_expression for all variables
@@ -109,12 +108,12 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
 
     return (True, list(names))
 
-def check_order_syntax(option_expr: str):
+def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
     """Check the syntax of the partition rule and extract the variable name
 
     Parameters
     ----------
-        option_expr:
+        order_expr:
             The design space option expression
 
     Returns
@@ -122,34 +121,30 @@ def check_order_syntax(option_expr: str):
     check:
         Indicate if the expression is valid or not
 
-    deps:
-        A list of dependent design parameter IDs
+    var:
+        The single variable name in the expression
     """
-    local: Dict[str, Union[str, int]] = {}
-    while True:
-        try:
-            safe_eval(option_expr, local)
-            return (True, list(local.keys())[0])
-        except SyntaxError:
-            log.error('"order" syntax error: %s', option_expr)
-        except NameError as err:
-            tokens = re.search(r"'(.+)' is not defined", str(err))
-            if tokens:
-                name = tokens.group(1)
-                if not local:
-                    local[name] = 0
-                    continue
-            elif not tokens:
-                log.error('Unkonwn error message: %s', str(err))
-            else:
-                var = list(local.keys())[0]
-                log.error('"order" should have only one argument, '
-                              'but already found two: %s and %s in %s', var, name, option_expr)
-        break
-    return (False, '')
+    try:
+        st = ast.parse(order_expr)
+    except SyntaxError:
+        log.error('"order" error: Illegal order expression %s', order_expr)
+        return (False, [])
 
-def create_design_parameter_from_config(param_id: str,
-                                        ds_config: Dict[str, Union[str, int]]) -> Optional[DesignParameter]:
+    # Traverse AST of the expression for the variable
+    names = set()
+    iter_val = None
+    for node in ast.walk(st):
+        if isinstance(node, ast.Name):
+            names.add(node.id)
+    
+    if len(names) != 1:
+        log.error('"order" should have one and only one variable in %s but found %d',
+                  order_expr, len(names))
+        return (False, '')
+    return (True, names.pop())
+
+def create_design_parameter(param_id: str,
+                            ds_config: Dict[str, Union[str, int]]) -> Optional[DesignParameter]:
     """Create DesignParameter from the string in auto pragma
 
         Parameters

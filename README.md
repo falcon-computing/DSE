@@ -36,3 +36,4 @@ The following Python packages are required for developement:
 * pytest-cov
 * Sphinx
 * sphinx_rtd_theme
+* autopep8
