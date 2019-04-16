@@ -8,5 +8,8 @@ unit_test:
 conv:
 	pytest --cov --cov-report=xml:cov.xml
 
+doc:
+	make -c doc html
+
 clean:
 	rm -rf .coverage *.xml *.log *.pyc

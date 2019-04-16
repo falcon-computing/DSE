@@ -1,0 +1,17 @@
+# Temp files
+*.log
+
+# IDE settings
+.vscode
+
+# Unit test / coverage reports
+*.html
+*.js
+.coverage
+cov.xml
+
+# Python type checking
+.mypy_cache/
+.pyre/
+.pytest_cache
+__pycache__
