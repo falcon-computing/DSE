@@ -1,8 +1,12 @@
+# Build files
+build
+
 # Temp files
 *.log
 
-# IDE settings
+# IDE / env settings
 .vscode
+venv
 
 # Unit test / coverage reports
 *.html

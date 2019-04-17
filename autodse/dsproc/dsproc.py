@@ -7,12 +7,11 @@ from os import listdir
 from os.path import isfile, join
 import ast
 import json
-import re
 
 from ..database import DesignParameter, DesignSpace
-from ..util import SAFE_LIST, safe_eval
+from ..util import SAFE_LIST
 
-log = getLogger('DSProc')
+LOG = getLogger('DSProc')
 
 class DSProc():
     """
@@ -41,7 +40,7 @@ class DSProc():
         with open(self.user_ds_file, 'r') as ds_file:
             user_ds_config = json.load(ds_file)
         if not user_ds_config:
-            log.error('Design space not found.')
+            LOG.error('Design space not found.')
             return None
 
         params = []
@@ -49,10 +48,52 @@ class DSProc():
             param = create_design_parameter(param_id, param_config)
             if param:
                 params.append(param)
-                print (param.__dict__)
+                print(param.__dict__)
 
-        log.info('Finished design space compilation')
+        error = check_design_space(params)
+        if error > 0:
+            LOG.error('Design space has %d errors', error)
+            return None
+
+        LOG.info('Finished design space compilation')
         return params
+
+def check_design_space(params: DesignSpace) -> int:
+    """Check design space for missing dependency and duplication
+
+    Parameters
+    ----------
+    params:
+        The overall design space
+
+    Returns
+    -------
+    error:
+        The number of errors found in the design space
+    """
+    error = 0
+
+    # Check duplicated names
+    param_names = set()
+    for param in params:
+        if param.name in param_names:
+            LOG.error('Redefined design parameter %s', param.name)
+            error += 1
+        else:
+            param_names.add(param.name)
+
+    # Check dependencies
+    for param in params:
+        for dep in param.deps:
+            if dep == param.name:
+                LOG.error('Parameter %s cannot depend on itself', param.name)
+                error += 1
+            if dep not in param_names:
+                LOG.error('Parameter %s depends on %s which is undefined or not allowed',
+                          param.name, dep)
+                error += 1
+    return error
+
 
 def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
     """Check the syntax of design options and extract dependent design parameter IDs
@@ -70,15 +111,15 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
             A list of dependent design parameter IDs
     """
     try:
-        st = ast.parse(option_expr)
+        stree = ast.parse(option_expr)
     except SyntaxError:
-        log.error('"options" error: Illegal option list %s', option_expr)
+        LOG.error('"options" error: Illegal option list %s', option_expr)
         return (False, [])
 
     # Traverse AST of the option_expression for all variables
     names = set()
     iter_val = None
-    for node in ast.walk(st):
+    for node in ast.walk(stree):
         if isinstance(node, ast.ListComp):
             funcs = [n.func.id for n in ast.walk(node.elt)
                      if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
@@ -125,20 +166,20 @@ def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
         The single variable name in the expression
     """
     try:
-        st = ast.parse(order_expr)
+        stree = ast.parse(order_expr)
     except SyntaxError:
-        log.error('"order" error: Illegal order expression %s', order_expr)
+        LOG.error('"order" error: Illegal order expression %s', order_expr)
         return (False, [])
 
     # Traverse AST of the expression for the variable
     names = set()
     iter_val = None
-    for node in ast.walk(st):
+    for node in ast.walk(stree):
         if isinstance(node, ast.Name):
             names.add(node.id)
-    
+
     if len(names) != 1:
-        log.error('"order" should have one and only one variable in %s but found %d',
+        LOG.error('"order" should have one and only one variable in %s but found %d',
                   order_expr, len(names))
         return (False, '')
     return (True, names.pop())
@@ -163,7 +204,7 @@ def create_design_parameter(param_id: str,
 
     # Option checking
     if 'options' not in ds_config:
-        log.error('Missing attribute "options" in %s', param_id)
+        LOG.error('Missing attribute "options" in %s', param_id)
         return None
     param.option_expr = str(ds_config['options'])
     check, param.deps = check_option_syntax(param.option_expr)
@@ -174,13 +215,13 @@ def create_design_parameter(param_id: str,
     if 'order' in ds_config:
         check, var = check_order_syntax(str(ds_config['order']))
         if not check:
-            log.warning('Failed to parse "order" of %s, ignore.', param_id)
+            LOG.warning('Failed to parse "order" of %s, ignore.', param_id)
         else:
             param.order = {'expr': str(ds_config['order']), 'var': var}
 
     # Default checking
     if 'default' not in ds_config:
-        log.error('Missing attribute "default" in %s', param_id)
+        LOG.error('Missing attribute "default" in %s', param_id)
         return None
     param.default = ds_config['default']
 

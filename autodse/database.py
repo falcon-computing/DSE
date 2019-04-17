@@ -1,7 +1,7 @@
 """
 The result database.
 """
-from typing import List, Dict, Set, Union
+from typing import List, Dict, Union
 
 class DesignParameter(object):
     """
@@ -19,3 +19,4 @@ class DesignParameter(object):
         self.child: List[str] = []
 
 DesignSpace = List[DesignParameter]
+

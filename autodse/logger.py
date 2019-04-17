@@ -1,7 +1,6 @@
 """
 The format and config of logging.
 """
-import os
 import logging
 from logging import LogRecord
 from logging.config import dictConfig
@@ -15,7 +14,7 @@ class LogFormatter(logging.Formatter):
 
         Parameters
         ----------
-        record: 
+        record:
             The original formatted log data
 
         Returns

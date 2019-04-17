@@ -34,6 +34,7 @@ The following Python packages are required for developement:
 * pylint
 * pytest
 * pytest-cov
+* pytest-mock
 * Sphinx
 * sphinx_rtd_theme
 * autopep8

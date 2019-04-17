@@ -11,6 +11,7 @@ Merlin AutoDSE Documentation
    :caption: Contents:
 
     dsproc
+    database
 
 Indices and tables
 ==================
