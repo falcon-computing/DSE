@@ -9,6 +9,9 @@ lint:
 unit_test:
 	pytest
 
+format:
+	yapf -ir --style=tests/lint/yapf_style.cfg autodse
+
 conv:
 	pytest --cov=autodse
 

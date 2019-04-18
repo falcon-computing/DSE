@@ -4,6 +4,7 @@ The unit test module for dsproc.
 from autodse.dsproc import dsproc
 from autodse.database import DesignParameter
 
+
 def test_check_option_syntax():
     #pylint:disable=missing-docstring
     # Basic
@@ -36,6 +37,7 @@ def test_check_option_syntax():
     assert ret4[0], 'expect success'
     assert not ret4[1], 'expect no dependency'
 
+
 def test_check_order_syntax():
     #pylint:disable=missing-docstring
     # Basic
@@ -62,14 +64,17 @@ def test_check_order_syntax():
     ret2 = dsproc.check_order_syntax(exp2)
     assert not ret2[0], 'expect failure'
 
+
 def test_create_design_parameter():
     #pylint:disable=missing-docstring
     # Basic
     param_id = 'X'
-    ds_config = {"options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
-                 "order": "0 if x < 512 else 1",
-                 "ds_type": "parallel",
-                 "default": 1}
+    ds_config = {
+        "options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
+        "order": "0 if x < 512 else 1",
+        "ds_type": "parallel",
+        "default": 1
+    }
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is not None, 'expect to be created'
     assert param.name == 'X'
@@ -80,20 +85,25 @@ def test_create_design_parameter():
     assert param.ds_type == "PARALLEL"
 
     # Missing options
-    ds_config = {"order": "0 if x < 512 else 1",
-                 "default": 1}
+    ds_config = {"order": "0 if x < 512 else 1", "default": 1}
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is None, 'expect failure'
 
     # Error options expression
-    ds_config = {"options": "[ for x in range(10) if x==0 or Y!='flatten']",
-                 "order": "0", "default": 1}
+    ds_config = {
+        "options": "[ for x in range(10) if x==0 or Y!='flatten']",
+        "order": "0",
+        "default": 1
+    }
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is None, 'expect failure'
 
     # Error order expression
-    ds_config = {"options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
-                 "order": "0", "default": 1}
+    ds_config = {
+        "options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
+        "order": "0",
+        "default": 1
+    }
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is not None, 'expect to be created'
     assert not param.order, 'expect to be an empty dictionary'
@@ -104,11 +114,29 @@ def test_create_design_parameter():
     assert param is None, 'expect failure'
 
     # Missing type
-    ds_config = {"options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
-                 "default": 1}
+    ds_config = {"options": "[x**2 for x in range(10) if x==0 or Y!='flatten']", "default": 1}
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is not None, 'expect to be created'
     assert param.ds_type == 'UNKNOWN'
+
+
+def test_compile_design_space(mocker):
+    #pylint:disable=missing-docstring
+    # Basic
+    ds_config = {'X': {}}
+    param = DesignParameter()
+    param.name = 'X'
+    mocker.patch('autodse.dsproc.dsproc.create_design_parameter', return_value=param)
+    mock1 = mocker.patch('autodse.dsproc.dsproc.check_design_space', return_value=0)
+    ret = dsproc.compile_design_space(ds_config)
+    assert len(ret) == 1
+    mock1.assert_called_once()
+
+    # Design space with errors
+    mocker.patch('autodse.dsproc.dsproc.check_design_space', return_value=1)
+    ret = dsproc.compile_design_space(ds_config)
+    assert ret is None
+
 
 def test_check_design_space():
     #pylint:disable=missing-docstring
@@ -147,6 +175,7 @@ def test_check_design_space():
     params['B'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
 
+
 def test_topo_sort_param_ids():
     #pylint:disable=missing-docstring
     # Basic
@@ -173,6 +202,7 @@ def test_topo_sort_param_ids():
     space['C'].deps = ['A']
     sorted_ids = dsproc.topo_sort_param_ids(space)
     assert all([a == b for a, b in zip(sorted_ids, ['C', 'B', 'A'])])
+
 
 def test_partition(mocker):
     #pylint:disable=missing-docstring

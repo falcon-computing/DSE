@@ -1,9 +1,9 @@
 """
 The utilizes of Merlin DSE module.
 """
-from typing import Dict, Any, Union, Optional
 import logging
 import math
+from typing import Any, Dict, Optional, Union
 
 LOG = logging.getLogger('Util')
 
@@ -20,6 +20,7 @@ SAFE_BUILTINS['exp'] = math.exp
 SAFE_BUILTINS['frexp'] = math.frexp
 SAFE_BUILTINS['sqrt'] = math.sqrt
 SAFE_LIST = list(SAFE_BUILTINS.keys())
+
 
 def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> Any:
     """A safe wrapper of Python builtin eval
@@ -41,7 +42,7 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
         table.update(local)
 
     try:
-        return eval(expr, table) #pylint: disable=eval-used
+        return eval(expr, table)  #pylint: disable=eval-used
     except NameError as err:
         LOG.error('eval failed: %s', str(err))
         raise

@@ -27,7 +27,7 @@ class LogFormatter(logging.Formatter):
         return super(LogFormatter, self).format(record)
 
 
-logging.Formatter = LogFormatter # type: ignore
+logging.Formatter = LogFormatter  # type: ignore
 
 LOGGING_CONFIG_DICT = {
     'version': 1,
@@ -37,8 +37,10 @@ LOGGING_CONFIG_DICT = {
             'format': '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'
         },
         'file': {
-            'format': '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s '
-                      '@%(filename)s:%(lineno)d'}
+            'format':
+            '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s '
+            '@%(filename)s:%(lineno)d'
+        }
     },
     'handlers': {
         'console': {
@@ -54,9 +56,11 @@ LOGGING_CONFIG_DICT = {
         }
     },
     'loggers': {
-        '': {'handlers': ['console', 'file'],
-             'level': 'INFO',
-             'propagate': True}
+        '': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True
+        }
     }
 }
 dictConfig(LOGGING_CONFIG_DICT)

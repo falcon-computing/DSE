@@ -3,6 +3,7 @@ The result database.
 """
 from typing import List, Dict, Union
 
+
 class DesignParameter(object):
     """
     A tunable design parameter
@@ -18,5 +19,6 @@ class DesignParameter(object):
         self.order: Dict[str, str] = {}
         self.deps: List[str] = []
         self.child: List[str] = []
+
 
 DesignSpace = Dict[str, DesignParameter]

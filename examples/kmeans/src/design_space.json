@@ -5,12 +5,12 @@
 	},
 	"R": {
 		"options": "[x for x in['','reduction=dist'] if x=='' or (CGPIP1!='flatten' and CGPIP2!='flatten')]", 
-		"default": ''
+		"default": ""
 	},
 	"CGPIP2": {
 		"options": "[x for x in ['off','','flatten'] if x=='off' or CGPIP1!='flatten']",
 		"order": "0 if v!='flatten' else 1",
-		"default": 'off'
+		"default": "off"
 	},
 	"BW1": {
 		"options": "[32,512]", 
@@ -23,7 +23,7 @@
 	"CGPIP1": {
 		"options": "['off','','flatten']",
 		"order": "0 if v!='flatten' else 1", 
-		"default": 'off'
+		"default": "off"
 	},
 	"TILE": {
 		"options": "[2**x for x in range(15)]",

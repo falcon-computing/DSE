@@ -1,71 +1,50 @@
 """
 Design Space Processor
 """
-
-from typing import Optional, Dict, List, Tuple, Union, Set, Deque
+import ast
+from collections import deque
 from copy import deepcopy
 from logging import getLogger
-from collections import deque
-import os
-import ast
-import json
+from typing import Deque, Dict, List, Optional, Set, Tuple, Union
 
 from ..database import DesignParameter, DesignSpace
 from ..util import SAFE_LIST, safe_eval
 
 LOG = getLogger('DSProc')
 
-class DSProc():
+
+def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
+                         ) -> Optional[DesignSpace]:
+    """Compile the design space from the config JSON file
+
+    Parameters
+    ----------
+    user_ds_config:
+        The input design space configure loaded from a JSON file.
+        Note that the duplicated ID checking should be done when loading the JSON file and
+        here we assume no duplications.
+
+    Returns
+    -------
+    Optional[DesignSpace]:
+        The design space compiled from the kernel code; or None if failed.
+
     """
-    The module to process design space
-    """
+    params: Dict[str, DesignParameter] = {}
+    for param_id, param_config in user_ds_config.items():
+        param = create_design_parameter(param_id, param_config)
+        if param:
+            params[param_id] = param
+            print(param.__dict__)
 
-    def __init__(self, user_ds_file: str, work_path: str):
-        if not os.path.exists(user_ds_file):
-            LOG.error('Design space file not found: %s', user_ds_file)
-        self.user_ds_file = user_ds_file
+    error = check_design_space(params)
+    if error > 0:
+        LOG.error('Design space has %d errors', error)
+        return None
 
-        if os.path.exists(work_path):
-            os.rmdir(work_path)
-        os.mkdir(work_path)
-        self.work_path = work_path
+    LOG.info('Finished design space compilation')
+    return params
 
-    def compile(self) -> Optional[DesignSpace]:
-        """Compile the design space from Merlin C kernel auto pragmas
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        ds:
-            The design space compiled from the kernel code; otherwise None
-        """
-
-        with open(self.user_ds_file, 'r') as ds_file:
-            try:
-                user_ds_config = json.load(ds_file)
-            except ValueError as err:
-                LOG.error('Fail to load design space: %s', str(err))
-                return None
-
-        params: Dict[str, DesignParameter] = {}
-        for param_id, param_config in user_ds_config.items():
-            param = create_design_parameter(param_id, param_config)
-            if param:
-                if param_id in params: # Duplicated IDs
-                    LOG.error('Redefined design parameter %s', param_id)
-                    return None
-                params[param_id] = param
-                print(param.__dict__)
-
-        error = check_design_space(params)
-        if error > 0:
-            LOG.error('Design space has %d errors', error)
-            return None
-
-        LOG.info('Finished design space compilation')
-        return params
 
 def check_design_space(params: DesignSpace) -> int:
     """Check design space for missing dependency and duplication
@@ -77,7 +56,7 @@ def check_design_space(params: DesignSpace) -> int:
 
     Returns
     -------
-    error:
+    int:
         The number of errors found in the design space
     """
     error = 0
@@ -93,6 +72,7 @@ def check_design_space(params: DesignSpace) -> int:
                 error += 1
     return error
 
+
 def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
     """Check the syntax of design options and extract dependent design parameter IDs
 
@@ -103,9 +83,8 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
 
         Returns
         -------
-        check:
-            Indicate if the expression is valid or not
-        deps:
+        Tuple[bool, List[str]]:
+            Indicate if the expression is valid or not;
             A list of dependent design parameter IDs
     """
     try:
@@ -119,11 +98,14 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
     iter_val = None
     for node in ast.walk(stree):
         if isinstance(node, ast.ListComp):
-            funcs = [n.func.id for n in ast.walk(node.elt)
-                     if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
-            elt_vals = [n.id for n in ast.walk(node.elt)
-                        if isinstance(n, ast.Name) and n.id not in funcs
-                        and n.id != '_']
+            funcs = [
+                n.func.id for n in ast.walk(node.elt)
+                if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+            ]
+            elt_vals = [
+                n.id for n in ast.walk(node.elt)
+                if isinstance(n, ast.Name) and n.id not in funcs and n.id != '_'
+            ]
             assert len(elt_vals) <= 1, 'Found more than one iterators in {0}'.format(option_expr)
             if len(elt_vals) == 1:
                 iter_val = elt_vals[0]
@@ -146,20 +128,19 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
 
     return (True, list(names))
 
+
 def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
     """Check the syntax of the partition rule and extract the variable name
 
     Parameters
     ----------
-        order_expr:
-            The design space option expression
+    order_expr:
+        The design space option expression
 
     Returns
     -------
-    check:
-        Indicate if the expression is valid or not
-
-    var:
+    Tuple[bool, str]:
+        Indicate if the expression is valid or not;
         The single variable name in the expression
     """
     try:
@@ -175,26 +156,25 @@ def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
             names.add(node.id)
 
     if len(names) != 1:
-        LOG.error('"order" should have one and only one variable in %s but found %d',
-                  order_expr, len(names))
+        LOG.error('"order" should have one and only one variable in %s but found %d', order_expr,
+                  len(names))
         return (False, '')
     return (True, names.pop())
+
 
 def create_design_parameter(param_id: str,
                             ds_config: Dict[str, Union[str, int]]) -> Optional[DesignParameter]:
     """Create DesignParameter from the string in auto pragma
 
-        Parameters
-        ----------
-        attr_str:
-            The design space string in the auto pragma
+    Parameters
+    ----------
+    attr_str:
+        The design space string in the auto pragma
 
-        Returns
-        -------
-        param_id:
-            The unique design parameter ID
-        param:
-            The created DesignParameter object
+    Returns
+    -------
+    Optional[DesignParameter]:
+        The created DesignParameter object
     """
     param = DesignParameter(param_id)
 
@@ -230,6 +210,7 @@ def create_design_parameter(param_id: str,
 
     return param
 
+
 def topo_sort_param_ids(space: DesignSpace) -> List[str]:
     """Sort the parameter IDs topologically
 
@@ -240,7 +221,7 @@ def topo_sort_param_ids(space: DesignSpace) -> List[str]:
 
     Returns
     -------
-    sorted_ids:
+    List[str]:
         The sorted IDs
     """
 
@@ -275,6 +256,7 @@ def topo_sort_param_ids(space: DesignSpace) -> List[str]:
             helper(pid, visited, stack)
     return stack
 
+
 def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
     """Partition the given design space to at most the limit parts
 
@@ -288,7 +270,7 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
 
     Returns
     -------
-    spaces:
+    Optional[List[DesignSpace]]:
         The list of design space partitions
     """
 
@@ -334,8 +316,8 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
                 # 2) the accumulated partition number reaches to the limit
                 copied_space = deepcopy(curr_space)
                 next_queue.append(copied_space)
-                LOG.debug('%d: Stop partition %s due to not partitionable or too many %d',
-                          ptr, param_id, limit)
+                LOG.debug('%d: Stop partition %s due to not partitionable or too many %d', ptr,
+                          param_id, limit)
             else:
                 # Partition
                 for part in parts.values():
@@ -343,8 +325,9 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
                     copied_space[param_id].option_expr = str(part)
                     copied_space[param_id].default = part[0]
                     next_queue.append(copied_space)
-                LOG.debug('%d: Partition %s to %d parts, so far %d parts',
-                          ptr, param_id, len(parts), len(part_queue) + len(next_queue))
+                LOG.debug('%d: Partition %s to %d parts, so far %d parts', ptr, param_id,
+                          len(parts),
+                          len(part_queue) + len(next_queue))
         part_queue = next_queue
         ptr += 1
     return [part for part in reversed(part_queue)]
