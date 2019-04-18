@@ -13,10 +13,11 @@ class DesignParameter(object):
         self.default: Union[str, int] = 1
         self.file_name: str = ''
         self.option_expr: str = ''
+        self.ds_type: str = 'UNKNOWN'
         self.scope: List[str] = []
         self.order: Dict[str, str] = {}
         self.deps: List[str] = []
         self.child: List[str] = []
 
-DesignSpace = List[DesignParameter]
+DesignSpace = Dict[str, DesignParameter]
 

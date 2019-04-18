@@ -1,7 +1,7 @@
 """
 The unit test module for dsproc.
 """
-from autodse import dsproc
+from autodse.dsproc import dsproc
 from autodse.database import DesignParameter
 
 def test_check_option_syntax():
@@ -68,6 +68,7 @@ def test_create_design_parameter():
     param_id = 'X'
     ds_config = {"options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
                  "order": "0 if x < 512 else 1",
+                 "ds_type": "parallel",
                  "default": 1}
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is not None, 'expect to be created'
@@ -76,6 +77,7 @@ def test_create_design_parameter():
     assert len(param.deps) == 1 and param.deps[0] == 'Y'
     assert param.order == {'expr': "0 if x < 512 else 1", 'var': "x"}
     assert param.default == 1
+    assert param.ds_type == "PARALLEL"
 
     # Missing options
     ds_config = {"order": "0 if x < 512 else 1",
@@ -101,47 +103,117 @@ def test_create_design_parameter():
     param = dsproc.create_design_parameter(param_id, ds_config)
     assert param is None, 'expect failure'
 
+    # Missing type
+    ds_config = {"options": "[x**2 for x in range(10) if x==0 or Y!='flatten']",
+                 "default": 1}
+    param = dsproc.create_design_parameter(param_id, ds_config)
+    assert param is not None, 'expect to be created'
+    assert param.ds_type == 'UNKNOWN'
+
 def test_check_design_space():
     #pylint:disable=missing-docstring
     # Basic
-    params = []
+    params = {}
     param = DesignParameter()
     param.name = 'X'
     param.deps = ['Y']
-    params.append(param)
+    params['X'] = param
     param = DesignParameter()
     param.name = 'Y'
     param.deps = []
-    params.append(param)
+    params['Y'] = param
     assert dsproc.check_design_space(params) == 0, 'expect no errors'
-
-    # Conflict parameter names
-    param = DesignParameter()
-    param.name = 'X'
-    param.deps = []
-    params.append(param)
-    assert dsproc.check_design_space(params) == 1, 'expect 1 error'
-    params.pop()
 
     # Self-dependent
     param = DesignParameter()
     param.name = 'Z'
     param.deps = ['X', 'Z']
-    params.append(param)
+    params['Z'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
-    params.pop()
+    del params['Z']
 
     # Missing dependency
     param = DesignParameter()
     param.name = 'A'
     param.deps = ['K']
-    params.append(param)
+    params['A'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
-    params.pop()
+    del params['A']
 
     # Use illegal builtin
     param = DesignParameter()
     param.name = 'B'
     param.deps = ['X', 'sin']
-    params.append(param)
+    params['B'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
+
+def test_topo_sort_param_ids():
+    #pylint:disable=missing-docstring
+    # Basic
+    space = {}
+    param = DesignParameter()
+    param.name = 'A'
+    param.deps = ['B', 'C']
+    space['A'] = param
+
+    param = DesignParameter()
+    param.name = 'B'
+    param.deps = ['C']
+    space['B'] = param
+
+    param = DesignParameter()
+    param.name = 'C'
+    param.deps = []
+    space['C'] = param
+
+    sorted_ids = dsproc.topo_sort_param_ids(space)
+    assert all([a == b for a, b in zip(sorted_ids, ['C', 'B', 'A'])])
+
+    # Has cycle
+    space['C'].deps = ['A']
+    sorted_ids = dsproc.topo_sort_param_ids(space)
+    assert all([a == b for a, b in zip(sorted_ids, ['C', 'B', 'A'])])
+
+def test_partition(mocker):
+    #pylint:disable=missing-docstring
+
+    # Mock sorting function
+    mocker.patch('autodse.dsproc.dsproc.topo_sort_param_ids', return_value=['C', 'B', 'A'])
+
+    space = {}
+    param = DesignParameter()
+    param.name = 'A'
+    param.ds_type = 'PARALLEL'
+    param.option_expr = '[x for x in range(10) if x==1 or B!="flatten" and C!="flatten"]'
+    param.deps = ['B', 'C']
+    param.default = 0
+    space['A'] = param
+
+    param = DesignParameter()
+    param.name = 'B'
+    param.ds_type = 'PIPELINE'
+    param.option_expr = '[x for x in ["off", "", "flatten"] if x=="off" or C!="flatten"]'
+    param.order = {'expr': '0 if x!="flatten" else 1', 'var': 'x'}
+    param.deps = ['C']
+    param.default = 'off'
+    space['B'] = param
+
+    param = DesignParameter()
+    param.name = 'C'
+    param.ds_type = 'PIPELINE'
+    param.option_expr = '[x for x in ["off", "", "flatten"] if x=="off" or A&(A-1)==0]'
+    param.order = {'expr': '0 if x!="flatten" else 1', 'var': 'x'}
+    param.deps = ['A']
+    param.default = 'off'
+    space['C'] = param
+
+    # Part: C(off, on), B(off, on)
+    # Part: C(off, on), B(flatten)
+    # Part: C(flatten), B(off)
+    parts = dsproc.partition(space, 8)
+    assert len(parts) == 3
+
+    # Part: C(off, on), B(off, on, flatten)
+    # Part: C(flatten), B(off)
+    parts = dsproc.partition(space, 2)
+    assert len(parts) == 2

@@ -10,7 +10,6 @@ unit_test:
 	pytest
 
 conv:
-	#pytest --cov --cov-report=xml:cov.xml
 	pytest --cov=autodse
 
 doc:

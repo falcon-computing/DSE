@@ -6,6 +6,7 @@ build
 
 # IDE / env settings
 .vscode
+setup.cfg
 venv
 
 # Unit test / coverage reports
