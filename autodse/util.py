@@ -3,31 +3,23 @@ The utilizes of Merlin DSE module.
 """
 from typing import Dict, Any, Union, Optional
 import logging
-import math #pylint: disable=unused-import
+import math
 
 LOG = logging.getLogger('Util')
 
-SAFE_LIST = {'builtins': ['range'],
-             'math': ['ceil', 'floor', 'pow', 'log', 'log10', 'fabs', 'fmod',
-                      'exp', 'frexp', 'sqrt']}
-
-SAFE_BUILTINS = {'builtins': None}
-for pkg in SAFE_LIST:
-    if pkg == 'builtins':
-        for func in SAFE_LIST[pkg]:
-            try:
-                func_obj = __builtins__[func]
-                SAFE_BUILTINS[func] = func_obj
-            except KeyError:
-                LOG.warning('Failed to import function %s', func)
-    else:
-        pkg_obj = locals().get(pkg, None)
-        for func in SAFE_LIST[pkg]:
-            try:
-                func_obj = getattr(pkg_obj, func)
-                SAFE_BUILTINS[func] = func_obj
-            except AttributeError as err:
-                LOG.warning('Failed to import function %s', func)
+SAFE_BUILTINS: Dict[str, Any] = {'builtins': None}
+SAFE_BUILTINS['range'] = range
+SAFE_BUILTINS['ceil'] = math.ceil
+SAFE_BUILTINS['floor'] = math.floor
+SAFE_BUILTINS['pow'] = math.pow
+SAFE_BUILTINS['log'] = math.log
+SAFE_BUILTINS['log10'] = math.log10
+SAFE_BUILTINS['fabs'] = math.fabs
+SAFE_BUILTINS['fmod'] = math.fmod
+SAFE_BUILTINS['exp'] = math.exp
+SAFE_BUILTINS['frexp'] = math.frexp
+SAFE_BUILTINS['sqrt'] = math.sqrt
+SAFE_LIST = list(SAFE_BUILTINS.keys())
 
 def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> Any:
     """A safe wrapper of Python builtin eval
@@ -45,7 +37,7 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
             The evaluated value
     """
     table = dict(SAFE_BUILTINS)
-    if local:
+    if local is not None:
         table.update(local)
 
     try:

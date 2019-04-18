@@ -20,4 +20,3 @@ class DesignParameter(object):
         self.child: List[str] = []
 
 DesignSpace = Dict[str, DesignParameter]
-

@@ -2,10 +2,10 @@
 Design Space Processor
 """
 
-from typing import Optional, Dict, List, Tuple, Union, Set
+from typing import Optional, Dict, List, Tuple, Union, Set, Deque
 from copy import deepcopy
 from logging import getLogger
-from queue import deque
+from collections import deque
 import os
 import ast
 import json
@@ -49,7 +49,7 @@ class DSProc():
                 LOG.error('Fail to load design space: %s', str(err))
                 return None
 
-        params = {}
+        params: Dict[str, DesignParameter] = {}
         for param_id, param_config in user_ds_config.items():
             param = create_design_parameter(param_id, param_config)
             if param:
@@ -135,10 +135,9 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
         names.remove(iter_val)
 
     # Ignore legal builtin functions
-    for _, funcs in SAFE_LIST.items():
-        for func in funcs:
-            if func in names:
-                names.remove(func)
+    for func in SAFE_LIST:
+        if func in names:
+            names.remove(func)
 
     # Ignore builtin primitive type casting
     for ptype in ['int', 'str', 'float']:
@@ -167,7 +166,7 @@ def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
         stree = ast.parse(order_expr)
     except SyntaxError:
         LOG.error('"order" error: Illegal order expression %s', order_expr)
-        return (False, [])
+        return (False, '')
 
     # Traverse AST of the expression for the variable
     names = set()
@@ -269,8 +268,8 @@ def topo_sort_param_ids(space: DesignSpace) -> List[str]:
                 helper(dep, visited, stack)
         stack.append(curr_id)
 
-    visited = set()
-    stack = []
+    visited: Set[str] = set()
+    stack: List[str] = []
     for pid in space.keys():
         if pid not in visited:
             helper(pid, visited, stack)
@@ -298,7 +297,7 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
     part_queue = deque([deepcopy(space)])
     ptr = 0
     while len(part_queue) < limit and ptr < len(space):
-        next_queue = deque()
+        next_queue: Deque[DesignSpace] = deque()
         while part_queue:
             # Partition based on the current parameter
             curr_space = part_queue.pop()
@@ -311,7 +310,7 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
                 local[dep] = curr_space[dep].default
 
             # Evaluate the available options
-            parts = None
+            parts: Optional[Dict[int, List[Union[str, int]]]] = None
             if param.order and param.ds_type == 'PIPELINE':
                 for option in safe_eval(param.option_expr, local):
                     part_idx = safe_eval(param.order['expr'], {param.order['var']: option})

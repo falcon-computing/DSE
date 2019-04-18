@@ -1,4 +1,6 @@
 setuptools
+future
+mypy
 pylint
 pytest
 pytest-cov
