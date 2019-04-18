@@ -12,8 +12,8 @@ unit_test:
 format:
 	yapf -ir --style=tests/lint/yapf_style.cfg autodse
 
-conv:
-	pytest --cov=autodse
+cov:
+	pytest --cov=autodse --cov-config=tests/lint/coveragerc
 
 doc:
 	make -C docs clean html
