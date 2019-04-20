@@ -3,6 +3,7 @@ build
 
 # Temp files
 *.log
+*.db
 
 # IDE / env settings
 .vscode
