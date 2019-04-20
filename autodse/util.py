@@ -1,11 +1,12 @@
 """
 The utilizes of Merlin DSE module.
 """
-import logging
 import math
 from typing import Any, Dict, Optional, Union
 
-LOG = logging.getLogger('Util')
+from .logger import get_logger
+
+LOG = get_logger('Util')
 
 SAFE_BUILTINS: Dict[str, Any] = {'builtins': None}
 SAFE_BUILTINS['range'] = range

@@ -19,4 +19,4 @@ doc:
 	make -C docs clean html
 
 clean:
-	rm -rf .coverage *.xml *.log *.pyc
+	rm -rf .coverage *.xml *.log *.pyc *.db

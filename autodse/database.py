@@ -2,12 +2,14 @@
 The module of result database.
 """
 import os
-from logging import getLogger
+import pickle
 from threading import Lock
 from time import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-LOG = getLogger('Database')
+from .logger import get_logger
+
+LOG = get_logger('Database')
 
 
 class DesignParameter(object):
@@ -121,8 +123,80 @@ class Database():
         raise NotImplementedError()
 
 
-#class RedisDatabase(Database):
-#    """The database implementation using Redis"""
+class RedisDatabase(Database):
+    """The database implementation using Redis"""
+
+    def __init__(self, name: str, persist: Optional[str] = None):
+        import redis
+        super(RedisDatabase, self).__init__(name, persist)
+
+        #TODO: scale-out
+        self.database = redis.StrictRedis(host='localhost', port=6379)
+
+        # Check the connection
+        try:
+            self.database.client_list()
+        except redis.ConnectionError:
+            LOG.error('Failed to connect to Redis database')
+            self.database = None
+            raise RuntimeError()
+
+        # Load existing data
+        # Note that the dumped data for RedisDatabase should be in pickle format
+        if os.path.exists(self.db_file_path):
+            with open(self.db_file_path, 'rb') as filep:
+                try:
+                    data = pickle.load(filep)
+                except ValueError as err:
+                    LOG.error('Failed to initialize the database: %s', str(err))
+                    raise RuntimeError()
+            self.database.hmset(self.db_id, data)
+
+    def __del__(self):
+        """Delete the data we generated in Redis database"""
+        if self.database:
+            self.database.delete(self.db_id)
+            if self.database.exists(self.db_id):
+                LOG.warning('Fail to cleanup the Redis database')
+            else:
+                LOG.info('Detach and cleanup the Redis database')
+
+    def query(self, key: str) -> Optional[ResultBase]:
+        #pylint:disable=missing-docstring
+
+        if not self.database.hexists(self.db_id, key):
+            return None
+
+        pickled_obj = self.database.hget(self.db_id, key)
+        try:
+            return pickle.loads(pickled_obj)
+        except ValueError as err:
+            LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
+            return None
+
+    def commit(self, key: str, result: ResultBase) -> bool:
+        #pylint:disable=missing-docstring
+
+        pickled_result = pickle.dumps(result)
+        if self.database.hset(self.db_id, key, pickled_result) == 0:
+            LOG.warning('Overridded the value of %s in result DB', key)
+        return True
+
+    def count(self) -> int:
+        #pylint:disable=missing-docstring
+        return len(self.database.hkeys(self.db_id))
+
+    def persist(self) -> bool:
+        #pylint:disable=missing-docstring
+
+        dump_db = {
+            key: self.database.hget(self.db_id, key)
+            for key in self.database.hgetall(self.db_id)
+        }
+        with open(self.db_file_path, 'wb') as filep:
+            pickle.dump(dump_db, filep, pickle.HIGHEST_PROTOCOL)
+
+        return True
 
 
 class PickleDatabase(Database):
@@ -142,7 +216,8 @@ class PickleDatabase(Database):
         self.database: pickledb.PickleDB = {}
 
         try:
-            # Load the Pickle database with auto dump enabled
+            # Load the Pickle database
+            # Note that we cannot enable auto dump since we will pickle all data before persisting
             self.database = pickledb.load(self.db_file_path, False)
 
             # Decode objects

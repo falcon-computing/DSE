@@ -13,4 +13,5 @@ TBA: more description
              ResultBase,
              HLSResult,
              Database,
+             RedisDatabase
              PickleDatabase

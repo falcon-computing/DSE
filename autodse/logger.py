@@ -64,3 +64,7 @@ LOGGING_CONFIG_DICT = {
     }
 }
 dictConfig(LOGGING_CONFIG_DICT)
+
+def get_logger(name: str):
+    """Attach a logger with specified name"""
+    return logging.getLogger(name)

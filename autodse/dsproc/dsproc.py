@@ -4,13 +4,13 @@ Design Space Processor
 import ast
 from collections import deque
 from copy import deepcopy
-from logging import getLogger
 from typing import Deque, Dict, List, Optional, Set, Tuple, Union
 
+from ..logger import get_logger
 from ..database import DesignParameter, DesignSpace
 from ..util import SAFE_LIST, safe_eval
 
-LOG = getLogger('DSProc')
+LOG = get_logger('DSProc')
 
 
 def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
