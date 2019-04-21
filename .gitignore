@@ -4,10 +4,11 @@ build
 # Temp files
 *.log
 *.db
+*.tox
+*.egg-info
 
 # IDE / env settings
 .vscode
-setup.cfg
 venv
 
 # Unit test / coverage reports

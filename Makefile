@@ -6,6 +6,9 @@ lint:
 	python3 -m pylint autodse --rcfile=tests/lint/pylintrc
 	mypy autodse/
 
+tox:
+	tox
+
 unit_test:
 	pytest
 
@@ -19,4 +22,4 @@ doc:
 	make -C docs clean html
 
 clean:
-	rm -rf .coverage *.xml *.log *.pyc *.db
+	rm -rf .coverage *.xml *.log *.pyc *.db *.tox *.egg-info
