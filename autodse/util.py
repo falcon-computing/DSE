@@ -2,6 +2,8 @@
 The utilizes of Merlin DSE module.
 """
 import math
+import os
+import shutil
 from typing import Any, Dict, Optional, Union
 
 from .logger import get_logger
@@ -47,3 +49,34 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
     except NameError as err:
         LOG.error('eval failed: %s', str(err))
         raise
+
+
+def copy_dir(src: str, dest: str) -> bool:
+    """Recursively copy a directory
+
+    Parameters
+    ----------
+    src:
+        The source directory
+
+    dest:
+        The destination directory
+
+    Returns
+    -------
+    bool:
+        Indicate if the copy was success or not
+    """
+
+    if os.path.exists(dest):
+        shutil.rmtree(dest, ignore_errors=True)
+
+    try:
+        shutil.copytree(src, dest)
+    except shutil.Error as err: # Directories are the same
+        LOG.error('Directory not copied. Error: %s', str(err))
+        return False
+    except OSError as err: # Any error saying that the directory doesn't exist
+        LOG.error('Directory not copied. Error: %s', str(err))
+        return False
+    return True

@@ -31,6 +31,7 @@ class MerlinParameter(DesignParameter):
         self.ds_type: str = 'UNKNOWN'
 
 DesignSpace = Dict[str, DesignParameter]
+DesignPoint = Dict[str, str]
 
 
 def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:

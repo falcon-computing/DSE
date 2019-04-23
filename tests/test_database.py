@@ -5,7 +5,8 @@ import os
 import pytest
 
 from autodse import logger
-from autodse.database import HLSResult, PickleDatabase, RedisDatabase
+from autodse.database import PickleDatabase, RedisDatabase
+from autodse.result import HLSResult
 
 LOG = logger.get_logger('UNIT-TEST')
 

@@ -12,6 +12,9 @@ Merlin AutoDSE Documentation
 
     dsproc
     database
+    evaluator
+    parameter
+    result
 
 Indices and tables
 ==================

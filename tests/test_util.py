@@ -2,6 +2,7 @@
 The unit test module for util.
 """
 import pytest
+import shutil
 
 from autodse import util
 
@@ -24,3 +25,17 @@ def test_save_eval():
     # Use not allowed builtins
     with pytest.raises(NameError):
         ret = util.safe_eval('[sin(x) for x in range(3)]')
+
+def test_copy_dir(mocker):
+    #pylint:disable=missing-docstring
+
+    # Normal copy
+    patcher = mocker.patch('shutil.copytree', return_value=None)
+    assert util.copy_dir('a', 'b')
+    patcher.assert_called_once()
+
+    # Encounter errors
+    patcher.side_effect = shutil.Error()
+    assert not util.copy_dir('a', 'b')
+    patcher.side_effect = OSError()
+    assert not util.copy_dir('a', 'b')

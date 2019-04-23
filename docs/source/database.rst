@@ -9,9 +9,6 @@ TBA: more description
 
 
 .. automodule:: autodse.database
-   :members: DesignParameter,
-             ResultBase,
-             HLSResult,
-             Database,
-             RedisDatabase
+   :members: Database,
+             RedisDatabase,
              PickleDatabase
