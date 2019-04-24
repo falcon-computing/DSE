@@ -4,7 +4,8 @@ The utilizes of Merlin DSE module.
 import math
 import os
 import shutil
-from typing import Any, Dict, Optional, Union
+from subprocess import PIPE, Popen, TimeoutExpired
+from typing import Any, Dict, Optional, Tuple, Union
 
 from .logger import get_logger
 
@@ -73,10 +74,40 @@ def copy_dir(src: str, dest: str) -> bool:
 
     try:
         shutil.copytree(src, dest)
-    except shutil.Error as err: # Directories are the same
+    except shutil.Error as err:  # Directories are the same
         LOG.error('Directory not copied. Error: %s', str(err))
         return False
-    except OSError as err: # Any error saying that the directory doesn't exist
+    except OSError as err:  # Any error saying that the directory doesn't exist
         LOG.error('Directory not copied. Error: %s', str(err))
         return False
     return True
+
+
+def command(cmd: str, timeout: Optional[int] = None) -> Tuple[bool, str]:
+    """Run an OS command
+
+    Parameters
+    ----------
+    cmd:
+        The string of the given command.
+
+    timeout:
+        The time limit of running this command.
+
+    Returns
+    -------
+    Tuple[bool, str]:
+        Indicate if the command was success and the stdout of the command.
+    """
+
+    try:
+        proc = Popen([cmd], stdout=PIPE, stderr=PIPE, shell=True)
+        stdout, _ = proc.communicate(timeout=timeout)
+        return (True, stdout)
+    except ValueError as err:
+        LOG.error('Command %s has errors: %s', cmd, str(err))
+        return (False, '')
+    except TimeoutExpired:
+        proc.kill()
+        stdout, _ = proc.communicate()
+        return (False, stdout)

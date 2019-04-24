@@ -6,8 +6,7 @@ from copy import deepcopy
 from typing import Deque, Dict, List, Optional, Set, Union
 
 from ..logger import get_logger
-from ..parameter import (DesignParameter, DesignSpace, MerlinParameter,
-                         create_design_parameter)
+from ..parameter import (DesignParameter, DesignSpace, MerlinParameter, create_design_parameter)
 from ..util import safe_eval
 
 LOG = get_logger('DSProc')

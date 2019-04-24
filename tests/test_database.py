@@ -8,11 +8,13 @@ from autodse import logger
 from autodse.database import PickleDatabase, RedisDatabase
 from autodse.result import HLSResult
 
-LOG = logger.get_logger('UNIT-TEST')
+LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
 
 
 def test_redis_database():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing Redis database start')
 
     # Clean up to avoid re-run errors
     if os.path.exists('./redisDB_test.db'):
@@ -60,9 +62,13 @@ def test_redis_database():
     # Clean up
     os.remove('./redisDB_test.db')
 
+    LOG.debug('=== Testing Redis database end')
+
 
 def test_pickle_database():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing PickleDB database start')
 
     # Clean up to avoid re-run errors
     if os.path.exists('./pickleDB_test.db'):
@@ -115,3 +121,5 @@ def test_pickle_database():
 
     # Clean up
     os.remove('./pickleDB_test.db')
+
+    LOG.debug('=== Testing PickleDB database end')

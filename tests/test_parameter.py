@@ -1,12 +1,18 @@
 """
 The unit test module for parameter.
 """
-from autodse.parameter import (MerlinParameter, check_option_syntax,
-                               check_order_syntax, create_design_parameter)
+from autodse import logger
+from autodse.parameter import (MerlinParameter, check_option_syntax, check_order_syntax,
+                               create_design_parameter)
+
+LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
 
 
 def test_check_option_syntax():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing check_option_syntax start')
+
     # Basic
     ds_opt0 = "[32,64,128,256,512]"
     ret0 = check_option_syntax(ds_opt0)
@@ -37,9 +43,14 @@ def test_check_option_syntax():
     assert ret4[0], 'expect success'
     assert not ret4[1], 'expect no dependency'
 
+    LOG.debug('=== Testing check_option_syntax end')
+
 
 def test_check_order_syntax():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing check_order_syntax start')
+
     # Basic
     exp0 = "0 if x!='flatten' else 1"
     ret0 = check_order_syntax(exp0)
@@ -64,9 +75,14 @@ def test_check_order_syntax():
     ret2 = check_order_syntax(exp2)
     assert not ret2[0], 'expect failure'
 
+    LOG.debug('=== Testing check_order_syntax end')
+
 
 def test_create_design_parameter():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing create_design_parameter start')
+
     # Basic
     param_id = 'X'
     ds_config = {
@@ -118,3 +134,5 @@ def test_create_design_parameter():
     param = create_design_parameter(param_id, ds_config, MerlinParameter)
     assert param is not None, 'expect to be created'
     assert param.ds_type == 'UNKNOWN'
+
+    LOG.debug('=== Testing create_design_parameter end')

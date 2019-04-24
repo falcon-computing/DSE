@@ -1,10 +1,11 @@
 """
 The unit test module for util.
 """
-import pytest
 import shutil
+import pytest
 
 from autodse import util
+
 
 def test_save_eval():
     #pylint:disable=missing-docstring
@@ -25,6 +26,7 @@ def test_save_eval():
     # Use not allowed builtins
     with pytest.raises(NameError):
         ret = util.safe_eval('[sin(x) for x in range(3)]')
+
 
 def test_copy_dir(mocker):
     #pylint:disable=missing-docstring

@@ -1,12 +1,19 @@
 """
 The unit test module for dsproc.
 """
+
+from autodse import logger
 from autodse.dsproc import dsproc
 from autodse.parameter import DesignParameter, MerlinParameter
+
+LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
 
 
 def test_compile_design_space(mocker):
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing compile_design_space start')
+
     # Basic
     ds_config = {'X': {}}
     param = DesignParameter()
@@ -22,9 +29,14 @@ def test_compile_design_space(mocker):
     ret = dsproc.compile_design_space(ds_config)
     assert ret is None
 
+    LOG.debug('=== Testing compile_design_space end')
+
 
 def test_check_design_space():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing check_design_space start')
+
     # Basic
     params = {}
     param = DesignParameter()
@@ -60,9 +72,14 @@ def test_check_design_space():
     params['B'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
 
+    LOG.debug('=== Testing check_design_space end')
+
 
 def test_topo_sort_param_ids():
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing topo_sort_param_ids start')
+
     # Basic
     space = {}
     param = DesignParameter()
@@ -88,9 +105,13 @@ def test_topo_sort_param_ids():
     sorted_ids = dsproc.topo_sort_param_ids(space)
     assert all([a == b for a, b in zip(sorted_ids, ['C', 'B', 'A'])])
 
+    LOG.debug('=== Testing topo_sort_param_ids end')
+
 
 def test_partition(mocker):
     #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing partition start')
 
     # Mock sorting function
     mocker.patch('autodse.dsproc.dsproc.topo_sort_param_ids', return_value=['C', 'B', 'A'])
@@ -132,3 +153,5 @@ def test_partition(mocker):
     # Part: C(flatten), B(off)
     parts = dsproc.partition(space, 2)
     assert len(parts) == 2
+
+    LOG.debug('=== Testing partition end')

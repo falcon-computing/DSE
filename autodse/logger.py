@@ -65,6 +65,19 @@ LOGGING_CONFIG_DICT = {
 }
 dictConfig(LOGGING_CONFIG_DICT)
 
-def get_logger(name: str):
+
+def set_level(level: str) -> None:
+    """Set the log level globally"""
+    log = logging.getLogger()
+    log.setLevel(level)
+
+
+def get_logger(name: str, level: str = 'DEFAULT', propagate: bool = False) -> logging.Logger:
     """Attach a logger with specified name"""
-    return logging.getLogger(name)
+    if level != 'DEFAULT' and propagate:
+        set_level(level)
+
+    log = logging.getLogger(name)
+    if level != 'DEFAULT' and not propagate:
+        log.setLevel(level)
+    return log

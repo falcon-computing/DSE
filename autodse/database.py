@@ -5,7 +5,7 @@ import os
 import pickle
 from threading import Lock
 from time import time
-from typing import Optional, Union
+from typing import Optional, Union, List, Tuple
 
 from .logger import get_logger
 from .result import ResultBase
@@ -14,7 +14,7 @@ LOG = get_logger('Database')
 
 
 class Database():
-    """The base module of result database with API definitions"""
+    """The base class of result database with API definitions"""
 
     def __init__(self, name: str, db_file_path: Optional[str] = None):
         self.db_id = '{0}-{1}'.format(name, int(time()))
@@ -28,6 +28,21 @@ class Database():
 
     def query(self, key: str) -> Optional[ResultBase]:
         """Query for the value by the given key
+
+        Parameters
+        ----------
+        key:
+            The key of a design point.
+
+        Returns
+        -------
+        Optional[ResultBase]:
+            The result object of the corresponding key, or None if the key is unavailable.
+        """
+        raise NotImplementedError()
+
+    def batch_query(self, keys: List[str]) -> List[Optional[ResultBase]]:
+        """Query for a list of the values by the given key list
 
         Parameters
         ----------
@@ -56,6 +71,21 @@ class Database():
         -------
         bool:
             True if the commit was success; otherwise False.
+        """
+        raise NotImplementedError()
+
+    def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
+        """Commit a new result to the database
+
+        Parameters
+        ----------
+        pairs:
+            A list of key-result pairs
+
+        Returns
+        -------
+        int:
+            Indicate the number of committed data.
         """
         raise NotImplementedError()
 
@@ -132,6 +162,21 @@ class RedisDatabase(Database):
             LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
             return None
 
+    def batch_query(self, keys: List[str]) -> List[Optional[ResultBase]]:
+        #pylint:disable=missing=docstring
+
+        data = []
+        for key, pickled_obj in zip(keys, self.database.hmget(self.db_id, keys)):
+            if pickled_obj:
+                try:
+                    data.append(pickle.loads(pickled_obj))
+                except ValueError as err:
+                    LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
+                    data.append(None)
+            else:
+                data.append(None)
+        return data
+
     def commit(self, key: str, result: ResultBase) -> bool:
         #pylint:disable=missing-docstring
 
@@ -139,6 +184,13 @@ class RedisDatabase(Database):
         if self.database.hset(self.db_id, key, pickled_result) == 0:
             LOG.warning('Overridded the value of %s in result DB', key)
         return True
+
+    def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
+        #pylint:disable=missing-docstring
+
+        data = [(key, pickle.dumps(result)) for key, result in pairs]
+        self.database.hmset(self.db_id, data)
+        return len(data)
 
     def count(self) -> int:
         #pylint:disable=missing-docstring
@@ -194,6 +246,17 @@ class PickleDatabase(Database):
         self.lock.release()
         return value if isinstance(value, ResultBase) else None
 
+    def batch_query(self, keys: List[str]) -> List[Optional[ResultBase]]:
+        #pylint:disable=missing=docstring
+
+        self.lock.acquire()
+        values: List[Optional[ResultBase]] = []
+        for key in keys:
+            value = self.database.get(key)
+            values.append(value if isinstance(value, ResultBase) else None)
+        self.lock.release()
+        return values
+
     def commit(self, key: str, result: ResultBase) -> bool:
         #pylint:disable=missing-docstring
 
@@ -203,6 +266,17 @@ class PickleDatabase(Database):
         self.database.set(key, result)
         self.lock.release()
         return True
+
+    def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
+        #pylint:disable=missing-docstring
+
+        self.lock.acquire()
+        for key, result in pairs:
+            if self.database.exists(key):
+                LOG.warning('Overriding the value of %s in result DB', key)
+            self.database.set(key, result)
+        self.lock.release()
+        return len(pairs)
 
     def count(self) -> int:
         #pylint:disable=missing-docstring

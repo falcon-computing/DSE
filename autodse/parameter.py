@@ -9,6 +9,7 @@ from .util import SAFE_LIST
 
 LOG = get_logger('Parameter')
 
+
 class DesignParameter(object):
     """A tunable design parameter"""
 
@@ -30,8 +31,26 @@ class MerlinParameter(DesignParameter):
         super(MerlinParameter, self).__init__(name)
         self.ds_type: str = 'UNKNOWN'
 
+
 DesignSpace = Dict[str, DesignParameter]
 DesignPoint = Dict[str, str]
+
+
+def gen_key_from_design_point(point: DesignPoint) -> str:
+    """Generate a unique key from the given design point
+
+    Parameters
+    ----------
+    point:
+        The given design point
+
+    Returns
+    -------
+    str:
+        The generated key
+    """
+
+    return ';'.join(['{0}:{1};'.format(pid, point[pid]) for pid in sorted(point.keys())])
 
 
 def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
@@ -149,13 +168,13 @@ def create_design_parameter(param_id: str, ds_config: Dict[str, Union[str, int]]
 
         # Type checking
         if 'ds_type' not in ds_config:
-            LOG.warning('Missing attribute "ds_type" in %s. Some optimization may not be triggered',
-                        param_id)
+            LOG.warning(
+                'Missing attribute "ds_type" in %s. Some optimization may not be triggered',
+                param_id)
         else:
             param.ds_type = str(ds_config['ds_type']).upper()
     else:
         param = MerlinParameter(param_id)
-
 
     # General settings for parameters
     # Option checking
