@@ -34,12 +34,14 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
         param = create_design_parameter(param_id, param_config, MerlinParameter)
         if param:
             params[param_id] = param
-            print(param.__dict__)
+            #print(param.__dict__)
 
     error = check_design_space(params)
     if error > 0:
         LOG.error('Design space has %d errors', error)
         return None
+
+    analyze_child_in_design_space(params)
 
     LOG.info('Finished design space compilation')
     return params
@@ -70,6 +72,24 @@ def check_design_space(params: DesignSpace) -> int:
                 LOG.error('Parameter %s depends on %s which is undefined or not allowed', pid, dep)
                 error += 1
     return error
+
+def analyze_child_in_design_space(params: DesignSpace) -> None:
+    """Traverse design parameter dependency and build child list for each parameter in place
+
+    Parameters
+    ----------
+    params:
+        The overall design space
+    """
+
+    # Setup child for each parameter
+    for pid, param in params.items():
+        for dep in param.deps:
+            params[dep].child.append(pid)
+
+    # Remove duplications
+    for param in params.values():
+        param.child = list(dict.fromkeys(param.child))
 
 
 def topo_sort_param_ids(space: DesignSpace) -> List[str]:

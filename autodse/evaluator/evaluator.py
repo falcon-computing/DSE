@@ -6,7 +6,7 @@ import re
 import shutil
 import tempfile
 from enum import Enum
-from typing import List, Optional, Set, Tuple, Type
+from typing import Dict, List, Optional, Set, Type
 
 from ..database import Database
 from ..logger import get_logger
@@ -25,6 +25,12 @@ class EvalMode(Enum):
     PROFILE = 2
 
 
+class BackupMode(Enum):
+    NO_BACKUP = 0
+    BACKUP_ERROR = 1
+    BACKUP_ALL = 2
+
+
 class Evaluator():
     """Main evaluator class"""
 
@@ -35,6 +41,7 @@ class Evaluator():
                  db: Database,
                  scheduler: Scheduler,
                  analyzer_cls: Type[Analyzer],
+                 backup_mode: BackupMode,
                  temp_prefix: str = 'eval'):
         self.mode = mode
         self.db = db
@@ -42,6 +49,7 @@ class Evaluator():
         self.work_path = work_path
         self.temp_dir_prefix = '{0}_'.format(temp_prefix)
         self.scheduler = scheduler
+        self.backup_mode = backup_mode
         self.analyzer = analyzer_cls
 
         if os.path.exists(self.work_path):
@@ -134,10 +142,10 @@ class Evaluator():
         job.status = Job.Status.APPLIED
         return error == 0
 
-    def submit(self, jobs: List[Job], timeout: int = 0) -> int:
+    def submit(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
         """Submit a list of jobs for evaluation and get desired result files.
-           When this method returns, the wanted result files should be available locally except for
-           duplicated jobs.
+           1) When this method returns, the wanted result files should be available locally
+           except for duplicated jobs. 2) All results will be committed to the database.
 
         Parameters
         ----------
@@ -149,39 +157,12 @@ class Evaluator():
 
         Returns
         -------
-        int:
-            The number of success jobs.
+        List[ResultBase]:
+            Results to jobs in the list order.
         """
 
-        pending_dup: List[Job] = []
-        for job in jobs:
-            if job.status != Job.Status.APPLIED:
-                LOG.error('Job at %s is not ready for evaluation', job.path)
-            else:
-                pending_dup.append(job)
-
-        if not pending_dup:
-            LOG.error('No valid jobs for evaluation')
-            return 0
-
-        LOG.debug('Check %d jobs for duplications', len(pending_dup))
-
-        pending_eval: List[Job] = []
-
-        # Check and bypass duplications
-        dups = 0
-        for job, result in zip(pending_dup, self.db.batch_query([job.key for job in pending_dup])):
-            if result:
-                dups += 1
-                LOG.debug('Job %s is evaluated already', job.key)
-            else:
-                pending_eval.append(job)
-
-        if not pending_eval:
-            LOG.debug('All jobs are duplications')
-            return dups
-
-        LOG.debug('Submit %d jobs for evaluation', len(pending_eval))
+        assert all([job.status == Job.Status.APPLIED for job in jobs])
+        LOG.debug('Submit %d jobs for evaluation', len(jobs))
 
         # Determine the submission flow
         if self.mode == EvalMode.FAST:
@@ -190,12 +171,29 @@ class Evaluator():
             submitter = self.submit_accurate
         else:
             LOG.error('Evaluation mode %s does has not yet supported', self.mode)
-            return 0
+            raise RuntimeError()
 
-        # Submit un-evaluated jobs
-        return submitter(pending_eval, timeout) + dups
+        # Submit un-evaluated jobs and commit results to the database
+        results = submitter(jobs, timeout)
+        self.db.batch_commit([(job.key, result) for job, result in zip(jobs, results)])
 
-    def submit_fast(self, jobs: List[Job], timeout: int = 0) -> int:
+        # Backup jobs if needed
+        if self.backup_mode == BackupMode.NO_BACKUP:
+            for job in jobs:
+                shutil.rmtree(job.path)
+        else:
+            if self.backup_mode == BackupMode.BACKUP_ERROR:
+                for job, result in zip(jobs, results):
+                    if result.ret_code == 0:
+                        shutil.rmtree(job.path)
+
+            # Rename the backup directory based on design points
+            for job in jobs:
+                if os.path.exists(job.path):
+                    os.rename(job.path, os.path.join(self.work_path, job.key))
+        return results
+
+    def submit_fast(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
         """The job submission flow for fast mode.
 
         Parameters
@@ -208,12 +206,13 @@ class Evaluator():
 
         Returns
         -------
-        int:
-            Indicate the number of success jobs.
+        List[ResultBase]:
+            Result to each job. The ret_code in each result should be 0 if the evaluation was done
+            successfully; otherwise it should be a negative number.
         """
         raise NotImplementedError()
 
-    def submit_accurate(self, jobs: List[Job], timeout: int = 0) -> int:
+    def submit_accurate(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
         """The job submission flow for accurate mode.
 
         Parameters
@@ -226,8 +225,9 @@ class Evaluator():
 
         Returns
         -------
-        int:
-            Indicate the number of success jobs.
+        List[ResultBase]:
+            Result to each job. The ret_code in each result should be 0 if the evaluation was done
+            successfully; otherwise it should be a negative number.
         """
         raise NotImplementedError()
 
@@ -236,71 +236,69 @@ class MerlinEvaluator(Evaluator):
     """Evaluate Merlin compiler projects"""
 
     def __init__(self, src_path: str, work_path: str, mode: EvalMode, db: Database,
-                 scheduler: Scheduler, analyzer_cls: Type[MerlinAnalyzer]):
+                 scheduler: Scheduler, analyzer_cls: Type[MerlinAnalyzer],
+                 backup_mode: BackupMode):
         super(MerlinEvaluator, self).__init__(src_path, work_path, mode, db, scheduler,
-                                              analyzer_cls, 'merlin')
+                                              analyzer_cls, backup_mode, 'merlin')
 
-    def submit_fast(self, jobs: List[Job], timeout: int = 0) -> int:
+    def submit_fast(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
         #pylint:disable=missing-docstring
 
-        success = 0
+        rets: List[ResultBase] = [ResultBase(ret_code=-1)] * len(jobs)
 
         # Run Merlin transformations and make sure it works as expected
-        pending_hls: List[Job] = []
-        pending_commit: List[Tuple[str, ResultBase]] = []
+        pending_hls: Dict[int, Job] = {}
         desired = self.analyzer.desire('transform')
-        for job, is_success in zip(jobs, self.scheduler.run(jobs, desired, 'make mcc_acc',
+        for idx, is_success in enumerate(self.scheduler.run(jobs, desired, 'make mcc_acc',
                                                             timeout)):
             if is_success:
-                result = self.analyzer.analyze(job, 'transform')
+                result = self.analyzer.analyze(jobs[idx], 'transform')
                 if not result:
                     LOG.error('Failed to analyze result of %s after Merlin transformation',
-                              job.key)
+                              jobs[idx].key)
                     continue
                 assert isinstance(result, MerlinResult)
                 if not result.criticals:
                     # No critical problems, keep running HLS
-                    pending_hls.append(job)
+                    pending_hls[idx] = jobs[idx]
                 else:
                     # Merlin failed to perform certain transformations, stop here
                     # but still consider as a success evaluation
-                    pending_commit.append((job.key, result))
-                    success += 1
+                    rets[idx] = result
+
+        if not pending_hls:
+            LOG.debug('All jobs are stopped at the Merlin transform stage.')
+            return rets
 
         # Run HLS and analyze the Merlin report
         desired = self.analyzer.desire('hls')
-        for job, is_success in zip(
-                pending_hls, self.scheduler.run(pending_hls, desired, 'make mcc_estimate',
-                                                timeout)):
+        idxs, pending_jobs = zip(*pending_hls.items())  # type: ignore
+        for idx, is_success in zip(
+                idxs, self.scheduler.run(pending_jobs, desired, 'make mcc_estimate', timeout)):
             if is_success:
-                result = self.analyzer.analyze(job, 'hls')
+                result = self.analyzer.analyze(jobs[idx], 'hls')
                 if not result:
-                    LOG.error('Failed to analyze result of %s after HLS', job.key)
+                    LOG.error('Failed to analyze result of %s after HLS', jobs[idx].key)
                     continue
-                success += 1
+                rets[idx] = result
                 assert isinstance(result, HLSResult)
-                pending_commit.append((job.key, result))
 
-        self.db.batch_commit(pending_commit)
-        return success
+        return rets
 
-    def submit_accurate(self, jobs: List[Job], timeout: int = 0) -> int:
+    def submit_accurate(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
         #pylint:disable=missing-docstring
 
-        success = 0
+        rets: List[ResultBase] = [ResultBase(ret_code=-1)] * len(jobs)
 
-        pending_commit: List[Tuple[str, ResultBase]] = []
         desired = self.analyzer.desire('bitgen')
-        for job, is_success in zip(jobs,
-                                   self.scheduler.run(jobs, desired, 'make mcc_bitgen', timeout)):
+        for idx, is_success in enumerate(
+                self.scheduler.run(jobs, desired, 'make mcc_bitgen', timeout)):
             if is_success:
-                result = self.analyzer.analyze(job, 'bitgen')
+                result = self.analyzer.analyze(jobs[idx], 'bitgen')
                 if not result:
-                    LOG.error('Failed to analyze result of %s after bitgen', job.key)
+                    LOG.error('Failed to analyze result of %s after bitgen', jobs[idx].key)
                     continue
-                success += 1
                 assert isinstance(result, BitgenResult)
-                pending_commit.append((job.key, result))
+                rets[idx] = result
 
-        self.db.batch_commit(pending_commit)
-        return success
+        return rets

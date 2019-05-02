@@ -22,6 +22,7 @@ class DesignParameter(object):
         self.order: Dict[str, str] = {}
         self.deps: List[str] = []
         self.child: List[str] = []
+        self.value: Union[str, int] = 1
 
 
 class MerlinParameter(DesignParameter):
@@ -33,7 +34,7 @@ class MerlinParameter(DesignParameter):
 
 
 DesignSpace = Dict[str, DesignParameter]
-DesignPoint = Dict[str, str]
+DesignPoint = Dict[str, Union[int, str]]
 
 
 def gen_key_from_design_point(point: DesignPoint) -> str:
@@ -47,10 +48,13 @@ def gen_key_from_design_point(point: DesignPoint) -> str:
     Returns
     -------
     str:
-        The generated key
+        The generated key in the format of "param1-value1.param2-value2"
     """
 
-    return ';'.join(['{0}:{1};'.format(pid, point[pid]) for pid in sorted(point.keys())])
+    return '.'.join([
+        '{0}-{1}'.format(pid,
+                         str(point[pid]) if point[pid] else 'NA') for pid in sorted(point.keys())
+    ])
 
 
 def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:

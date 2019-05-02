@@ -31,6 +31,33 @@ def test_compile_design_space(mocker):
 
     LOG.debug('=== Testing compile_design_space end')
 
+def test_analyze_child_in_design_space():
+    #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing analyze_child_in_design_space start')
+
+    space = {}
+    param = MerlinParameter()
+    param.name = 'A'
+    param.deps = ['B', 'C']
+    space['A'] = param
+
+    param = MerlinParameter()
+    param.name = 'B'
+    param.deps = ['C']
+    space['B'] = param
+
+    param = MerlinParameter()
+    param.name = 'C'
+    param.deps = ['A']
+    space['C'] = param
+
+    dsproc.analyze_child_in_design_space(space)
+    assert len(space['A'].child) == 1 and space['A'].child[0] == 'C'
+    assert len(space['B'].child) == 1 and space['B'].child[0] == 'A'
+    assert len(space['C'].child) == 2 and 'A' in space['C'].child and 'B' in space['C'].child
+
+    LOG.debug('=== Testing analyze_child_in_design_space end')
 
 def test_check_design_space():
     #pylint:disable=missing-docstring

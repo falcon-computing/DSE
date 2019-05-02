@@ -29,7 +29,7 @@ class LogFormatter(logging.Formatter):
 
 logging.Formatter = LogFormatter  # type: ignore
 
-LOGGING_CONFIG_DICT = {
+DEFAULT_LOGGING_CONFIG_DICT = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -63,7 +63,32 @@ LOGGING_CONFIG_DICT = {
         }
     }
 }
-dictConfig(LOGGING_CONFIG_DICT)
+
+ALGO_LOGGING_CONFIG_DICT = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'file': {
+            'format':
+            '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'
+        }
+    },
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'algo.log',
+            'formatter': 'file',
+            'level': 'DEBUG'
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True
+        }
+    }
+}
 
 
 def set_level(level: str) -> None:
@@ -72,11 +97,16 @@ def set_level(level: str) -> None:
     log.setLevel(level)
 
 
-def get_logger(name: str, level: str = 'DEFAULT', propagate: bool = False) -> logging.Logger:
+def get_logger(name: str, level: str = 'DEFAULT', propagate: bool = False,
+               config: str = 'DEFAULT') -> logging.Logger:
     """Attach a logger with specified name"""
     if level != 'DEFAULT' and propagate:
         set_level(level)
 
+    if config == 'ALGORITHM':
+        dictConfig(ALGO_LOGGING_CONFIG_DICT)
+    else:
+        dictConfig(DEFAULT_LOGGING_CONFIG_DICT)
     log = logging.getLogger(name)
     if level != 'DEFAULT' and not propagate:
         log.setLevel(level)
