@@ -1,21 +1,19 @@
 """
 The main module of search algorithm.
 """
-from typing import Generator, List, Union
+from typing import Generator, List, Optional, Union
 
 from ..logger import get_logger
 from ..parameter import DesignSpace, DesignPoint
 from ..result import ResultBase
 from ..util import safe_eval
 
-LOG = get_logger('SearchAlgorithm', config='ALGORITHM')
-
-
 class SearchAlgorithm():
     """Main serach algorithm class"""
 
-    def __init__(self, ds: DesignSpace):
+    def __init__(self, ds: DesignSpace, log_file_name: str = ''):
         self.ds = ds
+        self.log = get_logger('Search', config='ALGORITHM', file_name=log_file_name)
 
     def get_default_point(self) -> DesignPoint:
         """Generate a design point with all default values
@@ -86,7 +84,7 @@ class SearchAlgorithm():
         options = self.gen_options(point, pid)
         value = point[pid]
         if not options:  # All invalid (something not right), set to default
-            LOG.warning('No valid options for %s with point %s', pid, str(point))
+            self.log.warning('No valid options for %s with point %s', pid, str(point))
             point[pid] = self.ds[pid].default
             return False
 
@@ -127,7 +125,7 @@ class SearchAlgorithm():
             options = self.gen_options(point, pid)
             idx = options.index(point[pid])
         except (AttributeError, ValueError) as err:
-            LOG.error(
+            self.log.error(
                 'Fail to identify the index of value %s of parameter %s at design point %s: %s',
                 point[pid], pid, str(point), str(err))
             raise RuntimeError()
@@ -159,7 +157,7 @@ class SearchAlgorithm():
         """
         return dict(point)
 
-    def gen(self) -> Generator[List[DesignPoint], List[ResultBase], None]:
+    def gen(self) -> Generator[List[DesignPoint], Optional[List[ResultBase]], None]:
         """The main generator function of search algorithm
 
         Returns

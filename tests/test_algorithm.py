@@ -1,17 +1,20 @@
 """
 The unit test module for design point manipulation in search algorithm.
 """
+import pytest
 
 from autodse import logger
-from autodse.parameter import MerlinParameter
 from autodse.explorer.algorithm import SearchAlgorithm
+from autodse.explorer.algorithmfactory import AlgorithmFactory
+from autodse.explorer.exhaustive import ExhaustiveAlgorithm
+from autodse.parameter import MerlinParameter
 
 LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
 
-def test_algorithm():
-    #pylint:disable=missing-docstring
 
-    LOG.debug('=== Testing design point manipulation in search algorithm start ===')
+@pytest.fixture
+def fixture_space():
+    #pylint:disable=missing-docstring
 
     space = {}
     param = MerlinParameter()
@@ -31,13 +34,20 @@ def test_algorithm():
 
     param = MerlinParameter()
     param.name = 'C'
-    param.option_expr = '[x for x in ["off", "", "flatten"]]'# if x=="off" or A&(A-1)==0]'
+    param.option_expr = '[x for x in ["off", "", "flatten"]]'  # if x=="off" or A&(A-1)==0]'
     #param.deps = ['A']
     param.child = ['A', 'B']
     param.default = 'off'
     space['C'] = param
+    return space
 
-    algo = SearchAlgorithm(space)
+
+def test_algorithm(fixture_space):
+    #pylint:disable=missing-docstring, redefined-outer-name
+
+    LOG.debug('=== Testing design point manipulation in search algorithm start ===')
+
+    algo = SearchAlgorithm(fixture_space)
 
     # Test default point generation
     point = algo.get_default_point()
@@ -74,3 +84,16 @@ def test_algorithm():
     assert algo.move_by(point2, 'C', -99) == -2
 
     LOG.debug('=== Testing design point manipulation in search algorithm end ===')
+
+
+def test_algorithm_factory(fixture_space):
+    #pylint:disable=missing-docstring, redefined-outer-name
+
+    LOG.debug('=== Testing algorithm factory start ===')
+
+    # Create an exhaustive algorithm
+    config = {'name': 'exhaustive', 'exhaustive': {'batch-size': 7}}
+    algo = AlgorithmFactory.make(config, fixture_space, '')
+    assert isinstance(algo, ExhaustiveAlgorithm)
+
+    LOG.debug('=== Testing algorithm factory end ===')

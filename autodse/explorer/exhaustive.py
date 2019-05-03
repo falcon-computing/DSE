@@ -1,15 +1,12 @@
 """
 The exhaustive search algorithm
 """
-from typing import Generator, List
+from typing import Generator, List, Optional
 
 from .algorithm import SearchAlgorithm
 from ..dsproc.dsproc import topo_sort_param_ids
-from ..logger import get_logger
 from ..parameter import DesignPoint, DesignSpace
 from ..result import ResultBase
-
-LOG = get_logger('Exhaustive', config='ALGORITHM')
 
 class ExhaustiveAlgorithm(SearchAlgorithm):
     """Exhaustively explore the design space. The order is based on the topological order
@@ -17,8 +14,8 @@ class ExhaustiveAlgorithm(SearchAlgorithm):
        the batch size for evaluation.
     """
 
-    def __init__(self, ds: DesignSpace, batch_size: int = 8):
-        super(ExhaustiveAlgorithm, self).__init__(ds)
+    def __init__(self, ds: DesignSpace, batch_size: int = 8, log_file_name: str = ''):
+        super(ExhaustiveAlgorithm, self).__init__(ds, log_file_name)
         self.batch_size = batch_size
         self.ordered_pids = topo_sort_param_ids(ds)
 
@@ -51,10 +48,10 @@ class ExhaustiveAlgorithm(SearchAlgorithm):
                 yield from self.traverse(new_point, idx + 1)
                 new_point = self.clone_point(new_point)
 
-    def gen(self) -> Generator[List[DesignPoint], List[ResultBase], None]:
+    def gen(self) -> Generator[List[DesignPoint], Optional[List[ResultBase]], None]:
         #pylint:disable=missing-docstring
 
-        LOG.info('Launch exhaustive search algorithm')
+        self.log.info('Launch exhaustive search algorithm')
 
         traverser = self.traverse(self.get_default_point(), 0)
         iter_cnt = 0
@@ -62,14 +59,14 @@ class ExhaustiveAlgorithm(SearchAlgorithm):
             next_points: List[DesignPoint] = []
             try:
                 iter_cnt += 1
-                LOG.info('Iteration %d', iter_cnt)
+                self.log.info('Iteration %d', iter_cnt)
                 while len(next_points) < self.batch_size:
                     next_points.append(next(traverser))
-                    LOG.info('\t%s', str(next_points[-1]))
+                    self.log.info('\t%s', str(next_points[-1]))
                 yield next_points
             except StopIteration:
                 if next_points:
                     yield next_points
                 break
 
-        LOG.info('No more points to be explored, stop.')
+        self.log.info('No more points to be explored, stop.')

@@ -96,76 +96,92 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
                                '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST,
                                required_args['db'], required_args['scheduler'],
                                required_args['analyzer_cls'], BackupMode.NO_BACKUP)
-    job = eval_ins.create_job()
 
-    # Apply a design point
-    point = {'PE': 4, 'R': ''}
-    eval_ins.apply_design_point(job, point)
-
-    def mock_analyze_ok(job, mode):
-        if mode == 'transform':
-            return MerlinResult(job.key)
-        if mode == 'hls':
-            return HLSResult(job.key)
-        return BitgenResult(job.key)
-
-    def mock_analyze_fail1(job, mode):
-        #pylint:disable=unused-argument
-        """Transform failure"""
-        return None
-
-    def mock_analyze_fail2(job, mode):
-        """HLS failure"""
-        if mode == 'transform':
-            return MerlinResult(job.key)
-        return None
-
-    def mock_analyze_fail3(job, mode):
-        """Transform has errors"""
-        if mode == 'transform':
-            result = MerlinResult(job.key)
-            result.criticals.append('memory_burst_failed')
-            return result
-        if mode == 'hls':
-            return HLSResult(job.key)
-        return BitgenResult(job.key)
+    # Test timeout setup, although we will not use it in this test
+    eval_ins.set_timeout({'transform': 3, 'hls': 30, 'bitgen': 480})
 
     # Submit for evaluation (FAST)
-    mocker.patch.object(eval_ins.analyzer, 'desire', return_value=[])
-    mocker.patch.object(eval_ins.analyzer, 'analyze', new=mock_analyze_ok)
-    results = eval_ins.submit([job])
-    assert results[0].ret_code == 0
+    with mocker.patch.object(eval_ins.analyzer, 'desire', return_value=[]):
 
-    # Fail to analyze transformation result
-    job2 = eval_ins.create_job()
-    point = {'PE': 5, 'R': ''}
-    eval_ins.apply_design_point(job2, point)
-    mocker.patch.object(eval_ins.analyzer, 'analyze', new=mock_analyze_fail1)
-    results = eval_ins.submit([job2])
-    assert results[0].ret_code == -1
+        def mock_analyze_ok(job, mode):
+            if mode == 'transform':
+                return MerlinResult(job.key)
+            if mode == 'hls':
+                return HLSResult(job.key)
+            return BitgenResult(job.key)
 
-    # No backup so the job directory should be gone
-    assert not os.path.exists(job2.path)
+        with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_ok):
+            # Fail due to miss setting up the command
+            job0 = eval_ins.create_job()
+            point = {'PE': 3, 'R': ''}
+            eval_ins.apply_design_point(job0, point)
+            results = eval_ins.submit([job0])
+            assert results[0].ret_code == -1
 
-    eval_ins.backup_mode = BackupMode.BACKUP_ERROR
+            # Set up commands and re-submit, although we have mocked the execution so
+            # those commands will not be executed in this test.
+            eval_ins.set_command({
+                'transform': 'make mcc_acc',
+                'hls': 'make mcc_estimate',
+                'bitgen': 'make mcc_bitgne'
+            })
+            job1 = eval_ins.create_job()
+            point = {'PE': 4, 'R': ''}
+            eval_ins.apply_design_point(job1, point)
+            results = eval_ins.submit([job1])
+            assert results[0].ret_code == 0
 
-    # Fail to analyze HLS result
-    job3 = eval_ins.create_job()
-    point = {'PE': 6, 'R': ''}
-    eval_ins.apply_design_point(job3, point)
-    mocker.patch.object(eval_ins.analyzer, 'analyze', new=mock_analyze_fail2)
-    results = eval_ins.submit([job3])
-    assert results[0].ret_code == -1
-    assert not os.path.exists(job3.path)
-    assert os.path.exists('{0}/temp_eval_work/{1}'.format(test_dir, job3.key))
+        def mock_analyze_fail1(job, mode):
+            #pylint:disable=unused-argument
+            """Transform failure"""
+            return None
 
-    # Fail to pass Merlin transform (early reject)
-    job4 = eval_ins.create_job()
-    point = {'PE': 7, 'R': ''}
-    eval_ins.apply_design_point(job4, point)
-    mocker.patch.object(eval_ins.analyzer, 'analyze', new=mock_analyze_fail3)
-    results = eval_ins.submit([job4])
-    assert results[0].ret_code == 0
-    assert not os.path.exists(job4.path)
+        with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail1):
+            # Fail to analyze transformation result
+            job2 = eval_ins.create_job()
+            point = {'PE': 5, 'R': ''}
+            eval_ins.apply_design_point(job2, point)
+            results = eval_ins.submit([job2])
+            assert results[0].ret_code == -1
+
+            # No backup so the job directory should be gone
+            assert not os.path.exists(job2.path)
+
+        eval_ins.backup_mode = BackupMode.BACKUP_ERROR
+
+        def mock_analyze_fail2(job, mode):
+            """HLS failure"""
+            if mode == 'transform':
+                return MerlinResult(job.key)
+            return None
+
+        with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail2):
+            # Fail to analyze HLS result
+            job3 = eval_ins.create_job()
+            point = {'PE': 6, 'R': ''}
+            eval_ins.apply_design_point(job3, point)
+            results = eval_ins.submit([job3])
+            assert results[0].ret_code == -1
+            assert not os.path.exists(job3.path)
+            assert os.path.exists('{0}/temp_eval_work/{1}'.format(test_dir, job3.key))
+
+        def mock_analyze_fail3(job, mode):
+            """Transform has errors"""
+            if mode == 'transform':
+                result = MerlinResult(job.key)
+                result.criticals.append('memory_burst_failed')
+                return result
+            if mode == 'hls':
+                return HLSResult(job.key)
+            return BitgenResult(job.key)
+    
+        with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail3):
+            # Fail to pass Merlin transform (early reject)
+            job4 = eval_ins.create_job()
+            point = {'PE': 7, 'R': ''}
+            eval_ins.apply_design_point(job4, point)
+            results = eval_ins.submit([job4])
+            assert results[0].ret_code == 0
+            assert not os.path.exists(job4.path)
 
     LOG.debug('=== Testing evaluator phase 2 end')

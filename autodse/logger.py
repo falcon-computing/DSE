@@ -1,6 +1,7 @@
 """
 The format and config of logging.
 """
+from copy import deepcopy
 import logging
 from logging import LogRecord
 from logging.config import dictConfig
@@ -38,8 +39,8 @@ DEFAULT_LOGGING_CONFIG_DICT = {
         },
         'file': {
             'format':
-            '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s '
-            '@%(filename)s:%(lineno)d'
+            '[%(relativeCreated)6.0fs][%(process)d][%(thread)d] %(levelname)7s %(name)s: '
+            '%(message)s'
         }
     },
     'handlers': {
@@ -98,13 +99,18 @@ def set_level(level: str) -> None:
 
 
 def get_logger(name: str, level: str = 'DEFAULT', propagate: bool = False,
-               config: str = 'DEFAULT') -> logging.Logger:
+               config: str = 'DEFAULT', file_name: str = 'DEFAULT') -> logging.Logger:
     """Attach a logger with specified name"""
     if level != 'DEFAULT' and propagate:
         set_level(level)
 
     if config == 'ALGORITHM':
-        dictConfig(ALGO_LOGGING_CONFIG_DICT)
+        if file_name and file_name != 'DEFAULT':
+            config_dict = deepcopy(ALGO_LOGGING_CONFIG_DICT)
+            config_dict['handlers']['file']['filename'] = file_name # type: ignore
+            dictConfig(config_dict)
+        else:
+            dictConfig(ALGO_LOGGING_CONFIG_DICT)
     else:
         dictConfig(DEFAULT_LOGGING_CONFIG_DICT)
     log = logging.getLogger(name)

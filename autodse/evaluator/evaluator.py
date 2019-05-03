@@ -51,6 +51,8 @@ class Evaluator():
         self.scheduler = scheduler
         self.backup_mode = backup_mode
         self.analyzer = analyzer_cls
+        self.timeouts: Dict[str, int] = {'transform': 0, 'hls': 0, 'bitgen': 0}
+        self.commands: Dict[str, str] = {}
 
         if os.path.exists(self.work_path):
             shutil.rmtree(self.work_path, ignore_errors=True)
@@ -74,6 +76,30 @@ class Evaluator():
         if not self.src_files:
             LOG.error('Cannot find any kernel files with auto pragma.')
             raise RuntimeError()
+
+    def set_timeout(self, config: Dict[str, int]) -> None:
+        """Set timeout to a specific evaluation mode
+
+        Parameters
+        ----------
+        config:
+            A mode-timeout pair to specify the timeout in minutes for each mode.
+        """
+
+        for mode, timeout in config.items():
+            self.timeouts[mode] = timeout
+
+    def set_command(self, config: Dict[str, str]) -> None:
+        """Set command to a specific evaluation mode
+
+        Parameters
+        ----------
+        config:
+            A mode-command pair to specify the command to be executed for each mode.
+        """
+
+        for mode, command in config.items():
+            self.commands[mode] = command
 
     def create_job(self) -> Optional[Job]:
         """Create a new folder and copy source code for a design point to be evaluated
@@ -142,7 +168,7 @@ class Evaluator():
         job.status = Job.Status.APPLIED
         return error == 0
 
-    def submit(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
+    def submit(self, jobs: List[Job]) -> List[ResultBase]:
         """Submit a list of jobs for evaluation and get desired result files.
            1) When this method returns, the wanted result files should be available locally
            except for duplicated jobs. 2) All results will be committed to the database.
@@ -174,7 +200,7 @@ class Evaluator():
             raise RuntimeError()
 
         # Submit un-evaluated jobs and commit results to the database
-        results = submitter(jobs, timeout)
+        results = submitter(jobs)
         self.db.batch_commit([(job.key, result) for job, result in zip(jobs, results)])
 
         # Backup jobs if needed
@@ -193,7 +219,7 @@ class Evaluator():
                     os.rename(job.path, os.path.join(self.work_path, job.key))
         return results
 
-    def submit_fast(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
+    def submit_fast(self, jobs: List[Job]) -> List[ResultBase]:
         """The job submission flow for fast mode.
 
         Parameters
@@ -212,7 +238,7 @@ class Evaluator():
         """
         raise NotImplementedError()
 
-    def submit_accurate(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
+    def submit_accurate(self, jobs: List[Job]) -> List[ResultBase]:
         """The job submission flow for accurate mode.
 
         Parameters
@@ -241,16 +267,24 @@ class MerlinEvaluator(Evaluator):
         super(MerlinEvaluator, self).__init__(src_path, work_path, mode, db, scheduler,
                                               analyzer_cls, backup_mode, 'merlin')
 
-    def submit_fast(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
+    def submit_fast(self, jobs: List[Job]) -> List[ResultBase]:
         #pylint:disable=missing-docstring
 
         rets: List[ResultBase] = [ResultBase(ret_code=-1)] * len(jobs)
 
+        # Check commands
+        if 'transform' not in self.commands:
+            LOG.error('Command for transform is not properly set up.')
+            return rets
+        if 'hls' not in self.commands:
+            LOG.error('Command for HLS is not properly set up.')
+            return rets
+
         # Run Merlin transformations and make sure it works as expected
         pending_hls: Dict[int, Job] = {}
-        desired = self.analyzer.desire('transform')
-        for idx, is_success in enumerate(self.scheduler.run(jobs, desired, 'make mcc_acc',
-                                                            timeout)):
+        sche_rets = self.scheduler.run(jobs, self.analyzer.desire('transform'),
+                                       self.commands['transform'], self.timeouts['transform'])
+        for idx, is_success in enumerate(sche_rets):
             if is_success:
                 result = self.analyzer.analyze(jobs[idx], 'transform')
                 if not result:
@@ -271,10 +305,10 @@ class MerlinEvaluator(Evaluator):
             return rets
 
         # Run HLS and analyze the Merlin report
-        desired = self.analyzer.desire('hls')
         idxs, pending_jobs = zip(*pending_hls.items())  # type: ignore
-        for idx, is_success in zip(
-                idxs, self.scheduler.run(pending_jobs, desired, 'make mcc_estimate', timeout)):
+        sche_rets = self.scheduler.run(pending_jobs, self.analyzer.desire('hls'),
+                                       self.commands['hls'], self.timeouts['hls'])
+        for idx, is_success in zip(idxs, sche_rets):
             if is_success:
                 result = self.analyzer.analyze(jobs[idx], 'hls')
                 if not result:
@@ -285,14 +319,19 @@ class MerlinEvaluator(Evaluator):
 
         return rets
 
-    def submit_accurate(self, jobs: List[Job], timeout: int = 0) -> List[ResultBase]:
+    def submit_accurate(self, jobs: List[Job]) -> List[ResultBase]:
         #pylint:disable=missing-docstring
 
         rets: List[ResultBase] = [ResultBase(ret_code=-1)] * len(jobs)
 
-        desired = self.analyzer.desire('bitgen')
-        for idx, is_success in enumerate(
-                self.scheduler.run(jobs, desired, 'make mcc_bitgen', timeout)):
+        # Check commands
+        if 'bitgen' not in self.commands:
+            LOG.error('Command for bitgen is not properly set up.')
+            return rets
+
+        sche_rets = self.scheduler.run(jobs, self.analyzer.desire('bitgen'),
+                                       self.commands['bitgen'], self.timeouts['bitgen'])
+        for idx, is_success in enumerate(sche_rets):
             if is_success:
                 result = self.analyzer.analyze(jobs[idx], 'bitgen')
                 if not result:
