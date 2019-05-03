@@ -8,7 +8,7 @@ from autodse.evaluator import analyzer, scheduler
 from autodse.evaluator.evaluator import BackupMode, EvalMode, Evaluator
 from autodse.explorer.algorithm import SearchAlgorithm
 from autodse.explorer.explorer import Explorer
-from autodse.result import ResultBase, Job
+from autodse.result import Job, ResultBase
 
 LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
 

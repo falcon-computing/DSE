@@ -9,3 +9,7 @@ Sphinx
 sphinx_rtd_theme
 yapf
 tox
+argparse
+jsonpickle
+pickledb
+redis
