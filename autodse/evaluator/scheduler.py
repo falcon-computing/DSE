@@ -3,6 +3,7 @@ The main module of job schedulers.
 """
 import os
 import shutil
+import signal
 import time
 from typing import List, Optional
 
@@ -94,10 +95,17 @@ class PythonSubprocessScheduler(Scheduler):
                 if idx >= len(jobs):
                     break
                 copy_dir(jobs[idx].path, '{0}_work'.format(jobs[idx].path))
+
+                # Since we use shell=True to launch a new bash in order to make sure the command
+                # is executed as it in the bash shell, we need to also set start_new_session=True
+                # in order to send the kill signal when timeout or interrupt because proc.kill()
+                # is not working when shell=True.
+                # See https://stackoverflow.com/questions/4789837 for details.
                 proc = Popen('cd {0}_work; {1}'.format(jobs[idx].path, cmd),
                              stdout=DEVNULL,
                              stderr=DEVNULL,
-                             shell=True)
+                             shell=True,
+                             start_new_session=True)
                 procs.append((idx, proc))
 
             if not procs:
@@ -129,13 +137,13 @@ class PythonSubprocessScheduler(Scheduler):
                     LOG.debug('%d processes timeout (%.2f mins)', len(procs), time_limit)
                     for idx, proc in procs:
                         rets[idx] = True
-                        proc.kill()
+                        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
                         self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),
                                                      jobs[idx].path, keep_files)
             except KeyboardInterrupt:
                 LOG.warning('Received user keyboard interrupt, stopping the process.')
                 for idx, proc in procs:
-                    proc.kill()
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
                     self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path), jobs[idx].path,
                                                  keep_files)
                 break
