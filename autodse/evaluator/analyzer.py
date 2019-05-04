@@ -5,10 +5,10 @@ import json
 import os
 from typing import List, Optional, Tuple
 
-from ..logger import get_logger
+from ..logger import get_eval_logger
 from ..result import HLSResult, Job, MerlinResult, ResultBase
 
-LOG = get_logger('Analyzer')
+LOG = get_eval_logger('Analyzer')
 
 
 class Analyzer():

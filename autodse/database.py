@@ -7,10 +7,10 @@ from threading import Lock
 from time import time
 from typing import Optional, Union, List, Tuple
 
-from .logger import get_logger
+from .logger import get_default_logger
 from .result import ResultBase
 
-LOG = get_logger('Database')
+LOG = get_default_logger('Database')
 
 
 class Database():
@@ -188,7 +188,7 @@ class RedisDatabase(Database):
     def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
         #pylint:disable=missing-docstring
 
-        data = [(key, pickle.dumps(result)) for key, result in pairs]
+        data = {key: pickle.dumps(result) for key, result in pairs}
         self.database.hmset(self.db_id, data)
         return len(data)
 

@@ -7,11 +7,11 @@ import signal
 import time
 from typing import List, Optional
 
-from ..logger import get_logger
+from ..logger import get_eval_logger
 from ..result import Job
 from ..util import copy_dir
 
-LOG = get_logger('Scheduler')
+LOG = get_eval_logger('Scheduler')
 
 
 class Scheduler():

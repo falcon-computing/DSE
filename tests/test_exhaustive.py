@@ -7,12 +7,13 @@ from autodse.parameter import MerlinParameter
 from autodse.explorer.exhaustive import ExhaustiveAlgorithm
 from autodse.result import ResultBase
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
+
 
 def test_exhaustive():
     #pylint:disable=missing-docstring
 
-    #LOG.debug('=== Testing exhaustive search algorithm start ===')
+    LOG.debug('=== Testing exhaustive search algorithm start ===')
 
     space = {}
     param = MerlinParameter()

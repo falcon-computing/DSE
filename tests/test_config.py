@@ -3,9 +3,10 @@ The unit test module of config.
 """
 
 from autodse.config import build_config
-from autodse.logger import get_logger
+from autodse.logger import get_default_logger
 
-LOG = get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = get_default_logger('UNIT-TEST', 'DEBUG')
+
 
 def test_build_config():
     #pylint:disable=missing-docstring

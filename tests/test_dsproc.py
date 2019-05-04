@@ -6,7 +6,7 @@ from autodse import logger
 from autodse.dsproc import dsproc
 from autodse.parameter import DesignParameter, MerlinParameter
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 def test_compile_design_space(mocker):
@@ -30,6 +30,7 @@ def test_compile_design_space(mocker):
     assert ret is None
 
     LOG.debug('=== Testing compile_design_space end')
+
 
 def test_analyze_child_in_design_space():
     #pylint:disable=missing-docstring
@@ -58,6 +59,7 @@ def test_analyze_child_in_design_space():
     assert len(space['C'].child) == 2 and 'A' in space['C'].child and 'B' in space['C'].child
 
     LOG.debug('=== Testing analyze_child_in_design_space end')
+
 
 def test_check_design_space():
     #pylint:disable=missing-docstring

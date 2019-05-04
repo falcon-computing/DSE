@@ -7,9 +7,9 @@ import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
 from typing import Any, Dict, Optional, Tuple, Union
 
-from .logger import get_logger
+from .logger import get_default_logger
 
-LOG = get_logger('Util')
+LOG = get_default_logger('Util')
 
 SAFE_BUILTINS: Dict[str, Any] = {'builtins': None}
 SAFE_BUILTINS['range'] = range

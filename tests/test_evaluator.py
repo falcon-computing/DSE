@@ -12,7 +12,7 @@ from autodse.evaluator import analyzer, scheduler
 from autodse.evaluator.evaluator import BackupMode, EvalMode, Evaluator, MerlinEvaluator
 from autodse.result import BitgenResult, HLSResult, MerlinResult
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 @pytest.fixture(scope="function")
@@ -174,7 +174,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             if mode == 'hls':
                 return HLSResult(job.key)
             return BitgenResult(job.key)
-    
+
         with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail3):
             # Fail to pass Merlin transform (early reject)
             job4 = eval_ins.create_job()

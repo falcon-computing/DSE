@@ -9,7 +9,7 @@ from autodse.util import copy_dir
 from autodse.evaluator.evaluator import Job
 from autodse.evaluator.scheduler import PythonSubprocessScheduler
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 def test_python_scheduler(test_dir):

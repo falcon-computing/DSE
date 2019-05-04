@@ -30,90 +30,59 @@ class LogFormatter(logging.Formatter):
 
 logging.Formatter = LogFormatter  # type: ignore
 
-DEFAULT_LOGGING_CONFIG_DICT = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'console': {
-            'format': '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'
-        },
-        'file': {
-            'format':
-            '[%(relativeCreated)6.0fs][%(process)d][%(thread)d] %(levelname)7s %(name)s: '
-            '%(message)s'
-        }
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-            'level': 'INFO'
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': 'autodse.log',
-            'formatter': 'file',
-            'level': 'DEBUG'
-        }
-    },
-    'loggers': {
-        '': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True
-        }
-    }
-}
 
-ALGO_LOGGING_CONFIG_DICT = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'file': {
-            'format':
-            '[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'
-        }
-    },
-    'handlers': {
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': 'algo.log',
-            'formatter': 'file',
-            'level': 'DEBUG'
-        }
-    },
-    'loggers': {
-        '': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True
-        }
-    }
-}
+def get_default_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
+    """Attach to the default logger"""
 
-
-def set_level(level: str) -> None:
-    """Set the log level globally"""
-    log = logging.getLogger()
-    log.setLevel(level)
-
-
-def get_logger(name: str, level: str = 'DEFAULT', propagate: bool = False,
-               config: str = 'DEFAULT', file_name: str = 'DEFAULT') -> logging.Logger:
-    """Attach a logger with specified name"""
-    if level != 'DEFAULT' and propagate:
-        set_level(level)
-
-    if config == 'ALGORITHM':
-        if file_name and file_name != 'DEFAULT':
-            config_dict = deepcopy(ALGO_LOGGING_CONFIG_DICT)
-            config_dict['handlers']['file']['filename'] = file_name # type: ignore
-            dictConfig(config_dict)
-        else:
-            dictConfig(ALGO_LOGGING_CONFIG_DICT)
+    logger = logging.getLogger(name)
+    if level != 'DEFAULT':
+        logger.setLevel(level)
     else:
-        dictConfig(DEFAULT_LOGGING_CONFIG_DICT)
-    log = logging.getLogger(name)
-    if level != 'DEFAULT' and not propagate:
-        log.setLevel(level)
-    return log
+        logger.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter('[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    handler = logging.FileHandler('dse.log')
+    handler.setFormatter(
+        logging.Formatter('[%(relativeCreated)6.0fs][%(process)d][%(thread)d] '
+                          '%(levelname)7s %(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    return logger
+
+
+def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> logging.Logger:
+    """Attach to the algorithm logger"""
+
+    logger = logging.getLogger(name)
+    if level != 'DEFAULT':
+        logger.setLevel(level)
+    else:
+        logger.setLevel(logging.DEBUG)
+
+    handler = logging.FileHandler(file_name)
+    handler.setFormatter(
+        logging.Formatter('[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    return logger
+
+
+def get_eval_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
+    """Attach to the evaluator logger"""
+
+    logger = logging.getLogger(name)
+    if level != 'DEFAULT':
+        logger.setLevel(level)
+    else:
+        logger.setLevel(logging.DEBUG)
+
+    handler = logging.FileHandler('eval.log')
+    handler.setFormatter(
+        logging.Formatter('[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    return logger

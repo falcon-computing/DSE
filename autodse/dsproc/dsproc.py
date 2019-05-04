@@ -5,11 +5,11 @@ from collections import deque
 from copy import deepcopy
 from typing import Deque, Dict, List, Optional, Set, Union
 
-from ..logger import get_logger
+from ..logger import get_default_logger
 from ..parameter import (DesignParameter, DesignSpace, MerlinParameter, create_design_parameter)
 from ..util import safe_eval
 
-LOG = get_logger('DSProc')
+LOG = get_default_logger('DSProc')
 
 
 def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
@@ -72,6 +72,7 @@ def check_design_space(params: DesignSpace) -> int:
                 LOG.error('Parameter %s depends on %s which is undefined or not allowed', pid, dep)
                 error += 1
     return error
+
 
 def analyze_child_in_design_space(params: DesignSpace) -> None:
     """Traverse design parameter dependency and build child list for each parameter in place

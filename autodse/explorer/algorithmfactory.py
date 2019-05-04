@@ -6,17 +6,17 @@ from typing import Any, Dict
 
 from .algorithm import SearchAlgorithm
 from .exhaustive import ExhaustiveAlgorithm
-from ..logger import get_logger
+from ..logger import get_default_logger
 from ..parameter import DesignSpace
 
-LOG = get_logger('AlgorithmFactory')
+LOG = get_default_logger('AlgorithmFactory')
 
 
 class AlgorithmFactory():
     """Static class for registering and making algorithm instances"""
 
     @staticmethod
-    def make(config: Dict[str, Any], ds: DesignSpace, log_file_name: str) -> SearchAlgorithm:
+    def make(config: Dict[str, Any], ds: DesignSpace, log_file_name: str = 'algo.log') -> SearchAlgorithm:
         """TBA
         """
 

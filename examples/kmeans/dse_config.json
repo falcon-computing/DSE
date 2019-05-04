@@ -1,0 +1,48 @@
+{
+    "project.name": "kmeans",
+    "project.backup": "BACKUP_ERROR",
+    "timeout.exploration": 1,
+    "timeout.transform": 5,
+    "timeout.hls": 15,
+    "timeout.bitgen": 480,
+    "evaluate.command.transform": "make mcc_acc",
+    "evaluate.command.hls": "make mcc_estimate",
+    "evaluate.command.bitgen": "make mcc_bitgen",
+    "evaluate.estimate-mode": "FAST",
+    "evaluate.worker-per-part": 2,
+    "search.algorithm.name": "exhaustive",
+    "search.algorithm.exhaustive.batch-size": 8,
+    "design-space.max-part-num": 4,
+    "design-space.definition": {
+        "DIST_PAR": {
+            "options": "[x for x in [1,8,16,32] if x==1 or (CGPIP1!='flatten' and CGPIP2!='flatten')]",
+            "default": 1
+        },
+        "R": {
+            "options": "[x for x in['','reduction=dist'] if x=='' or (CGPIP1!='flatten' and CGPIP2!='flatten')]", 
+            "default": ""
+        },
+        "CGPIP2": {
+            "options": "[x for x in ['off','','flatten'] if x=='off' or CGPIP1!='flatten']",
+            "order": "0 if v!='flatten' else 1",
+            "default": "off"
+        },
+        "BW1": {
+            "options": "[32,512]", 
+            "default": 32
+        },
+        "BW2": {
+            "options": "[32,512]", 
+            "default": 32
+        },
+        "CGPIP1": {
+            "options": "['off','','flatten']",
+            "order": "0 if v!='flatten' else 1", 
+            "default": "off"
+        },
+        "TILE": {
+            "options": "[2**x for x in range(15)]",
+            "default": 1
+        }
+    }
+}

@@ -8,13 +8,14 @@ from ..dsproc.dsproc import topo_sort_param_ids
 from ..parameter import DesignPoint, DesignSpace
 from ..result import ResultBase
 
+
 class ExhaustiveAlgorithm(SearchAlgorithm):
     """Exhaustively explore the design space. The order is based on the topological order
        of design parameters. Considering the evaluation overhead, we let users configure
        the batch size for evaluation.
     """
 
-    def __init__(self, ds: DesignSpace, batch_size: int = 8, log_file_name: str = ''):
+    def __init__(self, ds: DesignSpace, batch_size: int = 8, log_file_name: str = 'algo.log'):
         super(ExhaustiveAlgorithm, self).__init__(ds, log_file_name)
         self.batch_size = batch_size
         self.ordered_pids = topo_sort_param_ids(ds)

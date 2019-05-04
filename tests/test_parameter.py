@@ -5,7 +5,7 @@ from autodse import logger
 from autodse.parameter import (MerlinParameter, check_option_syntax, check_order_syntax,
                                create_design_parameter)
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 def test_check_option_syntax():

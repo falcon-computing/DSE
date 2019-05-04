@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from .algorithmfactory import AlgorithmFactory
 from ..evaluator.evaluator import Evaluator
-from ..logger import get_logger
+from ..logger import get_algo_logger
 from ..database import Database
 from ..parameter import DesignSpace, gen_key_from_design_point
 from ..result import ResultBase
@@ -24,9 +24,9 @@ class Explorer():
         self.ds = ds
         self.db = db
         self.evaluator = evaluator
-        self.timeout = timeout
-        self.log_file_name = '{0}_algo.log'.format(tag) if tag else ''
-        self.log = get_logger('Explorer', config='ALGORITHM', file_name=self.log_file_name)
+        self.timeout = timeout * 60.0
+        self.log_file_name = '{0}_algo.log'.format(tag) if tag else 'algo.log'
+        self.log = get_algo_logger('Explorer', self.log_file_name)
 
     def run(self, algo_config: Dict[str, Any]) -> None:
         """The main function of the explorer to launch the search algorithm

@@ -9,7 +9,7 @@ from autodse.explorer.algorithmfactory import AlgorithmFactory
 from autodse.explorer.exhaustive import ExhaustiveAlgorithm
 from autodse.parameter import MerlinParameter
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 @pytest.fixture
@@ -93,7 +93,7 @@ def test_algorithm_factory(fixture_space):
 
     # Create an exhaustive algorithm
     config = {'name': 'exhaustive', 'exhaustive': {'batch-size': 7}}
-    algo = AlgorithmFactory.make(config, fixture_space, '')
+    algo = AlgorithmFactory.make(config, fixture_space)
     assert isinstance(algo, ExhaustiveAlgorithm)
 
     LOG.debug('=== Testing algorithm factory end ===')

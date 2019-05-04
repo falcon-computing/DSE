@@ -9,7 +9,7 @@ from autodse.util import copy_dir
 from autodse.evaluator.analyzer import MerlinAnalyzer
 from autodse.evaluator.evaluator import Job
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 def test_merlin_analyzer(test_dir):

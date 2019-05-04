@@ -4,10 +4,10 @@ The definition of supported design parameters
 import ast
 from typing import Dict, List, Optional, Tuple, Type, Union
 
-from .logger import get_logger
+from .logger import get_default_logger
 from .util import SAFE_LIST
 
-LOG = get_logger('Parameter')
+LOG = get_default_logger('Parameter')
 
 
 class DesignParameter(object):

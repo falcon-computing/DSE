@@ -3,9 +3,9 @@ DSE config settings
 """
 from typing import Any, Dict, Optional
 
-from autodse.logger import get_logger
+from autodse.logger import get_default_logger
 
-LOG = get_logger('Config')
+LOG = get_default_logger('Config')
 
 # All configurable attributes. Please follow the following rules if you want to add new config.
 # 1) Follow the naming: <main-category>.<attribute>.<sub-attribute>

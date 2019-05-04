@@ -10,7 +10,7 @@ from autodse.explorer.algorithm import SearchAlgorithm
 from autodse.explorer.explorer import Explorer
 from autodse.result import Job, ResultBase
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 def test_explorer(mocker):

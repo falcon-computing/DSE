@@ -8,7 +8,7 @@ from autodse import logger
 from autodse.database import PickleDatabase, RedisDatabase
 from autodse.result import HLSResult
 
-LOG = logger.get_logger('UNIT-TEST', 'DEBUG', True)
+LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
 
 def test_redis_database():

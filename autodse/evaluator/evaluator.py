@@ -9,14 +9,14 @@ from enum import Enum
 from typing import Dict, List, Optional, Set, Type
 
 from ..database import Database
-from ..logger import get_logger
+from ..logger import get_eval_logger
 from ..parameter import DesignPoint, gen_key_from_design_point
 from ..result import BitgenResult, HLSResult, Job, MerlinResult, ResultBase
 from ..util import copy_dir
 from .analyzer import Analyzer, MerlinAnalyzer
 from .scheduler import Scheduler
 
-LOG = get_logger('Evaluator')
+LOG = get_eval_logger('Evaluator')
 
 
 class EvalMode(Enum):
@@ -245,9 +245,6 @@ class Evaluator():
         ----------
         job:
             The job object to be submitted.
-
-        timeout:
-            The timeout of the evaluation. Set to 0 to indicate no timeout.
 
         Returns
         -------

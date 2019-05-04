@@ -3,17 +3,18 @@ The main module of search algorithm.
 """
 from typing import Generator, List, Optional, Union
 
-from ..logger import get_logger
+from ..logger import get_algo_logger
 from ..parameter import DesignSpace, DesignPoint
 from ..result import ResultBase
 from ..util import safe_eval
 
+
 class SearchAlgorithm():
     """Main serach algorithm class"""
 
-    def __init__(self, ds: DesignSpace, log_file_name: str = ''):
+    def __init__(self, ds: DesignSpace, log_file_name: str = 'algo.log'):
         self.ds = ds
-        self.log = get_logger('Search', config='ALGORITHM', file_name=log_file_name)
+        self.log = get_algo_logger('Search', log_file_name)
 
     def get_default_point(self) -> DesignPoint:
         """Generate a design point with all default values
