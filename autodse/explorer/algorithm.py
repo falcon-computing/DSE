@@ -48,7 +48,13 @@ class SearchAlgorithm():
             A list of available options.
         """
         dep_values = {dep: point[dep] for dep in self.ds[pid].deps}
-        return safe_eval(self.ds[pid].option_expr, dep_values)
+        options = safe_eval(self.ds[pid].option_expr, dep_values)
+        if options is None:
+            self.log.error('Failed to evaluate %s with dep %s', self.ds[pid].option_expr,
+                           str(dep_values))
+            raise RuntimeError()
+
+        return options
 
     def update_child(self, point: DesignPoint, pid: str) -> None:
         """Check values of affect parameters and update them in place if it is invalid

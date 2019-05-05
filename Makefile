@@ -12,6 +12,11 @@ tox:
 unit_test:
 	pytest
 
+example:
+	rm -f *.log
+	python -m autodse --src-dir=./examples/kmeans --work-dir=./work \
+					  --config=./examples/kmeans/dse_config.json
+
 format:
 	yapf -ir --style=tests/lint/yapf_style.cfg autodse
 	yapf -ir --style=tests/lint/yapf_style.cfg tests
@@ -23,4 +28,4 @@ doc:
 	make -C docs clean html
 
 clean:
-	rm -rf .coverage *.xml *.log *.pyc *.db *.tox *.egg-info tests/temp*
+	rm -rf .coverage *.xml *.log *.pyc *.tox *.egg-info tests/temp*

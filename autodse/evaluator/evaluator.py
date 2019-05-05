@@ -287,6 +287,7 @@ class MerlinEvaluator(Evaluator):
                 if not result:
                     LOG.error('Failed to analyze result of %s after Merlin transformation',
                               jobs[idx].key)
+                    rets[idx].ret_code = -2
                     continue
                 assert isinstance(result, MerlinResult)
                 if not result.criticals:
@@ -310,6 +311,7 @@ class MerlinEvaluator(Evaluator):
                 result = self.analyzer.analyze(jobs[idx], 'hls')
                 if not result:
                     LOG.error('Failed to analyze result of %s after HLS', jobs[idx].key)
+                    rets[idx].ret_code = -2
                     continue
                 rets[idx] = result
                 assert isinstance(result, HLSResult)
@@ -333,6 +335,7 @@ class MerlinEvaluator(Evaluator):
                 result = self.analyzer.analyze(jobs[idx], 'bitgen')
                 if not result:
                     LOG.error('Failed to analyze result of %s after bitgen', jobs[idx].key)
+                    rets[idx].ret_code = -2
                     continue
                 assert isinstance(result, BitgenResult)
                 rets[idx] = result

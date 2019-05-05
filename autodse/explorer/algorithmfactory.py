@@ -16,7 +16,8 @@ class AlgorithmFactory():
     """Static class for registering and making algorithm instances"""
 
     @staticmethod
-    def make(config: Dict[str, Any], ds: DesignSpace, log_file_name: str = 'algo.log') -> SearchAlgorithm:
+    def make(config: Dict[str, Any], ds: DesignSpace,
+             log_file_name: str = 'algo.log') -> SearchAlgorithm:
         """TBA
         """
 

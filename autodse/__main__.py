@@ -20,40 +20,59 @@ from .evaluator.scheduler import PythonSubprocessScheduler
 from .explorer.explorer import Explorer
 
 ARG_PARSER = argparse.ArgumentParser(description='Automatic Design Space Exploration')
-ARG_PARSER.add_argument('--src-dir', action='store', help='Merlin project directory')
-ARG_PARSER.add_argument('--work-dir', action='store', default='.', help='DSE working directory')
-ARG_PARSER.add_argument('--config', action='store', help='path to the configure JSON file')
+ARG_PARSER.add_argument('--src-dir',
+                        required=True,
+                        action='store',
+                        help='Merlin project directory')
+ARG_PARSER.add_argument('--work-dir',
+                        required=True,
+                        action='store',
+                        default='.',
+                        help='DSE working directory')
+ARG_PARSER.add_argument('--config',
+                        required=True,
+                        action='store',
+                        help='path to the configure JSON file')
+ARG_PARSER.add_argument('--db',
+                        required=False,
+                        action='store',
+                        default='',
+                        help='path to the result database')
 ARGS = ARG_PARSER.parse_args()
 
 LOG = get_default_logger('Main')
 
 
 def launch_exploration(ds_list: List[DesignSpace], db: Database, evaluator: Evaluator,
-                       config: Dict[str, Any]):
+                       config: Dict[str, Any]) -> None:
     """Launch exploration"""
 
     pool = []
 
     # Launch a thread pool
-    dse('part0', ds_list[0], db, evaluator, config)
+    with ThreadPoolExecutor(max_workers=len(ds_list)) as executor:
+        for idx, ds in enumerate(ds_list):
+            pool.append(
+                executor.submit(dse,
+                                tag='part{0}'.format(idx),
+                                ds=ds,
+                                db=db,
+                                evaluator=evaluator,
+                                config=config))
 
+        LOG.info('%d explorers have been launched', len(pool))
 
-#    with ThreadPoolExecutor(max_workers=len(ds_list)) as executor:
-#        for idx, ds in enumerate(ds_list):
-#            pool.append(
-#                executor.submit(dse,
-#                                tag='part{0}'.format(idx),
-#                                ds=ds,
-#                                db=db,
-#                                evaluator=evaluator,
-#                                config=config))
-#
-#    cnt = 0
-#    while any([not exe.done() for exe in pool]):
-#        time.sleep(1)
-#        if cnt % 10 == 0:
-#            LOG.info('10 seconds passed')
-#        cnt = 0 if cnt == 10 else cnt + 1
+        ptr: int = 0
+        timer: float = 0  # in minutes
+        anime = ['-', '\\', '|', '/']
+        while any([not exe.done() for exe in pool]):
+            time.sleep(1)
+            if timer < float(config['timeout']['exploration']):
+                print('[{0:4.0f}m] Exploring...{1}'.format(timer, anime[ptr]), end='\r')
+            else:
+                print('[{0:4.0f}m] Finishing...{1}'.format(timer, anime[ptr]), end='\r')
+            ptr = 0 if ptr == 3 else ptr + 1
+            timer += 0.0167
 
 
 def dse(tag: str, ds: DesignSpace, db: Database, evaluator: Evaluator, config: Dict[str, Any]):
@@ -72,6 +91,10 @@ def main() -> None:
 
     src_dir = os.path.abspath(ARGS.src_dir)
     work_dir = os.path.abspath(ARGS.work_dir)
+    if ARGS.db:
+        db_path = os.path.abspath(ARGS.db)
+    else:
+        db_path = os.path.join(work_dir, 'result.db')
 
     # Check and load config
     if not os.path.exists(ARGS.config):
@@ -91,20 +114,26 @@ def main() -> None:
         LOG.error('Config %s is invalid', ARGS.config)
         raise RuntimeError()
 
-    # Initialize workspace
     if not os.path.exists(src_dir):
         LOG.error('Project folder not found: %s', src_dir)
         raise RuntimeError()
 
-    if os.path.exists(work_dir):
-        shutil.rmtree(work_dir)
-    os.mkdir(work_dir)
-
     # Initialize database
-    LOG.info('Initializing the system')
-    db = RedisDatabase(config['project']['name'], os.path.join(work_dir, 'result.db'))
+    LOG.info('Initializing the database')
+    db = RedisDatabase(config['project']['name'], db_path)
+
+    # Initialize workspace
+    LOG.info('Initializing the workspace')
+    if work_dir == os.getcwd():
+        shutil.rmtree('*')
+    else:
+        if os.path.exists(work_dir):
+            shutil.rmtree(work_dir)
+        os.makedirs(work_dir)
 
     # Initialize evaluator
+    LOG.info('Initializing the evaluator with evaluate mode %s and back mode %s',
+             config['evaluate']['estimate-mode'], config['project']['backup'])
     merlin_eval = MerlinEvaluator(src_path=src_dir,
                                   work_path=os.path.join(work_dir, 'evaluate'),
                                   mode=EvalMode[config['evaluate']['estimate-mode']],
@@ -130,6 +159,10 @@ def main() -> None:
     if ds_list is None:
         LOG.error('No design space partition is available for exploration')
         raise RuntimeError()
+
+    #with open('ds_part{0}.json'.format(idx), 'w') as filep:
+    #    filep.write(json.dumps({n: p.__dict__ for n, p in ds.items()}, sort_keys=True, indent=4))
+
     LOG.info('%d parts generated', len(ds_list))
 
     # TODO: profiling and pruning

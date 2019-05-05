@@ -1,16 +1,14 @@
 """
 The format and config of logging.
 """
-from copy import deepcopy
 import logging
-from logging import LogRecord
-from logging.config import dictConfig
+import threading
 
 
 class LogFormatter(logging.Formatter):
     """Customized log formatter."""
 
-    def format(self, record: LogRecord) -> str:
+    def format(self, record: logging.LogRecord) -> str:
         """The customized formatter function
 
         Parameters
@@ -23,8 +21,8 @@ class LogFormatter(logging.Formatter):
         format:
             The customized formatted log data
         """
-        # Display the elapsed time in seconds
-        record.relativeCreated = int(record.relativeCreated / 1000.0)
+        # Display the elapsed time in minutes
+        record.relativeCreated = int(record.relativeCreated / 1000.0 / 60.0)
         return super(LogFormatter, self).format(record)
 
 
@@ -40,22 +38,30 @@ def get_default_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
     else:
         logger.setLevel(logging.DEBUG)
 
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter('[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'))
-    logger.addHandler(handler)
+    handler1 = logging.StreamHandler()
+    handler1.setFormatter(
+        logging.Formatter('[%(relativeCreated)4.0fm] %(levelname)7s %(name)s: %(message)s'))
+    logger.addHandler(handler1)
 
-    handler = logging.FileHandler('dse.log')
-    handler.setFormatter(
-        logging.Formatter('[%(relativeCreated)6.0fs][%(process)d][%(thread)d] '
-                          '%(levelname)7s %(name)s: %(message)s'))
-    logger.addHandler(handler)
+    handler2 = logging.FileHandler('dse.log')
+    handler2.setFormatter(
+        logging.Formatter('[%(relativeCreated)4.0fm] %(levelname)7s %(name)s: %(message)s'))
+    logger.addHandler(handler2)
 
     return logger
 
 
 def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> logging.Logger:
     """Attach to the algorithm logger"""
+
+    class ThreadFilter():
+        """TBA"""
+
+        def __init__(self, tid):
+            self.tid = tid
+
+        def filter(self, record):
+            return record.thread == self.tid
 
     logger = logging.getLogger(name)
     if level != 'DEFAULT':
@@ -65,7 +71,8 @@ def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> loggin
 
     handler = logging.FileHandler(file_name)
     handler.setFormatter(
-        logging.Formatter('[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'))
+        logging.Formatter('[%(relativeCreated)4.0fm] %(levelname)7s %(name)s: %(message)s'))
+    handler.addFilter(ThreadFilter(threading.get_ident())) # type: ignore
     logger.addHandler(handler)
 
     return logger
@@ -82,7 +89,8 @@ def get_eval_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
 
     handler = logging.FileHandler('eval.log')
     handler.setFormatter(
-        logging.Formatter('[%(relativeCreated)6.0fs] %(levelname)7s %(name)s: %(message)s'))
+        logging.Formatter('[%(relativeCreated)4.0fm][%(thread)d] '
+                          '%(levelname)7s %(name)s: %(message)s'))
     logger.addHandler(handler)
 
     return logger

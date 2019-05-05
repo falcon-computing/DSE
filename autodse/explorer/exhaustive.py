@@ -63,7 +63,7 @@ class ExhaustiveAlgorithm(SearchAlgorithm):
                 self.log.info('Iteration %d', iter_cnt)
                 while len(next_points) < self.batch_size:
                     next_points.append(next(traverser))
-                    self.log.info('\t%s', str(next_points[-1]))
+                    self.log.info('%s', str(next_points[-1]))
                 yield next_points
             except StopIteration:
                 if next_points:

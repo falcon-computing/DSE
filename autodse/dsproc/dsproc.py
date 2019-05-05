@@ -176,8 +176,16 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
             # Evaluate the available options
             parts: Optional[Dict[int, List[Union[str, int]]]] = None
             if param.order and isinstance(param, MerlinParameter) and param.ds_type == 'PIPELINE':
-                for option in safe_eval(param.option_expr, local):
+                options = safe_eval(param.option_expr, local)
+                if options is None:
+                    LOG.error('Failed to evaluate options for parameter %s', param.name)
+                    return None
+                for option in options:
                     part_idx = safe_eval(param.order['expr'], {param.order['var']: option})
+                    if part_idx is None:
+                        LOG.error('Failed to evaluate the order of option %s in parameter %s',
+                                  option, param.name)
+                        return None
                     if parts is None:
                         parts = {}
                     if part_idx not in parts:
@@ -189,7 +197,7 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
                 # Do not partition because it is fully shadowed
                 copied_space = deepcopy(curr_space)
                 default = copied_space[param_id].default
-                copied_space[param_id].option_expr = '[{0}]'.format(default)
+                copied_space[param_id].option_expr = "['{0}']".format(default)
                 next_queue.append(copied_space)
                 LOG.debug('%d: Stop partition %s due to shadow', ptr, param_id)
             elif not parts or accum_part + len(parts) > limit:

@@ -26,8 +26,8 @@ KERNEL_SRC_FILES=./src/kmeans_dse.cpp
 KERNEL_INC_DIR=$(CXX_INC_DIRS)
 
 # MerlinCC Options
-CMP_OPT= -d11
-LNK_OPT= -g -d11
+CMP_OPT= -d11 -DDSE_CUSTOM
+LNK_OPT= -g -d11 -DDSECUSTOM
 
 MCC_COMMON_DIR=./
 include $(MCC_COMMON_DIR)/mcc_common.mk

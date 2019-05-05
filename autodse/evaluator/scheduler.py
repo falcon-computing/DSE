@@ -73,11 +73,16 @@ class PythonSubprocessScheduler(Scheduler):
         """
         for file_name in file_list:
             try:
-                shutil.copy(os.path.join(src_path, file_name), os.path.join(dst_path, file_name))
-            except FileNotFoundError:
-                pass
+                dst_file = os.path.join(dst_path, file_name)
+                dst_full_path = os.path.dirname(dst_file)
+                if not os.path.exists(dst_full_path):
+                    os.makedirs(dst_full_path)
+                shutil.move(os.path.join(src_path, file_name), dst_file)
+            except FileNotFoundError as err:
+                LOG.error('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
+                          dst_path, str(err))
 
-        shutil.rmtree(src_path)
+        #shutil.rmtree(src_path)
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
             timeout: Optional[int] = None) -> List[bool]:

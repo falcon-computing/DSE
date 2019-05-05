@@ -24,8 +24,8 @@ def test_save_eval():
     assert ret == [0, 1, 2]
 
     # Use not allowed builtins
-    with pytest.raises(NameError):
-        ret = util.safe_eval('[sin(x) for x in range(3)]')
+    ret = util.safe_eval('[sin(x) for x in range(3)]')
+    assert ret is None
 
 
 def test_copy_dir(mocker):

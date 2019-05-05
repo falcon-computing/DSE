@@ -1,12 +1,12 @@
 {
     "project.name": "kmeans",
     "project.backup": "BACKUP_ERROR",
-    "timeout.exploration": 1,
+    "timeout.exploration": 60,
     "timeout.transform": 5,
-    "timeout.hls": 15,
+    "timeout.hls": 20,
     "timeout.bitgen": 480,
-    "evaluate.command.transform": "make mcc_acc",
-    "evaluate.command.hls": "make mcc_estimate",
+    "evaluate.command.transform": ". ${MERLIN_COMPILER_HOME}/build/venv/bin/activate; . ~/fcs_settings64.sh; make mcc_acc",
+    "evaluate.command.hls": ". ${MERLIN_COMPILER_HOME}/build/venv/bin/activate; . ~/fcs_settings64.sh; make mcc_estimate",
     "evaluate.command.bitgen": "make mcc_bitgen",
     "evaluate.estimate-mode": "FAST",
     "evaluate.worker-per-part": 2,
@@ -16,32 +16,39 @@
     "design-space.definition": {
         "DIST_PAR": {
             "options": "[x for x in [1,8,16,32] if x==1 or (CGPIP1!='flatten' and CGPIP2!='flatten')]",
+            "ds_type": "PARALLEL",
             "default": 1
         },
         "R": {
-            "options": "[x for x in['','reduction=dist'] if x=='' or (CGPIP1!='flatten' and CGPIP2!='flatten')]", 
+            "options": "[x for x in['','reduction=dist'] if x=='' or (CGPIP1!='flatten' and CGPIP2!='flatten')]",            
+            "ds_type": "PARALLEL",
             "default": ""
         },
         "CGPIP2": {
             "options": "[x for x in ['off','','flatten'] if x=='off' or CGPIP1!='flatten']",
             "order": "0 if v!='flatten' else 1",
+            "ds_type": "PIPELINE",
             "default": "off"
         },
         "BW1": {
             "options": "[32,512]", 
+            "ds_type": "INTERFACE",
             "default": 32
         },
         "BW2": {
             "options": "[32,512]", 
+            "ds_type": "INTERFACE",
             "default": 32
         },
         "CGPIP1": {
             "options": "['off','','flatten']",
             "order": "0 if v!='flatten' else 1", 
+            "ds_type": "PIPELINE",
             "default": "off"
         },
         "TILE": {
             "options": "[2**x for x in range(15)]",
+            "ds_type": "TILE",
             "default": 1
         }
     }

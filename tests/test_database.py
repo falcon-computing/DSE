@@ -123,3 +123,4 @@ def test_pickle_database():
     os.remove('./pickleDB_test.db')
 
     LOG.debug('=== Testing PickleDB database end')
+

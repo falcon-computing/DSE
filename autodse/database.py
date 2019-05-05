@@ -138,6 +138,7 @@ class RedisDatabase(Database):
                 except ValueError as err:
                     LOG.error('Failed to initialize the database: %s', str(err))
                     raise RuntimeError()
+            LOG.info('Load %d data from an existing database', len(data))
             self.database.hmset(self.db_id, data)
 
     def __del__(self):

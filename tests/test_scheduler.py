@@ -35,8 +35,8 @@ def test_python_scheduler(test_dir):
 
     # Scheduler with non-dividable workers
     sche = PythonSubprocessScheduler(3)
-    sche.run(jobs[:4], ['test'], 'make run')
-    assert all([os.path.exists(os.path.join(job.path, 'test')) for job in jobs[:4]])
+    sche.run(jobs[:4], ['bin/test'], 'make run; mkdir bin; mv test bin/')
+    assert all([os.path.exists(os.path.join(job.path, 'bin/test')) for job in jobs[:4]])
 
     # Scheduler with dividable workers
     sche = PythonSubprocessScheduler(4)

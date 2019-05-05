@@ -142,7 +142,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 5, 'R': ''}
             eval_ins.apply_design_point(job2, point)
             results = eval_ins.submit([job2])
-            assert results[0].ret_code == -1
+            assert results[0].ret_code == -2
 
             # No backup so the job directory should be gone
             assert not os.path.exists(job2.path)
@@ -161,7 +161,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 6, 'R': ''}
             eval_ins.apply_design_point(job3, point)
             results = eval_ins.submit([job3])
-            assert results[0].ret_code == -1
+            assert results[0].ret_code == -2
             assert not os.path.exists(job3.path)
             assert os.path.exists('{0}/temp_eval_work/{1}'.format(test_dir, job3.key))
 

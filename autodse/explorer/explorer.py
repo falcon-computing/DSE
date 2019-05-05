@@ -71,12 +71,8 @@ class Explorer():
                 duplicated_iters += 1
                 self.log.debug('All design points are already evaluated (%d iterations)',
                                duplicated_iters)
-
-                if duplicated_iters == 10:
-                    self.log.warning('No new design points have been generated '
-                                     'in the past 10 iterations, terminated.')
-                    break
                 continue
+
             duplicated_iters = 0
 
             # Evaluate design points and get results

@@ -49,7 +49,7 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
         return eval(expr, table)  #pylint: disable=eval-used
     except NameError as err:
         LOG.error('eval failed: %s', str(err))
-        raise
+    return None
 
 
 def copy_dir(src: str, dest: str) -> bool:
