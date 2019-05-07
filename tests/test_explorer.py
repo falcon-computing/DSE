@@ -33,7 +33,7 @@ def test_explorer(mocker):
         with mocker.patch.object(Database, 'batch_query', return_value=[ResultBase()] * 8):
             db = Database('test')
             evaluator = Evaluator('', '', EvalMode.FAST, db, scheduler.Scheduler(),
-                                  analyzer.MerlinAnalyzer, BackupMode.NO_BACKUP)
+                                  analyzer.MerlinAnalyzer, BackupMode.NO_BACKUP, {})
             explr = Explorer({}, db, evaluator, 0.05)
             explr.run(config)
 
@@ -44,6 +44,6 @@ def test_explorer(mocker):
              mocker.patch.object(Evaluator, 'submit', return_value=[ResultBase()] * 8):
             db = Database('test')
             evaluator = Evaluator('', '', EvalMode.FAST, db, scheduler.Scheduler(),
-                                  analyzer.MerlinAnalyzer, BackupMode.NO_BACKUP)
+                                  analyzer.MerlinAnalyzer, BackupMode.NO_BACKUP, {})
             explr = Explorer({}, db, evaluator, 0.05)
             explr.run(config)

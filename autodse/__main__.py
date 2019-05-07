@@ -14,7 +14,7 @@ from .logger import get_default_logger
 from .database import Database, RedisDatabase
 from .dsproc.dsproc import compile_design_space, partition
 from .parameter import DesignSpace
-from .result import ResultBase
+from .reporter import Reporter
 from .evaluator.analyzer import MerlinAnalyzer
 from .evaluator.evaluator import BackupMode, EvalMode, Evaluator, MerlinEvaluator
 from .evaluator.scheduler import PythonSubprocessScheduler
@@ -45,7 +45,7 @@ LOG = get_default_logger('Main')
 
 
 def launch_exploration(ds_list: List[DesignSpace], db: Database, evaluator: Evaluator,
-                       config: Dict[str, Any]) -> None:
+                       reporter: Reporter, config: Dict[str, Any]) -> None:
     """Launch exploration"""
 
     pool = []
@@ -63,33 +63,11 @@ def launch_exploration(ds_list: List[DesignSpace], db: Database, evaluator: Eval
 
         LOG.info('%d explorers have been launched', len(pool))
 
-        best_result: Optional[ResultBase] = None
-        ptr: int = 0
         timer: float = 0  # in minutes
-        anime = ['-', '\\', '|', '/']
         while any([not exe.done() for exe in pool]):
             time.sleep(1)
-
-            # Update database status
-            count = db.count()
-            new_best_result = max(db.best_cache, lambda r: r.quality)
-            if best_result != new_best_result:
-                best_result = new_best_result
-                LOG.info(
-                    'New best result: perf %.2f; resource %s', best_result.perf, ','.join([
-                        '{0}: {1}'.format(k, v) for k, v in best_result.res_util.items()
-                        if k.startswith('util')
-                    ]))
-
-            if timer < float(config['timeout']['exploration']):
-                print('[{0:4.0f}m] Explored {1} points, still working...{2}'.format(
-                    timer, count, anime[ptr]),
-                      end='\r')
-            else:
-                print('[{0:4.0f}m] Explored {1} points, finishing...{2}'.format(
-                    timer, count, anime[ptr]),
-                      end='\r')
-            ptr = 0 if ptr == 3 else ptr + 1
+            reporter.log_best()
+            reporter.print_status(timer)
             timer += 0.0167
 
 
@@ -109,6 +87,7 @@ def main() -> None:
 
     src_dir = os.path.abspath(ARGS.src_dir)
     work_dir = os.path.abspath(ARGS.work_dir)
+    out_dir = os.path.join(work_dir, 'output')
     if ARGS.db:
         db_path = os.path.abspath(ARGS.db)
     else:
@@ -138,7 +117,7 @@ def main() -> None:
 
     # Initialize database
     LOG.info('Initializing the database')
-    db = RedisDatabase(config['project']['name'], db_path)
+    db = RedisDatabase(config['project']['name'], int(config['project']['output-num']), db_path)
 
     # Initialize workspace
     LOG.info('Initializing the workspace')
@@ -159,9 +138,13 @@ def main() -> None:
                                   scheduler=PythonSubprocessScheduler(
                                       config['evaluate']['worker-per-part']),
                                   analyzer_cls=MerlinAnalyzer,
-                                  backup_mode=BackupMode[config['project']['backup']])
+                                  backup_mode=BackupMode[config['project']['backup']],
+                                  dse_config=config['evaluate'])
     merlin_eval.set_timeout(config['timeout'])
     merlin_eval.set_command(config['evaluate']['command'])
+
+    # Initialize reporter
+    reporter = Reporter(config, db)
 
     # Compile design space
     LOG.info('Compiling design space')
@@ -188,11 +171,32 @@ def main() -> None:
     # Launch exploration
     try:
         LOG.info('Start the exploration')
-        launch_exploration(ds_list, db, merlin_eval, config)
+        launch_exploration(ds_list, db, merlin_eval, reporter, config)
     except KeyboardInterrupt:
         pass
 
     LOG.info('Finish the exploration')
+
+    # Create outputs
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+    os.makedirs(out_dir)
+    output = []
+    for idx, (_, result) in enumerate(db.best_cache):
+        job = merlin_eval.create_job()
+        if not job:
+            raise RuntimeError()
+
+        assert result.point is not None
+        merlin_eval.apply_design_point(job, result.point)
+        os.rename(job.path, os.path.join(out_dir, str(idx)))
+        result.path = str(idx)
+        output.append(result)
+
+    rpt = reporter.report_output(output)
+    if rpt:
+        with open(os.path.join(out_dir, 'output.rpt', 'w')) as filep:
+            filep.write(rpt)
 
     # Report and summary
     db.persist()

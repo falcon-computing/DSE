@@ -22,6 +22,10 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
         'default': 'NO_BACKUP',
         'options': ['NO_BACKUP', 'BACKUP_ERROR', 'BACKUP_ALL']
     },
+    'project.output-num': {
+        'require': False,
+        'default': 1
+    },
     'design-space.definition': {
         'require': True
     },

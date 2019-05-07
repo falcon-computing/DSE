@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .parameter import DesignPoint
 
+
 class Job(object):
     """The info and properties of a job"""
 
@@ -37,8 +38,11 @@ class ResultBase(object):
         # out-of-resource is invalid.
         self.valid: bool = False
 
+        # The job path for this result (if available)
+        self.path: Optional[str] = None
+
         # The quantified QoR value. Larger the better.
-        self.quality: float = 0.0
+        self.quality: float = -float('inf')
 
         # Performance in terms of estimated cycle or onboard runtime.
         self.perf: float = 0.0

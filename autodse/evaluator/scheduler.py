@@ -117,7 +117,7 @@ class PythonSubprocessScheduler(Scheduler):
                 break
 
             time_limit = float('inf') if timeout is None else timeout
-            LOG.debug('Launching batch %d with %d jobs with timeout %.2f mins', batch, len(procs),
+            LOG.debug('Launching batch %d with %d jobs and timeout %.2f mins', batch, len(procs),
                       time_limit)
             timer = time.time()
             try:

@@ -1,6 +1,7 @@
 {
     "project.name": "kmeans",
     "project.backup": "BACKUP_ERROR",
+    "project.output-num": 3,
     "timeout.exploration": 60,
     "timeout.transform": 5,
     "timeout.hls": 20,
@@ -10,6 +11,10 @@
     "evaluate.command.bitgen": "make mcc_bitgen",
     "evaluate.estimate-mode": "FAST",
     "evaluate.worker-per-part": 2,
+    "evaluate.max-util.BRAM": 0.8,
+    "evaluate.max-util.DSP": 0.8,
+    "evaluate.max-util.LUT": 0.8,
+    "evaluate.max-util.FF": 0.8,
     "search.algorithm.name": "exhaustive",
     "search.algorithm.exhaustive.batch-size": 8,
     "design-space.max-part-num": 4,

@@ -217,10 +217,10 @@ class Evaluator():
                     if result.ret_code == 0:
                         shutil.rmtree(job.path)
 
-            # Rename the backup directory based on design points
-            for job in jobs:
+            # Map the job path to the result if it has a backup
+            for job, result in zip(jobs, results):
                 if os.path.exists(job.path):
-                    os.rename(job.path, os.path.join(self.work_path, job.key))
+                    result.path = job.path
         return results
 
     def submit_fast(self, jobs: List[Job]) -> List[ResultBase]:
