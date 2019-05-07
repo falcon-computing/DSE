@@ -21,7 +21,7 @@ def required_args(mocker):
 
     def mock_run(jobs, keep_files, cmd, timeout):
         #pylint:disable=missing-docstring,unused-argument
-        return [True] * len(jobs)
+        return [0] * len(jobs)
 
     sche = scheduler.Scheduler()
     mocker.patch.object(sche, 'run', new=mock_run)

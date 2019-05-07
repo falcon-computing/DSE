@@ -31,7 +31,11 @@ class ResultBase(object):
         # The design point of this result.
         self.point: Optional[DesignPoint] = None
 
-        # The return code of the evaluation. 0 means normal while negative numbers mean errors.
+        # The return code of the evaluation:
+        #  0: normal
+        # -1: unavailable
+        # -2: failed to analyze result
+        # -3: timeout
         self.ret_code: int = ret_code
 
         # Indicate if this result is valid to be a final output. For example, a result that

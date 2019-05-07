@@ -16,7 +16,8 @@ class Reporter():
     ANIME = ['-', '\\', '|', '/']
     ConfigFormat = '|{0:15s}|{1:40s}|'
     BestHistFormat = '|{0:7s}|{1:7s}|{2:43s}|'
-    OutputFormat = '|{0:14s}|{1:7s}|{2:7s}|{3:43s}|'
+    OutputFormat = '|{0:14s}|{1:7s}|{2:7s}|{3:43s}|\n'
+    SummaryFormat = '|{0:15s}|{1:15s}|\n'
 
     def __init__(self, config: Dict[str, Any], db: Database):
         self.config = config
@@ -30,7 +31,7 @@ class Reporter():
         """Log important configs"""
 
         LOG.info('DSE Configure')
-        LOG.info('-' * 58)
+        LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
         LOG.info(self.ConfigFormat.format('Config', 'Value'))
         LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
         LOG.info(self.ConfigFormat.format('Project', self.config['project']['name']))
@@ -45,21 +46,23 @@ class Reporter():
         LOG.info(self.ConfigFormat.format('DSE time', str(self.config['timeout']['exploration'])))
         LOG.info(self.ConfigFormat.format('HLS time', str(self.config['timeout']['hls'])))
         LOG.info(self.ConfigFormat.format('P&R time', str(self.config['timeout']['bitgen'])))
-        LOG.info('-' * 58)
+        LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
+        LOG.info('The actual elapsed time may be over the set up exploration time because '
+                 'we do not abandon the effort of running cases')
 
     def log_best(self) -> None:
         """Log the new best result if available"""
 
         try:
-            best_quality, best_result = max(self.db.best_cache.queue,
-                                            key=lambda r: r[0])  # type: ignore
+            best_quality, _, best_result = max(self.db.best_cache.queue,
+                                               key=lambda r: r[0])  # type: ignore
         except ValueError:
             # Best cache is still empty
             return
 
         if self.is_first_best:
             LOG.info('Best result reporting...')
-            LOG.info('-' * 61)
+            LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
             LOG.info(self.BestHistFormat.format('Quality', 'Perf.', 'Resource'))
             LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
             self.is_first_best = False
@@ -76,7 +79,7 @@ class Reporter():
     def log_best_close(self) -> None:
         """Log the final line of the best result progress"""
 
-        LOG.info('-' * 61)
+        LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
 
     def report_output(self, outputs: List[ResultBase]) -> str:
         """Report the final output.
@@ -97,12 +100,9 @@ class Reporter():
             return ''
 
         rpt = ''
-        rpt += '-' * 76
-        rpt += '\n'
-        rpt += self.OutputFormat.format('Directory', 'Quality', 'Perf.', 'Resource')
-        rpt += '\n'
         rpt += self.OutputFormat.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
-        rpt += '\n'
+        rpt += self.OutputFormat.format('Directory', 'Quality', 'Perf.', 'Resource')
+        rpt += self.OutputFormat.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
 
         for result in outputs:
             assert result.path is not None
@@ -112,11 +112,37 @@ class Reporter():
                     '{0}:{1:.1f}%'.format(k[5:], v) for k, v in result.res_util.items()
                     if k.startswith('util')
                 ]))
-            rpt += '\n'
 
-        rpt += '-' * 76
-        rpt += '\n'
+        rpt += self.OutputFormat.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
+        return rpt
 
+    def report_summary(self) -> str:
+        """Summarize the explored points in the DB
+
+        Returns
+        -------
+        str:
+            The summary report.
+        """
+
+        rpt = ''
+        rpt += self.SummaryFormat.format('-' * 15, '-' * 15)
+        rpt += self.SummaryFormat.format('Total Explored', str(self.db.count_ret_code(0)))
+        rpt += self.SummaryFormat.format('Timeout', str(self.db.count_ret_code(-3)))
+        rpt += self.SummaryFormat.format('Analysis Error', str(self.db.count_ret_code(-2)))
+        rpt += self.SummaryFormat.format('Output Points', str(self.db.best_cache.qsize()))
+
+        try:
+            _, _, best_result = max(self.db.best_cache.queue, key=lambda r: r[0])  # type: ignore
+            if self.config['evaluate']['estimate-mode'] == 'FAST':
+                rpt += self.SummaryFormat.format('Best Cycle', str(best_result.perf))
+            #else:
+            #    rpt += self.SummaryFormat.format('Best Freq.', str(best_result.perf))
+            #    rpt += self.SummaryFormat.format('Best Runtime', str(best_result.freq))
+        except ValueError:
+            pass
+
+        rpt += self.SummaryFormat.format('-' * 15, '-' * 15)
         return rpt
 
     def print_status(self, timer: float) -> None:

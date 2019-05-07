@@ -2,7 +2,7 @@
     "project.name": "kmeans",
     "project.backup": "BACKUP_ERROR",
     "project.output-num": 3,
-    "timeout.exploration": 60,
+    "timeout.exploration": 0,
     "timeout.transform": 5,
     "timeout.hls": 20,
     "timeout.bitgen": 480,

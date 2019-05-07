@@ -208,7 +208,7 @@ class Evaluator():
 
         LOG.debug('Committing %d results', len(results))
         self.db.batch_commit([(job.key, result) for job, result in zip(jobs, results)])
-        LOG.debug('Done committing')
+        LOG.info('Results are committed to the database')
 
         # Backup jobs if needed
         if self.backup_mode == BackupMode.NO_BACKUP:
@@ -288,8 +288,8 @@ class MerlinEvaluator(Evaluator):
         pending_hls: Dict[int, Job] = {}
         sche_rets = self.scheduler.run(jobs, self.analyzer.desire('transform'),
                                        self.commands['transform'], self.timeouts['transform'])
-        for idx, is_success in enumerate(sche_rets):
-            if is_success:
+        for idx, ret_code in enumerate(sche_rets):
+            if ret_code == 0:
                 result = self.analyzer.analyze(jobs[idx], 'transform', self.config)
                 if not result:
                     LOG.error('Failed to analyze result of %s after Merlin transformation',
@@ -304,6 +304,8 @@ class MerlinEvaluator(Evaluator):
                     # Merlin failed to perform certain transformations, stop here
                     # but still consider as a success evaluation
                     rets[idx] = result
+            else:
+                rets[idx].ret_code = ret_code
 
         if not pending_hls:
             LOG.info('All jobs are stopped at the Merlin transform stage.')
@@ -313,8 +315,8 @@ class MerlinEvaluator(Evaluator):
         idxs, pending_jobs = zip(*pending_hls.items())  # type: ignore
         sche_rets = self.scheduler.run(pending_jobs, self.analyzer.desire('hls'),
                                        self.commands['hls'], self.timeouts['hls'])
-        for idx, is_success in zip(idxs, sche_rets):
-            if is_success:
+        for idx, ret_code in zip(idxs, sche_rets):
+            if ret_code == 0:
                 result = self.analyzer.analyze(jobs[idx], 'hls', self.config)
                 if not result:
                     LOG.error('Failed to analyze result of %s after HLS', jobs[idx].key)
@@ -322,6 +324,8 @@ class MerlinEvaluator(Evaluator):
                     continue
                 rets[idx] = result
                 assert isinstance(result, HLSResult)
+            else:
+                rets[idx].ret_code = ret_code
 
         return rets
 
@@ -337,8 +341,8 @@ class MerlinEvaluator(Evaluator):
 
         sche_rets = self.scheduler.run(jobs, self.analyzer.desire('bitgen'),
                                        self.commands['bitgen'], self.timeouts['bitgen'])
-        for idx, is_success in enumerate(sche_rets):
-            if is_success:
+        for idx, ret_code in enumerate(sche_rets):
+            if ret_code == 0:
                 result = self.analyzer.analyze(jobs[idx], 'bitgen', self.config)
                 if not result:
                     LOG.error('Failed to analyze result of %s after bitgen', jobs[idx].key)
@@ -346,5 +350,7 @@ class MerlinEvaluator(Evaluator):
                     continue
                 assert isinstance(result, BitgenResult)
                 rets[idx] = result
+            else:
+                rets[idx].ret_code = ret_code
 
         return rets

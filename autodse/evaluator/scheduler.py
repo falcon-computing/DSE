@@ -21,7 +21,7 @@ class Scheduler():
         self.max_worker = max_worker
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
-            timeout: Optional[int] = None) -> List[bool]:
+            timeout: Optional[int] = None) -> List[int]:
         """The main API of scheduling and running given jobs
 
         Parameters
@@ -42,8 +42,8 @@ class Scheduler():
 
         Returns
         -------
-        int:
-            Indicate the number of success jobs.
+        List[int]:
+            The return code of each job.
         """
         raise NotImplementedError()
 
@@ -85,15 +85,16 @@ class PythonSubprocessScheduler(Scheduler):
         shutil.rmtree(src_path)
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
-            timeout: Optional[int] = None) -> List[bool]:
+            timeout: Optional[int] = None) -> List[int]:
         #pylint: disable=missing-docstring
 
         from subprocess import Popen, DEVNULL
 
-        rets = [False] * len(jobs)
+        rets = [-1] * len(jobs)
 
         # Batch jobs when the number is larger than the max workers
-        for batch in range(int(len(jobs) / self.max_worker) + 1):
+        num_batch = int(len(jobs) / self.max_worker) + 1
+        for batch in range(num_batch):
             procs = []
             for offset in range(self.max_worker):
                 idx = batch * self.max_worker + offset
@@ -117,8 +118,8 @@ class PythonSubprocessScheduler(Scheduler):
                 break
 
             time_limit = float('inf') if timeout is None else timeout
-            LOG.debug('Launching batch %d with %d jobs and timeout %.2f mins', batch, len(procs),
-                      time_limit)
+            LOG.info('Launching batch %d/%d with %d jobs and timeout %.2f mins', batch, num_batch,
+                     len(procs), time_limit)
             timer = time.time()
             try:
                 while (time.time() - timer) < time_limit * 60.0 and procs:
@@ -128,7 +129,7 @@ class PythonSubprocessScheduler(Scheduler):
                         ret = proc.poll()
                         if ret is not None:
                             # Finished, check if success, remove from list, and backup wanted files
-                            rets[idx] = ret == 0
+                            rets[idx] = 0
                             self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),
                                                          jobs[idx].path, keep_files)
                         else:
@@ -139,18 +140,14 @@ class PythonSubprocessScheduler(Scheduler):
                 if procs:
                     # One or more processes are timeout.
                     # Note that timeout is considered as a success run
-                    LOG.debug('%d processes timeout (%.2f mins)', len(procs), time_limit)
+                    LOG.info('%d processes timeout (%.2f mins)', len(procs), time_limit)
                     for idx, proc in procs:
-                        rets[idx] = True
+                        rets[idx] = -3
                         os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-                        self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),
-                                                     jobs[idx].path, keep_files)
             except KeyboardInterrupt:
                 LOG.warning('Received user keyboard interrupt, stopping the process.')
                 for idx, proc in procs:
                     os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-                    self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path), jobs[idx].path,
-                                                 keep_files)
                 break
 
         return rets

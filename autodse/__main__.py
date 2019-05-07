@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import shutil
+import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue
@@ -14,8 +15,7 @@ from .config import build_config
 from .database import Database, RedisDatabase
 from .dsproc.dsproc import compile_design_space, partition
 from .evaluator.analyzer import MerlinAnalyzer
-from .evaluator.evaluator import (BackupMode, EvalMode, Evaluator,
-                                  MerlinEvaluator)
+from .evaluator.evaluator import (BackupMode, EvalMode, Evaluator, MerlinEvaluator)
 from .evaluator.scheduler import PythonSubprocessScheduler
 from .explorer.explorer import Explorer
 from .logger import get_default_logger
@@ -68,6 +68,8 @@ def launch_exploration(ds_list: List[DesignSpace], db: Database, evaluator: Eval
         timer: float = 0  # in minutes
         while any([not exe.done() for exe in pool]):
             time.sleep(1)
+            while db.best_cache.qsize() > db.best_cache_size:
+                db.best_cache.get()
             reporter.log_best()
             reporter.print_status(timer)
             timer += 0.0167
@@ -89,12 +91,35 @@ def main() -> None:
 
     src_dir = os.path.abspath(ARGS.src_dir)
     work_dir = os.path.abspath(ARGS.work_dir)
+    dir_prefix = os.path.commonprefix([src_dir, work_dir])
+    if dir_prefix == src_dir or dir_prefix == work_dir:
+        LOG.error('Merlin project and workspace cannot be subdirectories!')
+        return
+
     out_dir = os.path.join(work_dir, 'output')
     if ARGS.db:
         db_path = os.path.abspath(ARGS.db)
     else:
         db_path = os.path.join(work_dir, 'result.db')
+    cfg_path = os.path.abspath(ARGS.config)
 
+    # Initialize workspace
+    LOG.info('Initializing the workspace')
+    old_files = os.listdir(work_dir)
+    if old_files:
+        bak_dir = tempfile.mkdtemp(prefix='bak_dse', dir='.')
+        LOG.warning('Workspace is not empty, backup files to %s', bak_dir)
+        for old_file in old_files:
+            shutil.move(os.path.join(work_dir, old_file), bak_dir)
+
+        # Copy back config and database files if they are also in the old workspace
+        if os.path.commonprefix([work_dir, cfg_path]) == work_dir:
+            file_name = os.path.basename(cfg_path)
+            shutil.copyfile(os.path.join(bak_dir, file_name), file_name)
+        if os.path.commonprefix([work_dir, db_path]) == work_dir:
+            file_name = os.path.basename(db_path)
+            shutil.copyfile(os.path.join(bak_dir, file_name), file_name)
+      
     # Check and load config
     if not os.path.exists(ARGS.config):
         LOG.error('Config JSON file not found: %s', ARGS.config)
@@ -121,15 +146,6 @@ def main() -> None:
     LOG.info('Initializing the database')
     db = RedisDatabase(config['project']['name'], int(config['project']['output-num']), db_path)
     db.load()
-
-    # Initialize workspace
-    LOG.info('Initializing the workspace')
-    if work_dir == os.getcwd():
-        shutil.rmtree('*')
-    else:
-        if os.path.exists(work_dir):
-            shutil.rmtree(work_dir)
-        os.makedirs(work_dir)
 
     # Initialize evaluator
     LOG.info('Initializing the evaluator')
@@ -184,7 +200,14 @@ def main() -> None:
     LOG.info('Finish the exploration')
 
     # Backup database
+    db.commit_best()
     db.persist()
+
+    # Report and summary
+    rpt = reporter.report_summary()
+    LOG.info('DSE Summary\n%s', rpt)
+    with open(os.path.join(work_dir, 'summary.rpt'), 'w') as filep:
+        filep.write(rpt)
 
     # Create outputs
     if os.path.exists(out_dir):
@@ -194,7 +217,7 @@ def main() -> None:
     idx = 0
     best_cache: PriorityQueue = db.best_cache
     while not best_cache.empty():
-        _, result = best_cache.get()
+        _, _, result = best_cache.get()
         job = merlin_eval.create_job()
         if not job:
             raise RuntimeError()
@@ -210,8 +233,6 @@ def main() -> None:
     if rpt:
         with open(os.path.join(out_dir, 'output.rpt'), 'w') as filep:
             filep.write(rpt)
-
-    # Report and summary
 
 
 # Launch the DSE flow

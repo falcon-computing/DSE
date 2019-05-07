@@ -3,7 +3,7 @@ The module of result database.
 """
 import os
 import pickle
-import queue
+from queue import PriorityQueue
 from threading import Lock
 from time import time
 from typing import Any, List, Optional, Tuple, Union
@@ -29,10 +29,21 @@ class Database():
             self.db_file_path = db_file_path
 
         # Current best result set (min heap)
-        self.best_cache: queue.PriorityQueue = queue.PriorityQueue(cache_size)
+        # Note: the element type in this PriorityQueue is (quality, timestamp, result).
+        # The purpose of using timestamp is to deal with points with same qualities,
+        # since PriorityQueue tries to compare the second tuple value if the first one is the same.
+        # We define the first point among the same quality points is the one we want.
+        # FIXME: we now rely on the main flow to control the size in order to
+        # avoid race condition.
+        self.best_cache_size = cache_size
+        self.best_cache: PriorityQueue = PriorityQueue()
 
     def update_best(self, result: ResultBase) -> None:
         """Check if the new result has the best QoR and update it if so.
+           Note that we allow value overwritten in the database for the
+           performance issue, although it should not happen during the
+           search. However, the best cache may keep the overrided result
+           so this could be a potential issue.
 
         Parameters
         ----------
@@ -41,14 +52,11 @@ class Database():
         """
 
         if result.valid:
-            if self.best_cache.qsize() < self.best_cache.maxsize:
-                self.best_cache.put((result.quality, result))
-            else:
-                last_quality, last_result = self.best_cache.get()
-                if result.quality > last_quality:
-                    self.best_cache.put((result.quality, result))
-                else:
-                    self.best_cache.put((last_quality, last_result))
+            try:
+                self.best_cache.put((result.quality, time(), result))
+            except Exception as err:
+                LOG.error('Failed to update best cache: %s', str(err))
+                raise RuntimeError()
 
     def commit_best(self) -> None:
         """Commit the best cache for persisting"""
@@ -89,6 +97,23 @@ class Database():
         for _, result in pairs:
             self.update_best(result)
 
+    def count_ret_code(self, ret_code: int) -> int:
+        """Count the number of results with the given return code
+
+        Parameters
+        ----------
+        ret_code:
+            The return code to be counted.
+
+        Returns
+        -------
+        int:
+            The number of results with the return code.
+        """
+
+        return len(
+            [r for r in self.query_all() if isinstance(r, ResultBase) and r.ret_code == ret_code])
+
     def load(self) -> None:
         """Load existing data from the given database and update the best cahce (if available)"""
         raise NotImplementedError()
@@ -120,6 +145,16 @@ class Database():
         -------
         Optional[Any]:
             The result object of the corresponding key, or None if the key is unavailable.
+        """
+        raise NotImplementedError()
+
+    def query_all(self) -> List[Any]:
+        """Query all values in the database
+
+        Returns
+        -------
+        List[Any]:
+            All data in the database
         """
         raise NotImplementedError()
 
@@ -219,11 +254,9 @@ class RedisDatabase(Database):
                 LOG.warning('Key "meta-best-cache" is missing in the DB. '
                             'The best result may not be real.')
             else:
-                for quality, result in best_cache:
-                    try:
-                        self.best_cache.put((quality, result), timeout=0.1)
-                    except queue.Full:
-                        return
+                for quality, stamp, result in best_cache:
+                    if result and result.valid:
+                        self.best_cache.put((quality, time(), result), timeout=0.1)
 
     def __del__(self):
         """Delete the data we generated in Redis database"""
@@ -262,6 +295,10 @@ class RedisDatabase(Database):
             else:
                 data.append(None)
         return data
+
+    def query_all(self) -> List[Any]:
+        #pylint:disable=missing-docstring
+        return [v for v in self.batch_query(self.database.hkeys(self.db_id)) if v is not None]
 
     def commit_impl(self, key: str, result: Any) -> bool:
         #pylint:disable=missing-docstring
@@ -327,6 +364,7 @@ class PickleDatabase(Database):
             for key in self.database.getall():
                 obj = jsonpickle.decode(self.database.get(key))
                 self.database.set(key, obj)
+            LOG.info('Load %d data from an existing database', self.count())
         except ValueError as err:
             LOG.error('Failed to load the data from the database: %s', str(err))
             raise RuntimeError()
@@ -338,11 +376,9 @@ class PickleDatabase(Database):
                 LOG.warning('Key "meta-best-cache" is missing in the DB. '
                             'The best result may not be real.')
             else:
-                for quality, result in best_cache:
-                    try:
-                        self.best_cache.put((quality, result), timeout=0.1)
-                    except queue.Full:
-                        return
+                for quality, stamp, result in best_cache:
+                    if result and result.valid:
+                        self.best_cache.put((quality, time(), result), timeout=0.1)
 
     def query(self, key: str) -> Optional[Any]:
         #pylint:disable=missing-docstring
@@ -363,11 +399,14 @@ class PickleDatabase(Database):
         self.lock.release()
         return values
 
+    def query_all(self) -> List[Any]:
+        #pylint:disable=missing-docstring
+        return [v for v in self.batch_query(self.database.getall()) if v is not None]
+
     def commit_impl(self, key: str, result: ResultBase) -> bool:
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
-        self.database.exists(key)
         self.database.set(key, result)
         self.lock.release()
         return True
@@ -376,6 +415,7 @@ class PickleDatabase(Database):
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
+        idx = 0
         for key, result in pairs:
             self.database.set(key, result)
         self.lock.release()

@@ -55,8 +55,8 @@ def test_python_scheduler(test_dir):
         jobs.append(job)
 
     # Timeout
-    sche.run(jobs[:2], ['test'], 'make', 0.05)
-    assert all([os.path.exists(os.path.join(job.path, 'test')) for job in jobs[:2]])
+    rets = sche.run(jobs[:2], ['test'], 'make', 0.05)
+    assert all([ret == -3 for ret in rets])
 
     # TODO: keyboard interrupt testing. Have no idea about how to test it.
 
