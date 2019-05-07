@@ -6,7 +6,7 @@ import re
 import shutil
 import tempfile
 from enum import Enum
-from typing import Dict, List, Optional, Set, Type
+from typing import Any, Dict, List, Optional, Set, Type
 
 from ..database import Database
 from ..logger import get_eval_logger
@@ -42,6 +42,7 @@ class Evaluator():
                  scheduler: Scheduler,
                  analyzer_cls: Type[Analyzer],
                  backup_mode: BackupMode,
+                 dse_config: Dict[str, Any],
                  temp_prefix: str = 'eval'):
         self.mode = mode
         self.db = db
@@ -50,6 +51,7 @@ class Evaluator():
         self.temp_dir_prefix = '{0}_'.format(temp_prefix)
         self.scheduler = scheduler
         self.backup_mode = backup_mode
+        self.config = dse_config
         self.analyzer = analyzer_cls
         self.timeouts: Dict[str, int] = {'transform': 0, 'hls': 0, 'bitgen': 0}
         self.commands: Dict[str, str] = {}
@@ -141,9 +143,8 @@ class Evaluator():
         job_path = job.path
         applied: Set[str] = set()
         for file_name in self.src_files:
-            with open(os.path.join(job_path, file_name),
-                      'r') as src_file, open('{0}/applier_temp.txt'.format(job_path),
-                                             'w') as dest_file:
+            with open(os.path.join(job_path, file_name), 'r') as src_file, \
+                 open('{0}/applier_temp.txt'.format(job_path), 'w') as dest_file:
                 for line in src_file:
                     for auto, ds_id in re.findall(r'(auto{(.*?)})', line, re.IGNORECASE):
                         if ds_id not in point:
@@ -164,6 +165,7 @@ class Evaluator():
                 error += 1
 
         # Assign the key to the job
+        job.point = point
         job.key = gen_key_from_design_point(point)
         job.status = Job.Status.APPLIED
         return error == 0
@@ -201,6 +203,8 @@ class Evaluator():
 
         # Submit un-evaluated jobs and commit results to the database
         results = submitter(jobs)
+        for job, result in zip(jobs, results):
+            result.point = job.point
         self.db.batch_commit([(job.key, result) for job, result in zip(jobs, results)])
 
         # Backup jobs if needed
@@ -259,10 +263,10 @@ class MerlinEvaluator(Evaluator):
     """Evaluate Merlin compiler projects"""
 
     def __init__(self, src_path: str, work_path: str, mode: EvalMode, db: Database,
-                 scheduler: Scheduler, analyzer_cls: Type[MerlinAnalyzer],
-                 backup_mode: BackupMode):
+                 scheduler: Scheduler, analyzer_cls: Type[MerlinAnalyzer], backup_mode: BackupMode,
+                 dse_config: Dict[str, Any]):
         super(MerlinEvaluator, self).__init__(src_path, work_path, mode, db, scheduler,
-                                              analyzer_cls, backup_mode, 'merlin')
+                                              analyzer_cls, backup_mode, dse_config, 'merlin')
 
     def submit_fast(self, jobs: List[Job]) -> List[ResultBase]:
         #pylint:disable=missing-docstring
@@ -283,14 +287,14 @@ class MerlinEvaluator(Evaluator):
                                        self.commands['transform'], self.timeouts['transform'])
         for idx, is_success in enumerate(sche_rets):
             if is_success:
-                result = self.analyzer.analyze(jobs[idx], 'transform')
+                result = self.analyzer.analyze(jobs[idx], 'transform', self.config)
                 if not result:
                     LOG.error('Failed to analyze result of %s after Merlin transformation',
                               jobs[idx].key)
                     rets[idx].ret_code = -2
                     continue
                 assert isinstance(result, MerlinResult)
-                if not result.criticals:
+                if result.valid:
                     # No critical problems, keep running HLS
                     pending_hls[idx] = jobs[idx]
                 else:
@@ -308,7 +312,7 @@ class MerlinEvaluator(Evaluator):
                                        self.commands['hls'], self.timeouts['hls'])
         for idx, is_success in zip(idxs, sche_rets):
             if is_success:
-                result = self.analyzer.analyze(jobs[idx], 'hls')
+                result = self.analyzer.analyze(jobs[idx], 'hls', self.config)
                 if not result:
                     LOG.error('Failed to analyze result of %s after HLS', jobs[idx].key)
                     rets[idx].ret_code = -2
@@ -332,7 +336,7 @@ class MerlinEvaluator(Evaluator):
                                        self.commands['bitgen'], self.timeouts['bitgen'])
         for idx, is_success in enumerate(sche_rets):
             if is_success:
-                result = self.analyzer.analyze(jobs[idx], 'bitgen')
+                result = self.analyzer.analyze(jobs[idx], 'bitgen', self.config)
                 if not result:
                     LOG.error('Failed to analyze result of %s after bitgen', jobs[idx].key)
                     rets[idx].ret_code = -2

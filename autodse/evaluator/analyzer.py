@@ -3,7 +3,7 @@ The main module of analyzer.
 """
 import json
 import os
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..logger import get_eval_logger
 from ..result import HLSResult, Job, MerlinResult, ResultBase
@@ -15,7 +15,7 @@ class Analyzer():
     """Main analyzer class"""
 
     @staticmethod
-    def analyze(job: Job, mode: str) -> Optional[ResultBase]:
+    def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[ResultBase]:
         """Analyze the job result and return a result object
 
         Parameters
@@ -25,6 +25,9 @@ class Analyzer():
 
         mode:
             The customized mode for analysis.
+
+        config:
+            The DSE configure.
 
         Returns
         -------
@@ -123,17 +126,20 @@ class MerlinAnalyzer(Analyzer):
         if not success:
             return None
 
-        result = MerlinResult(job.key)
+        result = MerlinResult()
+        result.valid = True
         result.eval_time = eval_time
         with open(merlin_log_path, 'r') as log_file:
             for line in log_file:
                 if any(line.find(msg) != -1 for msg in MerlinAnalyzer.critical_msgs):
                     result.criticals.append(line.replace('\n', ''))
 
+        # Result validation: valid if no critical messages
+        result.valid = not bool(result.criticals)
         return result
 
     @staticmethod
-    def analyze_merlin_hls(job: Job) -> Optional[HLSResult]:
+    def analyze_merlin_hls(job: Job, config: Dict[str, Any]) -> Optional[HLSResult]:
         """Analyze the Merlin HLS result for QoR and performance bottleneck
 
         Parameters
@@ -151,7 +157,7 @@ class MerlinAnalyzer(Analyzer):
         if not success:
             return None
 
-        result = HLSResult(job.key)
+        result = HLSResult()
         result.eval_time = eval_time
 
         # Merlin HLS report analysis
@@ -178,9 +184,13 @@ class MerlinAnalyzer(Analyzer):
             if 'CYCLE_TOT' in hls_info[elt]:
                 try:
                     result.perf = max(float(hls_info[elt]['CYCLE_TOT']), result.perf)
-                except ValueError:
-                    # Some compoenents may be flatten and do not have cycle number
-                    pass
+                except ValueError as err:
+                    # Some compoenents may be flatten and do not have cycle number (valid),
+                    # or HLS cannot estimate the cycle due to insufficient information.
+                    if str(err).find('?') != -1:
+                        LOG.error('Found "?" in HLS report. Please use assert to indicate '
+                                  'the loop trip count to get rid of all "?" in HLS report.')
+                        return None
 
             # Extract resource utilizations
             for res in MerlinAnalyzer.resource_types:
@@ -195,25 +205,40 @@ class MerlinAnalyzer(Analyzer):
                         float(hls_info[elt][util_key]) / 100.0, result.res_util[util_key])
                     result.res_util[total_key] = max(float(hls_info[elt][total_key]),
                                                      result.res_util[total_key])
-                except ValueError:
-                    # Some compoenents may not have resource number
-                    pass
+                except ValueError as err:
+                    # Some compoenents may not have resource number (valid),
+                    # or HLS cannot estimate the cycle due to insufficient information.
+                    if str(err).find('?') != -1:
+                        LOG.error('Found "?" in HLS report. Please use assert to indicate '
+                                  'the loop trip count to get rid of all "?" in HLS report.')
+                        return None
+
+        # Result validation: resource utilization is under the threshold
+        max_utils = config['max-util']
+        utils = {k[5:]: u for k, u in result.res_util.items() if k.startswith('util-')}
+        result.valid = all([utils[res] < max_utils[res] for res in max_utils])
 
         # TODO: Hotspot analysis
 
         return result
 
     @staticmethod
-    def analyze(job: Job, mode: str) -> Optional[ResultBase]:
+    def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[ResultBase]:
         #pylint:disable=missing-docstring
 
         if mode == 'transform':
-            return MerlinAnalyzer.analyze_merlin_transform(job)
-        if mode == 'hls':
-            return MerlinAnalyzer.analyze_merlin_hls(job)
+            result: Optional[ResultBase] = MerlinAnalyzer.analyze_merlin_transform(job)
+        elif mode == 'hls':
+            result = MerlinAnalyzer.analyze_merlin_hls(job, config)
+        else:
+            LOG.error('Unrecognized analysis target %s', mode)
+            return None
 
-        LOG.error('Unrecognized analysis target %s', mode)
-        return None
+        # QoR computation
+        if result and result.perf != 0.0:
+            result.quality = float(1.0 / result.perf)
+
+        return result
 
     @staticmethod
     def desire(mode: str) -> List[str]:

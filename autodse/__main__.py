@@ -14,6 +14,7 @@ from .logger import get_default_logger
 from .database import Database, RedisDatabase
 from .dsproc.dsproc import compile_design_space, partition
 from .parameter import DesignSpace
+from .result import ResultBase
 from .evaluator.analyzer import MerlinAnalyzer
 from .evaluator.evaluator import BackupMode, EvalMode, Evaluator, MerlinEvaluator
 from .evaluator.scheduler import PythonSubprocessScheduler
@@ -62,15 +63,32 @@ def launch_exploration(ds_list: List[DesignSpace], db: Database, evaluator: Eval
 
         LOG.info('%d explorers have been launched', len(pool))
 
+        best_result: Optional[ResultBase] = None
         ptr: int = 0
         timer: float = 0  # in minutes
         anime = ['-', '\\', '|', '/']
         while any([not exe.done() for exe in pool]):
             time.sleep(1)
+
+            # Update database status
+            count = db.count()
+            new_best_result = max(db.best_cache, lambda r: r.quality)
+            if best_result != new_best_result:
+                best_result = new_best_result
+                LOG.info(
+                    'New best result: perf %.2f; resource %s', best_result.perf, ','.join([
+                        '{0}: {1}'.format(k, v) for k, v in best_result.res_util.items()
+                        if k.startswith('util')
+                    ]))
+
             if timer < float(config['timeout']['exploration']):
-                print('[{0:4.0f}m] Exploring...{1}'.format(timer, anime[ptr]), end='\r')
+                print('[{0:4.0f}m] Explored {1} points, still working...{2}'.format(
+                    timer, count, anime[ptr]),
+                      end='\r')
             else:
-                print('[{0:4.0f}m] Finishing...{1}'.format(timer, anime[ptr]), end='\r')
+                print('[{0:4.0f}m] Explored {1} points, finishing...{2}'.format(
+                    timer, count, anime[ptr]),
+                      end='\r')
             ptr = 0 if ptr == 3 else ptr + 1
             timer += 0.0167
 

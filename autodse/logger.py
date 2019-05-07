@@ -72,7 +72,7 @@ def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> loggin
     handler = logging.FileHandler(file_name)
     handler.setFormatter(
         logging.Formatter('[%(relativeCreated)4.0fm] %(levelname)7s %(name)s: %(message)s'))
-    handler.addFilter(ThreadFilter(threading.get_ident())) # type: ignore
+    handler.addFilter(ThreadFilter(threading.get_ident()))  # type: ignore
     logger.addHandler(handler)
 
     return logger

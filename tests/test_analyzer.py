@@ -17,6 +17,9 @@ def test_merlin_analyzer(test_dir):
 
     LOG.debug('=== Testing MerlinAnalyzer start')
 
+    # Make up a config
+    config = {'max-util': {'BRAM': 0.8, 'DSP': 0.8, 'FF': 0.8, 'LUT': 0.8}}
+
     ref_path = os.path.join(test_dir, 'temp_fixture/eval_src0')
     work_path = os.path.join(test_dir, 'temp_anal_work')
     if os.path.exists(work_path):
@@ -31,14 +34,14 @@ def test_merlin_analyzer(test_dir):
     job.status = Job.Status.EVALUATED
 
     # Merlin transform failure (no merlin.log was generated)
-    result = MerlinAnalyzer.analyze(job, 'transform')
+    result = MerlinAnalyzer.analyze(job, 'transform', config)
     assert not result
 
     # Merlin transform failure (merlin.log has errors)
     with open(os.path.join(job_path, 'merlin.log'), 'w') as filep:
         filep.write('ERROR: [MERCC-3060] Merlin flow stopped with error(s).\n')
         filep.write('Total time: 6.78 seconds\n')
-    result = MerlinAnalyzer.analyze(job, 'transform')
+    result = MerlinAnalyzer.analyze(job, 'transform', config)
     assert not result
 
     # Merlin transform w/o critical messages
@@ -46,8 +49,10 @@ def test_merlin_analyzer(test_dir):
         filep.write('INFO: [MERCC-1040] Compilation finished successfully\n')
         filep.write('Total time: 65.50 seconds\n')
 
-    result = MerlinAnalyzer.analyze(job, 'transform')
+    result = MerlinAnalyzer.analyze(job, 'transform', config)
+    assert result is not None
     assert not result.criticals
+    assert result.valid
     assert result.eval_time == 65.50
 
     # Merlin transform with critical messages
@@ -58,12 +63,14 @@ def test_merlin_analyzer(test_dir):
         filep.write("WARNING: [CGPAR-201] Coarse-grained parallelization NOT applied: loop\n")
         filep.write('INFO: [MERCC-1040] Compilation finished successfully\n')
         filep.write('Total time: 78.40 seconds\n')
-    result = MerlinAnalyzer.analyze(job, 'transform')
-    assert result
+    result = MerlinAnalyzer.analyze(job, 'transform', config)
+    assert result is not None
+    assert not result.valid
     assert len(result.criticals) == 3
     assert result.eval_time == 78.40
 
     # Copy prepared HLS reports to pretend we have passed the HLS
+    # Note that we fake the DSP resource util (which should be 0) to test out of resource.
     hls_ref_path = os.path.join(test_dir, 'temp_fixture/anal_rpts0')
     job_rpt_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin')
     os.makedirs(job_rpt_path, exist_ok=True)
@@ -74,18 +81,22 @@ def test_merlin_analyzer(test_dir):
         filep.write('Total time: 65.50 seconds\n')
         filep.write('INFO: [MERCC-1026] Estimation successfully.\n')
         filep.write('Total time: 26.12 seconds\n')
-    result = MerlinAnalyzer.analyze(job, 'hls')
-    assert result
+    result = MerlinAnalyzer.analyze(job, 'hls', config)
+    assert result is not None
+
+    assert abs(result.quality - 5.086e-6) < 1e-6
     assert result.perf == 196608.0
     assert result.eval_time == 91.62
-    LOG.info([(k, u) for k, u in result.res_util.items()])
     assert abs(result.res_util['util-BRAM'] - 0.089) < 0.01
-    assert abs(result.res_util['util-DSP'] - 0.0) < 0.01
+    assert abs(result.res_util['util-DSP'] - 0.99) < 0.01
     assert abs(result.res_util['util-LUT'] - 0.095) < 0.01
     assert abs(result.res_util['util-FF'] - 0.094) < 0.01
     assert result.res_util['total-BRAM'] == 226
     assert result.res_util['total-DSP'] == 0
     assert result.res_util['total-LUT'] == 74689
     assert result.res_util['total-FF'] == 147604
+
+    # Result is invalid due to out of BRAM utilization
+    assert not result.valid
 
     LOG.debug('=== Testing MerlinAnalyzer end')

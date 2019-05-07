@@ -30,6 +30,7 @@ def required_args(mocker):
     args['db'] = database.PickleDatabase('pickleDB_test')
     args['scheduler'] = sche
     args['analyzer_cls'] = analyzer.MerlinAnalyzer
+    args['dse_config'] = {}
     return args
 
 
@@ -44,13 +45,14 @@ def test_evaluator_phase1(required_args, test_dir, mocker):
         eval_ins = Evaluator('{0}/temp_fixture/eval_src0'.format(test_dir),
                              '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST,
                              required_args['db'], required_args['scheduler'],
-                             required_args['analyzer_cls'], BackupMode.NO_BACKUP)
+                             required_args['analyzer_cls'], BackupMode.NO_BACKUP,
+                             required_args['dse_config'])
 
     # Create and initialize evaluator
     eval_ins = Evaluator('{0}/temp_fixture/eval_src1'.format(test_dir),
                          '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST, required_args['db'],
                          required_args['scheduler'], required_args['analyzer_cls'],
-                         BackupMode.NO_BACKUP)
+                         BackupMode.NO_BACKUP, required_args['dse_config'])
     assert len(eval_ins.src_files) == 1 and eval_ins.src_files[0] == 'src/kernel1.cpp'
 
     # Create a job
@@ -60,6 +62,7 @@ def test_evaluator_phase1(required_args, test_dir, mocker):
     # Apply a design point successfully
     point = {'PE': 4, 'R': ''}
     assert eval_ins.apply_design_point(job, point)
+    assert job.point is not None
     with open('{0}/src/kernel1.cpp'.format(job.path), 'r') as filep:
         assert not re.findall(r'(auto{(.*?)})', filep.read(), re.IGNORECASE)
 
@@ -95,7 +98,8 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
     eval_ins = MerlinEvaluator('{0}/temp_fixture/eval_src1'.format(test_dir),
                                '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST,
                                required_args['db'], required_args['scheduler'],
-                               required_args['analyzer_cls'], BackupMode.NO_BACKUP)
+                               required_args['analyzer_cls'], BackupMode.NO_BACKUP,
+                               required_args['dse_config'])
 
     # Test timeout setup, although we will not use it in this test
     eval_ins.set_timeout({'transform': 3, 'hls': 30, 'bitgen': 480})
@@ -103,12 +107,16 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
     # Submit for evaluation (FAST)
     with mocker.patch.object(eval_ins.analyzer, 'desire', return_value=[]):
 
-        def mock_analyze_ok(job, mode):
+        def mock_analyze_ok(job, mode, config):
+            #pylint:disable=unused-argument
             if mode == 'transform':
-                return MerlinResult(job.key)
-            if mode == 'hls':
-                return HLSResult(job.key)
-            return BitgenResult(job.key)
+                result = MerlinResult()
+            elif mode == 'hls':
+                result = HLSResult()
+            else:
+                result = BitgenResult()
+            result.valid = True
+            return result
 
         with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_ok):
             # Fail due to miss setting up the command
@@ -131,7 +139,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             results = eval_ins.submit([job1])
             assert results[0].ret_code == 0
 
-        def mock_analyze_fail1(job, mode):
+        def mock_analyze_fail1(job, mode, config):
             #pylint:disable=unused-argument
             """Transform failure"""
             return None
@@ -149,10 +157,13 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
 
         eval_ins.backup_mode = BackupMode.BACKUP_ERROR
 
-        def mock_analyze_fail2(job, mode):
+        def mock_analyze_fail2(job, mode, config):
+            #pylint:disable=unused-argument
             """HLS failure"""
             if mode == 'transform':
-                return MerlinResult(job.key)
+                result = MerlinResult()
+                result.valid = True
+                return result
             return None
 
         with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail2):
@@ -165,15 +176,16 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             assert not os.path.exists(job3.path)
             assert os.path.exists('{0}/temp_eval_work/{1}'.format(test_dir, job3.key))
 
-        def mock_analyze_fail3(job, mode):
+        def mock_analyze_fail3(job, mode, config):
+            #pylint:disable=unused-argument
             """Transform has errors"""
             if mode == 'transform':
-                result = MerlinResult(job.key)
+                result = MerlinResult()
                 result.criticals.append('memory_burst_failed')
                 return result
             if mode == 'hls':
-                return HLSResult(job.key)
-            return BitgenResult(job.key)
+                return HLSResult()
+            return BitgenResult()
 
         with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail3):
             # Fail to pass Merlin transform (early reject)
@@ -183,5 +195,25 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             results = eval_ins.submit([job4])
             assert results[0].ret_code == 0
             assert not os.path.exists(job4.path)
+
+        def mock_analyze_fail4(job, mode, config):
+            #pylint:disable=unused-argument
+            """HLS runs out of resource"""
+            if mode == 'transform':
+                result = MerlinResult()
+                result.valid = True
+            elif mode == 'hls':
+                result = HLSResult()
+                result.valid = False
+            return result
+
+        with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_fail4):
+            # HLS result is invalid
+            job5 = eval_ins.create_job()
+            point = {'PE': 7, 'R': ''}
+            eval_ins.apply_design_point(job5, point)
+            results = eval_ins.submit([job5])
+            assert results[0].ret_code == 0
+            assert not results[0].valid
 
     LOG.debug('=== Testing evaluator phase 2 end')

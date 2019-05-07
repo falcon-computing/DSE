@@ -1,11 +1,12 @@
 """
 The module of result database.
 """
+import heapq
 import os
 import pickle
 from threading import Lock
 from time import time
-from typing import Optional, Union, List, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 from .logger import get_default_logger
 from .result import ResultBase
@@ -16,8 +17,9 @@ LOG = get_default_logger('Database')
 class Database():
     """The base class of result database with API definitions"""
 
-    def __init__(self, name: str, db_file_path: Optional[str] = None):
+    def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
         self.db_id = '{0}-{1}'.format(name, int(time()))
+
         # Set the database name to default if not specified
         if db_file_path is None:
             self.db_file_path = '{0}/{1}.db'.format(os.getcwd(), name)
@@ -26,7 +28,75 @@ class Database():
         else:
             self.db_file_path = db_file_path
 
-    def query(self, key: str) -> Optional[ResultBase]:
+        # Current best result set (min heap)
+        self.best_lock = Lock()
+        self.best_cache_size: int = cache_size
+        self.best_cache: List[Tuple[float, ResultBase]] = []
+
+    def update_best(self, result: ResultBase) -> None:
+        """Check if the new result has the best QoR and update it if so.
+
+        Parameters
+        ----------
+        result:
+            The new result to be checked.
+        """
+
+        if result.valid:
+            self.best_lock.acquire()
+
+            # Push the result to heap if it is better than the worst one
+            if not self.best_cache or result.quality > self.best_cache[0][0]:
+                heapq.heappush(self.best_cache, (result.quality, result))
+
+                # Remove the worst one if no more capacity
+                while len(self.best_cache) > self.best_cache_size:
+                    heapq.heappop(self.best_cache)
+
+                # Update metadata in the database for backup
+                self.commit_impl('meta-best-cache', self.best_cache)
+
+            self.best_lock.release()
+
+    def commit(self, key: str, result: Any) -> None:
+        """Commit a new result to the database
+
+        Parameters
+        ----------
+        key:
+            The key of a design point.
+
+        result:
+            The result to be committed.
+        """
+
+        if not self.commit_impl(key, result):
+            LOG.error('Failed to commit results to the database')
+            raise RuntimeError()
+        self.update_best(result)
+
+    def batch_commit(self, pairs: List[Tuple[str, Any]]) -> None:
+        """Commit a set of new results to the database.
+
+        Parameters
+        ----------
+        pairs:
+            A list of key-result pairs
+        """
+
+        if self.batch_commit_impl(pairs) != len(pairs):
+            LOG.error('Failed to commit results to the database')
+            raise RuntimeError()
+
+        # Update the best result
+        for _, result in pairs:
+            self.update_best(result)
+
+    def load(self) -> None:
+        """Load existing data from the given database and update the best cahce (if available)"""
+        raise NotImplementedError()
+
+    def query(self, key: str) -> Optional[Any]:
         """Query for the value by the given key
 
         Parameters
@@ -36,12 +106,12 @@ class Database():
 
         Returns
         -------
-        Optional[ResultBase]:
+        Optional[Any]:
             The result object of the corresponding key, or None if the key is unavailable.
         """
         raise NotImplementedError()
 
-    def batch_query(self, keys: List[str]) -> List[Optional[ResultBase]]:
+    def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
         """Query for a list of the values by the given key list
 
         Parameters
@@ -51,13 +121,13 @@ class Database():
 
         Returns
         -------
-        Optional[ResultBase]:
+        Optional[Any]:
             The result object of the corresponding key, or None if the key is unavailable.
         """
         raise NotImplementedError()
 
-    def commit(self, key: str, result: ResultBase) -> bool:
-        """Commit a new result to the database
+    def commit_impl(self, key: str, result: Any) -> bool:
+        """Commit function implementation.
 
         Parameters
         ----------
@@ -74,13 +144,13 @@ class Database():
         """
         raise NotImplementedError()
 
-    def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
-        """Commit a new result to the database
+    def batch_commit_impl(self, pairs: List[Tuple[str, Any]]) -> int:
+        """Batch commit function implementation.
 
         Parameters
         ----------
         pairs:
-            A list of key-result pairs
+            A list of key-result pairs.
 
         Returns
         -------
@@ -114,9 +184,10 @@ class Database():
 class RedisDatabase(Database):
     """The database implementation using Redis"""
 
-    def __init__(self, name: str, persist: Optional[str] = None):
+    def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
+        super(RedisDatabase, self).__init__(name, cache_size, db_file_path)
+
         import redis
-        super(RedisDatabase, self).__init__(name, persist)
 
         #TODO: scale-out
         self.database = redis.StrictRedis(host='localhost', port=6379)
@@ -128,6 +199,9 @@ class RedisDatabase(Database):
             LOG.error('Failed to connect to Redis database')
             self.database = None
             raise RuntimeError()
+
+    def load(self) -> None:
+        #pylint:disable=missing-docstring
 
         # Load existing data
         # Note that the dumped data for RedisDatabase should be in pickle format
@@ -141,6 +215,15 @@ class RedisDatabase(Database):
             LOG.info('Load %d data from an existing database', len(data))
             self.database.hmset(self.db_id, data)
 
+        # Update the best cache
+        if self.count() > 0:
+            best_cache = self.query('meta-best-cache')
+            if not best_cache:
+                LOG.warning('Key "meta-best-cache" is missing in the DB. '
+                            'The best result may not be real.')
+            else:
+                self.best_cache = best_cache
+
     def __del__(self):
         """Delete the data we generated in Redis database"""
         if self.database:
@@ -150,20 +233,21 @@ class RedisDatabase(Database):
             else:
                 LOG.info('Detach and cleanup the Redis database')
 
-    def query(self, key: str) -> Optional[ResultBase]:
+    def query(self, key: str) -> Optional[Any]:
         #pylint:disable=missing-docstring
 
         if not self.database.hexists(self.db_id, key):
             return None
 
         pickled_obj = self.database.hget(self.db_id, key)
-        try:
-            return pickle.loads(pickled_obj)
-        except ValueError as err:
-            LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
-            return None
+        if pickled_obj:
+            try:
+                return pickle.loads(pickled_obj)
+            except ValueError as err:
+                LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
+        return None
 
-    def batch_query(self, keys: List[str]) -> List[Optional[ResultBase]]:
+    def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
         #pylint:disable=missing=docstring
 
         data = []
@@ -178,15 +262,14 @@ class RedisDatabase(Database):
                 data.append(None)
         return data
 
-    def commit(self, key: str, result: ResultBase) -> bool:
+    def commit_impl(self, key: str, result: Any) -> bool:
         #pylint:disable=missing-docstring
 
         pickled_result = pickle.dumps(result)
-        if self.database.hset(self.db_id, key, pickled_result) == 0:
-            LOG.warning('Overridded the value of %s in result DB', key)
+        self.database.hset(self.db_id, key, pickled_result)
         return True
 
-    def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
+    def batch_commit_impl(self, pairs: List[Tuple[str, Any]]) -> int:
         #pylint:disable=missing-docstring
 
         data = {key: pickle.dumps(result) for key, result in pairs}
@@ -219,10 +302,10 @@ class PickleDatabase(Database):
     and the lack of multi-node support.
     """
 
-    def __init__(self, name: str, persist: Optional[str] = None):
+    def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
+        super(PickleDatabase, self).__init__(name, cache_size, db_file_path)
+
         import pickledb
-        import jsonpickle
-        super(PickleDatabase, self).__init__(name, persist)
         self.lock = Lock()
         self.database: pickledb.PickleDB = {}
 
@@ -230,51 +313,65 @@ class PickleDatabase(Database):
             # Load the Pickle database
             # Note that we cannot enable auto dump since we will pickle all data before persisting
             self.database = pickledb.load(self.db_file_path, False)
+        except ValueError as err:
+            LOG.error('Failed to initialize the database: %s', str(err))
+            raise RuntimeError()
 
+    def load(self) -> None:
+        #pylint:disable=missing-docstring
+        import jsonpickle
+
+        try:
             # Decode objects
             for key in self.database.getall():
                 obj = jsonpickle.decode(self.database.get(key))
                 self.database.set(key, obj)
         except ValueError as err:
-            LOG.error('Failed to initialize the database: %s', str(err))
+            LOG.error('Failed to load the data from the database: %s', str(err))
             raise RuntimeError()
 
-    def query(self, key: str) -> Optional[ResultBase]:
+        # Update the best cache
+        if self.count() > 0:
+            best_cache = self.query('meta-best-cache')
+            if not best_cache:
+                LOG.warning('Key "meta-best-cache" is missing in the DB. '
+                            'The best result may not be real.')
+            else:
+                self.best_cache = best_cache
+
+    def query(self, key: str) -> Optional[Any]:
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
         value: Union[bool, ResultBase] = self.database.get(key)
         self.lock.release()
-        return value if isinstance(value, ResultBase) else None
+        return None if isinstance(value, bool) else value
 
-    def batch_query(self, keys: List[str]) -> List[Optional[ResultBase]]:
+    def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
         #pylint:disable=missing=docstring
 
         self.lock.acquire()
-        values: List[Optional[ResultBase]] = []
+        values: List[Optional[Any]] = []
         for key in keys:
             value = self.database.get(key)
-            values.append(value if isinstance(value, ResultBase) else None)
+            values.append(None if isinstance(value, bool) else value)
         self.lock.release()
         return values
 
-    def commit(self, key: str, result: ResultBase) -> bool:
+    def commit_impl(self, key: str, result: ResultBase) -> bool:
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
-        if self.database.exists(key):
-            LOG.warning('Overriding the value of %s in result DB', key)
+        self.database.exists(key)
         self.database.set(key, result)
         self.lock.release()
         return True
 
-    def batch_commit(self, pairs: List[Tuple[str, ResultBase]]) -> int:
+    def batch_commit_impl(self, pairs: List[Tuple[str, Any]]) -> int:
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
         for key, result in pairs:
-            if self.database.exists(key):
-                LOG.warning('Overriding the value of %s in result DB', key)
             self.database.set(key, result)
         self.lock.release()
         return len(pairs)

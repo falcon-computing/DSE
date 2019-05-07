@@ -43,6 +43,22 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
     'evaluate.command.hls': {
         'require': True,
     },
+    'evaluate.max-util.BRAM': {
+        'require': False,
+        'default': 0.8
+    },
+    'evaluate.max-util.DSP': {
+        'require': False,
+        'default': 0.8
+    },
+    'evaluate.max-util.LUT': {
+        'require': False,
+        'default': 0.8
+    },
+    'evaluate.max-util.FF': {
+        'require': False,
+        'default': 0.8
+    },
     'evaluate.command.bitgen': {
         'require': True,
     },

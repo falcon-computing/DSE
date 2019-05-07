@@ -82,7 +82,7 @@ class PythonSubprocessScheduler(Scheduler):
                 LOG.error('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
                           dst_path, str(err))
 
-        #shutil.rmtree(src_path)
+        shutil.rmtree(src_path)
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
             timeout: Optional[int] = None) -> List[bool]:
