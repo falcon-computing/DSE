@@ -229,7 +229,6 @@ class RedisDatabase(Database):
             self.database.client_list()
         except redis.ConnectionError:
             LOG.error('Failed to connect to Redis database')
-            self.database = None
             raise RuntimeError()
 
     def load(self) -> None:
@@ -254,7 +253,7 @@ class RedisDatabase(Database):
                 LOG.warning('Key "meta-best-cache" is missing in the DB. '
                             'The best result may not be real.')
             else:
-                for quality, stamp, result in best_cache:
+                for quality, _, result in best_cache:
                     if result and result.valid:
                         self.best_cache.put((quality, time(), result), timeout=0.1)
 
@@ -345,12 +344,11 @@ class PickleDatabase(Database):
 
         import pickledb
         self.lock = Lock()
-        self.database: pickledb.PickleDB = {}
 
         try:
             # Load the Pickle database
             # Note that we cannot enable auto dump since we will pickle all data before persisting
-            self.database = pickledb.load(self.db_file_path, False)
+            self.database: pickledb.PickleDB = pickledb.load(self.db_file_path, False)
         except ValueError as err:
             LOG.error('Failed to initialize the database: %s', str(err))
             raise RuntimeError()
@@ -376,7 +374,7 @@ class PickleDatabase(Database):
                 LOG.warning('Key "meta-best-cache" is missing in the DB. '
                             'The best result may not be real.')
             else:
-                for quality, stamp, result in best_cache:
+                for quality, _, result in best_cache:
                     if result and result.valid:
                         self.best_cache.put((quality, time(), result), timeout=0.1)
 
@@ -415,7 +413,6 @@ class PickleDatabase(Database):
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
-        idx = 0
         for key, result in pairs:
             self.database.set(key, result)
         self.lock.release()

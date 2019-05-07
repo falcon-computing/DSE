@@ -179,6 +179,7 @@ class MerlinAnalyzer(Analyzer):
         #result.report = hls_info
 
         # Fetch total cycle and resource util as performance QoR
+        top_res_info = {}
         for elt in hls_info:
             # Extract cycles
             if 'CYCLE_TOT' in hls_info[elt]:
@@ -201,10 +202,15 @@ class MerlinAnalyzer(Analyzer):
                     continue
 
                 try:
-                    result.res_util[util_key] = max(
-                        float(hls_info[elt][util_key]) / 100.0, result.res_util[util_key])
-                    result.res_util[total_key] = max(float(hls_info[elt][total_key]),
-                                                     result.res_util[total_key])
+                    if elt == 'TOP_res_info':
+                        # Not kernel resource, process separately
+                        top_res_info[util_key] = float(hls_info[elt][util_key]) / 100.0
+                        top_res_info[total_key] = float(hls_info[elt][total_key])
+                    else:
+                        result.res_util[util_key] = max(
+                            float(hls_info[elt][util_key]) / 100.0, result.res_util[util_key])
+                        result.res_util[total_key] = max(float(hls_info[elt][total_key]),
+                                                         result.res_util[total_key])
                 except ValueError as err:
                     # Some compoenents may not have resource number (valid),
                     # or HLS cannot estimate the cycle due to insufficient information.
@@ -212,6 +218,11 @@ class MerlinAnalyzer(Analyzer):
                         LOG.error('Found "?" in HLS report. Please use assert to indicate '
                                   'the loop trip count to get rid of all "?" in HLS report.')
                         return None
+
+        # Sum the kernel resource and BSP resource
+        for key in result.res_util:
+            if key in top_res_info:
+                result.res_util[key] += top_res_info[key]
 
         # Result validation: resource utilization is under the threshold
         max_utils = config['max-util']

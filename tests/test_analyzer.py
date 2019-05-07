@@ -87,14 +87,15 @@ def test_merlin_analyzer(test_dir):
     assert abs(result.quality - 5.086e-6) < 1e-6
     assert result.perf == 196608.0
     assert result.eval_time == 91.62
-    assert abs(result.res_util['util-BRAM'] - 0.089) < 0.01
+    print(str(result.res_util))
+    assert abs(result.res_util['util-BRAM'] - 0.1059) < 0.01
     assert abs(result.res_util['util-DSP'] - 0.99) < 0.01
-    assert abs(result.res_util['util-LUT'] - 0.095) < 0.01
-    assert abs(result.res_util['util-FF'] - 0.094) < 0.01
-    assert result.res_util['total-BRAM'] == 226
+    assert abs(result.res_util['util-LUT'] - 0.0995) < 0.01
+    assert abs(result.res_util['util-FF'] - 0.099) < 0.01
+    assert result.res_util['total-BRAM'] == 268
     assert result.res_util['total-DSP'] == 0
-    assert result.res_util['total-LUT'] == 74689
-    assert result.res_util['total-FF'] == 147604
+    assert result.res_util['total-LUT'] == 78457
+    assert result.res_util['total-FF'] == 156257
 
     # Result is invalid due to out of BRAM utilization
     assert not result.valid

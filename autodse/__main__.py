@@ -92,7 +92,7 @@ def main() -> None:
     src_dir = os.path.abspath(ARGS.src_dir)
     work_dir = os.path.abspath(ARGS.work_dir)
     dir_prefix = os.path.commonprefix([src_dir, work_dir])
-    if dir_prefix == src_dir or dir_prefix == work_dir:
+    if dir_prefix in [src_dir, work_dir]:
         LOG.error('Merlin project and workspace cannot be subdirectories!')
         return
 
@@ -119,7 +119,7 @@ def main() -> None:
         if os.path.commonprefix([work_dir, db_path]) == work_dir:
             file_name = os.path.basename(db_path)
             shutil.copyfile(os.path.join(bak_dir, file_name), file_name)
-      
+
     # Check and load config
     if not os.path.exists(ARGS.config):
         LOG.error('Config JSON file not found: %s', ARGS.config)

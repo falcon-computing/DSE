@@ -178,7 +178,7 @@ def create_design_parameter(param_id: str, ds_config: Dict[str, Union[str, int]]
         else:
             param.ds_type = str(ds_config['ds_type']).upper()
     else:
-        param = MerlinParameter(param_id)
+        param = param_cls(param_id)
 
     # General settings for parameters
     # Option checking

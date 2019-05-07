@@ -72,8 +72,8 @@ class Reporter():
             LOG.info(
                 self.BestHistFormat.format(
                     '{:.1e}'.format(best_quality), '{:.1e}'.format(best_result.perf), ', '.join([
-                        '{0}:{1:.1f}%'.format(k[5:], v) for k, v in best_result.res_util.items()
-                        if k.startswith('util')
+                        '{0}:{1:.1f}%'.format(k[5:], v * 100.0)
+                        for k, v in best_result.res_util.items() if k.startswith('util')
                     ])))
 
     def log_best_close(self) -> None:
@@ -109,7 +109,7 @@ class Reporter():
             rpt += self.OutputFormat.format(
                 result.path, '{:.1e}'.format(result.quality), '{:.1e}'.format(result.perf),
                 ', '.join([
-                    '{0}:{1:.1f}%'.format(k[5:], v) for k, v in result.res_util.items()
+                    '{0}:{1:.1f}%'.format(k[5:], v * 100.0) for k, v in result.res_util.items()
                     if k.startswith('util')
                 ]))
 
