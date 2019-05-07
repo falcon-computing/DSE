@@ -173,8 +173,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             eval_ins.apply_design_point(job3, point)
             results = eval_ins.submit([job3])
             assert results[0].ret_code == -2
-            assert not os.path.exists(job3.path)
-            assert os.path.exists('{0}/temp_eval_work/{1}'.format(test_dir, job3.key))
+            assert os.path.exists(job3.path)
 
         def mock_analyze_fail3(job, mode, config):
             #pylint:disable=unused-argument

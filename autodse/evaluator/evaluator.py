@@ -115,7 +115,7 @@ class Evaluator():
         path = tempfile.mkdtemp(prefix=self.temp_dir_prefix, dir='{0}/'.format(self.work_path))
         if not copy_dir(self.src_path, path):
             return None
-        LOG.debug('Created a new job at %s', path)
+        #LOG.debug('Created a new job at %s', path)
         return Job(path)
 
     def apply_design_point(self, job: Job, point: DesignPoint) -> bool:
@@ -190,7 +190,7 @@ class Evaluator():
         """
 
         assert all([job.status == Job.Status.APPLIED for job in jobs])
-        LOG.debug('Submit %d jobs for evaluation', len(jobs))
+        LOG.info('Submit %d jobs for evaluation', len(jobs))
 
         # Determine the submission flow
         if self.mode == EvalMode.FAST:
@@ -205,7 +205,10 @@ class Evaluator():
         results = submitter(jobs)
         for job, result in zip(jobs, results):
             result.point = job.point
+
+        LOG.debug('Committing %d results', len(results))
         self.db.batch_commit([(job.key, result) for job, result in zip(jobs, results)])
+        LOG.debug('Done committing')
 
         # Backup jobs if needed
         if self.backup_mode == BackupMode.NO_BACKUP:
@@ -303,7 +306,7 @@ class MerlinEvaluator(Evaluator):
                     rets[idx] = result
 
         if not pending_hls:
-            LOG.debug('All jobs are stopped at the Merlin transform stage.')
+            LOG.info('All jobs are stopped at the Merlin transform stage.')
             return rets
 
         # Run HLS and analyze the Merlin report

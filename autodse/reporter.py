@@ -14,6 +14,7 @@ class Reporter():
     """Main reporter class"""
 
     ANIME = ['-', '\\', '|', '/']
+    ConfigFormat = '|{0:15s}|{1:40s}|'
     BestHistFormat = '|{0:7s}|{1:7s}|{2:43s}|'
     OutputFormat = '|{0:14s}|{1:7s}|{2:7s}|{3:43s}|'
 
@@ -25,18 +26,40 @@ class Reporter():
         self.is_first_best = True
         self.best_quality = -float('inf')
 
+    def log_config(self) -> None:
+        """Log important configs"""
+
+        LOG.info('DSE Configure')
+        LOG.info('-' * 58)
+        LOG.info(self.ConfigFormat.format('Config', 'Value'))
+        LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
+        LOG.info(self.ConfigFormat.format('Project', self.config['project']['name']))
+        LOG.info(self.ConfigFormat.format('Backup mode', self.config['project']['backup']))
+        LOG.info(
+            self.ConfigFormat.format('Expected output', str(self.config['project']['output-num'])))
+        LOG.info(
+            self.ConfigFormat.format('Evaluate mode', self.config['evaluate']['estimate-mode']))
+        LOG.info(
+            self.ConfigFormat.format('Search approach',
+                                     self.config['search']['algorithm']['name']))
+        LOG.info(self.ConfigFormat.format('DSE time', str(self.config['timeout']['exploration'])))
+        LOG.info(self.ConfigFormat.format('HLS time', str(self.config['timeout']['hls'])))
+        LOG.info(self.ConfigFormat.format('P&R time', str(self.config['timeout']['bitgen'])))
+        LOG.info('-' * 58)
+
     def log_best(self) -> None:
         """Log the new best result if available"""
 
         try:
-            best_quality, best_result = max(self.db.best_cache, key=lambda r: r[0])  # type: ignore
+            best_quality, best_result = max(self.db.best_cache.queue,
+                                            key=lambda r: r[0])  # type: ignore
         except ValueError:
             # Best cache is still empty
             return
 
         if self.is_first_best:
             LOG.info('Best result reporting...')
-            LOG.info('-' * 57)
+            LOG.info('-' * 61)
             LOG.info(self.BestHistFormat.format('Quality', 'Perf.', 'Resource'))
             LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
             self.is_first_best = False
@@ -49,6 +72,11 @@ class Reporter():
                         '{0}:{1:.1f}%'.format(k[5:], v) for k, v in best_result.res_util.items()
                         if k.startswith('util')
                     ])))
+
+    def log_best_close(self) -> None:
+        """Log the final line of the best result progress"""
+
+        LOG.info('-' * 61)
 
     def report_output(self, outputs: List[ResultBase]) -> str:
         """Report the final output.
@@ -69,7 +97,7 @@ class Reporter():
             return ''
 
         rpt = ''
-        rpt += '-' * 71
+        rpt += '-' * 76
         rpt += '\n'
         rpt += self.OutputFormat.format('Directory', 'Quality', 'Perf.', 'Resource')
         rpt += '\n'
@@ -86,7 +114,7 @@ class Reporter():
                 ]))
             rpt += '\n'
 
-        rpt += '-' * 71
+        rpt += '-' * 76
         rpt += '\n'
 
         return rpt

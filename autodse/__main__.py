@@ -1,24 +1,26 @@
 """
 The main DSE flow that integrates all modules
 """
-from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, List
 import argparse
 import json
 import os
 import shutil
 import time
+from concurrent.futures import ThreadPoolExecutor
+from queue import PriorityQueue
+from typing import Any, Dict, List
 
-from autodse.config import build_config
-from .logger import get_default_logger
+from .config import build_config
 from .database import Database, RedisDatabase
 from .dsproc.dsproc import compile_design_space, partition
-from .parameter import DesignSpace
-from .reporter import Reporter
 from .evaluator.analyzer import MerlinAnalyzer
-from .evaluator.evaluator import BackupMode, EvalMode, Evaluator, MerlinEvaluator
+from .evaluator.evaluator import (BackupMode, EvalMode, Evaluator,
+                                  MerlinEvaluator)
 from .evaluator.scheduler import PythonSubprocessScheduler
 from .explorer.explorer import Explorer
+from .logger import get_default_logger
+from .parameter import DesignSpace
+from .reporter import Reporter
 
 ARG_PARSER = argparse.ArgumentParser(description='Automatic Design Space Exploration')
 ARG_PARSER.add_argument('--src-dir',
@@ -118,6 +120,7 @@ def main() -> None:
     # Initialize database
     LOG.info('Initializing the database')
     db = RedisDatabase(config['project']['name'], int(config['project']['output-num']), db_path)
+    db.load()
 
     # Initialize workspace
     LOG.info('Initializing the workspace')
@@ -129,8 +132,7 @@ def main() -> None:
         os.makedirs(work_dir)
 
     # Initialize evaluator
-    LOG.info('Initializing the evaluator with evaluate mode %s and back mode %s',
-             config['evaluate']['estimate-mode'], config['project']['backup'])
+    LOG.info('Initializing the evaluator')
     merlin_eval = MerlinEvaluator(src_path=src_dir,
                                   work_path=os.path.join(work_dir, 'evaluate'),
                                   mode=EvalMode[config['evaluate']['estimate-mode']],
@@ -145,6 +147,9 @@ def main() -> None:
 
     # Initialize reporter
     reporter = Reporter(config, db)
+
+    # Display important configs
+    reporter.log_config()
 
     # Compile design space
     LOG.info('Compiling design space')
@@ -175,14 +180,21 @@ def main() -> None:
     except KeyboardInterrupt:
         pass
 
+    reporter.log_best_close()
     LOG.info('Finish the exploration')
+
+    # Backup database
+    db.persist()
 
     # Create outputs
     if os.path.exists(out_dir):
         shutil.rmtree(out_dir)
     os.makedirs(out_dir)
     output = []
-    for idx, (_, result) in enumerate(db.best_cache):
+    idx = 0
+    best_cache: PriorityQueue = db.best_cache
+    while not best_cache.empty():
+        _, result = best_cache.get()
         job = merlin_eval.create_job()
         if not job:
             raise RuntimeError()
@@ -192,14 +204,14 @@ def main() -> None:
         os.rename(job.path, os.path.join(out_dir, str(idx)))
         result.path = str(idx)
         output.append(result)
+        idx += 1
 
     rpt = reporter.report_output(output)
     if rpt:
-        with open(os.path.join(out_dir, 'output.rpt', 'w')) as filep:
+        with open(os.path.join(out_dir, 'output.rpt'), 'w') as filep:
             filep.write(rpt)
 
     # Report and summary
-    db.persist()
 
 
 # Launch the DSE flow

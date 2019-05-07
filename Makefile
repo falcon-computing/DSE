@@ -15,7 +15,8 @@ unit_test:
 example:
 	rm -f *.log
 	python -m autodse --src-dir=./examples/kmeans --work-dir=./work \
-					  --config=./examples/kmeans/dse_config.json
+					  --config=./examples/kmeans/dse_config.json \
+					  --db=./work/result.db
 
 format:
 	yapf -ir --style=tests/lint/yapf_style.cfg autodse

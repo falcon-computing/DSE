@@ -1,7 +1,7 @@
 """
 The unit test module of config.
 """
-import heapq
+import queue
 
 from autodse.database import Database
 from autodse.logger import get_default_logger
@@ -42,12 +42,12 @@ def test_reporter(mocker, capsys):
 
         # Test log best
         # TODO: Capture log and check the format
-        cache = []
+        cache = queue.PriorityQueue()
         result1 = ResultBase()
         result1.path = '1'
         result1.valid = True
         result1.quality = 5
-        cache.append((5, result1))
+        cache.put((5, result1))
         reporter.db.best_cache = cache
 
         reporter.log_best()
@@ -56,18 +56,20 @@ def test_reporter(mocker, capsys):
         result2.path = '2'
         result2.valid = True
         result2.quality = 33
-        heapq.heappush(cache, (33, result2))
+        cache.put((33, result2))
         reporter.log_best()
 
         result3 = ResultBase()
         result3.path = '3'
         result3.valid = True
         result3.quality = 48
-        heapq.heappush(cache, (48, result3))
+        cache.put((48, result3))
         reporter.log_best()
 
         # Test output
-        rpt = reporter.report_output([result for _, result in cache])
-        assert rpt
+        output = []
+        while not cache.empty():
+            output.append(cache.get()[1])
+        assert reporter.report_output(output)
 
     LOG.info('=== Testing reporter end')

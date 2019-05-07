@@ -33,9 +33,7 @@ def test_redis_database():
     point.valid = True
     point.quality = 5
     rdb.commit('point0', point)
-
-    # Note that we will also commit meta-best-cache
-    assert rdb.count() == 2
+    assert rdb.count() == 1
 
     # Query the point
     point = rdb.query('point0')
@@ -50,7 +48,7 @@ def test_redis_database():
     point.perf = 1024.0
     point.res_util = {'BRAM': 47.5, 'FF': 1, 'LUT': 50.4, 'DSP': 78.2}
     rdb.commit('point0', point)
-    assert rdb.count() == 2
+    assert rdb.count() == 1
 
     # Commit two more points
     point = HLSResult()
@@ -70,6 +68,10 @@ def test_redis_database():
     point.perf = 2048.0
     point.res_util = {'BRAM': 5.4, 'FF': 1, 'LUT': 4, 'DSP': 8}
     rdb.commit('point2', point)
+    assert rdb.count() == 3
+
+    # Commit best cache
+    rdb.commit_best()
     assert rdb.count() == 4
 
     # Persist
@@ -80,8 +82,8 @@ def test_redis_database():
     rdb2 = RedisDatabase('redisDB_test', 2, './redisDB_test.db')
     rdb2.load()
     assert rdb2.count() == 4
-    assert len(rdb2.best_cache) == 2
-    assert rdb2.best_cache[0][0] == 10
+    assert rdb2.best_cache.qsize() == 2
+    assert rdb2.best_cache.queue[0][0] == 10
     del rdb2
 
     # Clean up
@@ -112,9 +114,7 @@ def test_pickle_database():
     point.valid = True
     point.quality = 5
     pdb.commit('point0', point)
-
-    # Note that we will also commit meta-best-cache
-    assert pdb.count() == 2
+    assert pdb.count() == 1
 
     # Query the point
     point = pdb.query('point0')
@@ -129,7 +129,7 @@ def test_pickle_database():
     point.perf = 1024.0
     point.res_util = {'BRAM': 47.5, 'FF': 1, 'LUT': 50.4, 'DSP': 78.2}
     pdb.commit('point0', point)
-    assert pdb.count() == 2
+    assert pdb.count() == 1
 
     # Commit two more points
     point = HLSResult()
@@ -149,9 +149,11 @@ def test_pickle_database():
     point.perf = 2048.0
     point.res_util = {'BRAM': 5.4, 'FF': 1, 'LUT': 4, 'DSP': 8}
     pdb.commit('point2', point)
-    assert pdb.count() == 4
+    assert pdb.count() == 3
 
     # Persist
+    pdb.commit_best()
+    assert pdb.count() == 4
     pdb.persist()
     del pdb
 
@@ -159,8 +161,8 @@ def test_pickle_database():
     pdb2 = PickleDatabase('pickleDB_test', 2, './pickleDB_test.db')
     pdb2.load()
     assert pdb2.count() == 4
-    assert len(pdb2.best_cache) == 2
-    assert pdb2.best_cache[0][0] == 10
+    assert pdb2.best_cache.qsize() == 2
+    assert pdb2.best_cache.queue[0][0] == 10
     del pdb2
 
     # Instrument errors to the persist database

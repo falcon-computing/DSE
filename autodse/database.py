@@ -1,9 +1,9 @@
 """
 The module of result database.
 """
-import heapq
 import os
 import pickle
+import queue
 from threading import Lock
 from time import time
 from typing import Any, List, Optional, Tuple, Union
@@ -29,9 +29,7 @@ class Database():
             self.db_file_path = db_file_path
 
         # Current best result set (min heap)
-        self.best_lock = Lock()
-        self.best_cache_size: int = cache_size
-        self.best_cache: List[Tuple[float, ResultBase]] = []
+        self.best_cache: queue.PriorityQueue = queue.PriorityQueue(cache_size)
 
     def update_best(self, result: ResultBase) -> None:
         """Check if the new result has the best QoR and update it if so.
@@ -43,20 +41,19 @@ class Database():
         """
 
         if result.valid:
-            self.best_lock.acquire()
+            if self.best_cache.qsize() < self.best_cache.maxsize:
+                self.best_cache.put((result.quality, result))
+            else:
+                last_quality, last_result = self.best_cache.get()
+                if result.quality > last_quality:
+                    self.best_cache.put((result.quality, result))
+                else:
+                    self.best_cache.put((last_quality, last_result))
 
-            # Push the result to heap if it is better than the worst one
-            if not self.best_cache or result.quality > self.best_cache[0][0]:
-                heapq.heappush(self.best_cache, (result.quality, result))
+    def commit_best(self) -> None:
+        """Commit the best cache for persisting"""
 
-                # Remove the worst one if no more capacity
-                while len(self.best_cache) > self.best_cache_size:
-                    heapq.heappop(self.best_cache)
-
-                # Update metadata in the database for backup
-                self.commit_impl('meta-best-cache', self.best_cache)
-
-            self.best_lock.release()
+        self.commit_impl('meta-best-cache', self.best_cache.queue)
 
     def commit(self, key: str, result: Any) -> None:
         """Commit a new result to the database
@@ -222,7 +219,11 @@ class RedisDatabase(Database):
                 LOG.warning('Key "meta-best-cache" is missing in the DB. '
                             'The best result may not be real.')
             else:
-                self.best_cache = best_cache
+                for quality, result in best_cache:
+                    try:
+                        self.best_cache.put((quality, result), timeout=0.1)
+                    except queue.Full:
+                        return
 
     def __del__(self):
         """Delete the data we generated in Redis database"""
@@ -337,7 +338,11 @@ class PickleDatabase(Database):
                 LOG.warning('Key "meta-best-cache" is missing in the DB. '
                             'The best result may not be real.')
             else:
-                self.best_cache = best_cache
+                for quality, result in best_cache:
+                    try:
+                        self.best_cache.put((quality, result), timeout=0.1)
+                    except queue.Full:
+                        return
 
     def query(self, key: str) -> Optional[Any]:
         #pylint:disable=missing-docstring
