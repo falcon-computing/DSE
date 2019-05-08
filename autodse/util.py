@@ -9,8 +9,6 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 from .logger import get_default_logger
 
-LOG = get_default_logger('Util')
-
 SAFE_BUILTINS: Dict[str, Any] = {'builtins': None}
 SAFE_BUILTINS['range'] = range
 SAFE_BUILTINS['ceil'] = math.ceil
@@ -48,7 +46,7 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
     try:
         return eval(expr, table)  #pylint: disable=eval-used
     except NameError as err:
-        LOG.error('eval failed: %s', str(err))
+        get_default_logger('Util').error('eval failed: %s', str(err))
     return None
 
 
@@ -75,10 +73,10 @@ def copy_dir(src: str, dest: str) -> bool:
     try:
         shutil.copytree(src, dest)
     except shutil.Error as err:  # Directories are the same
-        LOG.error('Directory not copied. Error: %s', str(err))
+        get_default_logger('Util').error('Directory not copied. Error: %s', str(err))
         return False
     except OSError as err:  # Any error saying that the directory doesn't exist
-        LOG.error('Directory not copied. Error: %s', str(err))
+        get_default_logger('Util').error('Directory not copied. Error: %s', str(err))
         return False
     return True
 
@@ -105,7 +103,7 @@ def command(cmd: str, timeout: Optional[int] = None) -> Tuple[bool, str]:
         stdout, _ = proc.communicate(timeout=timeout)
         return (True, stdout)
     except ValueError as err:
-        LOG.error('Command %s has errors: %s', cmd, str(err))
+        get_default_logger('Util').error('Command %s has errors: %s', cmd, str(err))
         return (False, '')
     except TimeoutExpired:
         proc.kill()

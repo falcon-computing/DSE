@@ -3,16 +3,21 @@ The main module of analyzer.
 """
 import json
 import os
+from logging import Logger
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..logger import get_eval_logger
 from ..result import HLSResult, Job, MerlinResult, ResultBase
 
-LOG = get_eval_logger('Analyzer')
-
 
 class Analyzer():
     """Main analyzer class"""
+
+    @staticmethod
+    def get_analyzer_logger() -> Logger:
+        """Attach the analyzer logger"""
+
+        return get_eval_logger('Analyzer')
 
     @staticmethod
     def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[ResultBase]:
@@ -80,10 +85,11 @@ class MerlinAnalyzer(Analyzer):
         Tuple[bool, float]:
             Indicate if the flow was success and the total runtime if success.
         """
+        log = Analyzer.get_analyzer_logger()
 
         merlin_log_path = os.path.join(job.path, 'merlin.log')
         if not os.path.exists(merlin_log_path):
-            LOG.debug('Cannot find merlin.log for analysis')
+            log.debug('Cannot find merlin.log for analysis')
             return (False, -1)
 
         success = False
@@ -96,7 +102,7 @@ class MerlinAnalyzer(Analyzer):
                     try:
                         eval_time += float(line[12:line.find('seconds')])
                     except ValueError:
-                        LOG.error('Failed to convert runtime %s to float',
+                        log.error('Failed to convert runtime %s to float',
                                   line[12:line.find('seconds')])
                         return (False, -1)
         return (success, eval_time)
@@ -116,9 +122,10 @@ class MerlinAnalyzer(Analyzer):
             The analysis result.
         """
 
+        log = Analyzer.get_analyzer_logger()
         merlin_log_path = os.path.join(job.path, 'merlin.log')
         if not os.path.exists(merlin_log_path):
-            LOG.debug('Cannot find merlin.log for analysis')
+            log.debug('Cannot find merlin.log for analysis')
             return None
 
         success, eval_time = MerlinAnalyzer.analyze_merlin_log(
@@ -153,6 +160,7 @@ class MerlinAnalyzer(Analyzer):
             The analysis result.
         """
 
+        log = Analyzer.get_analyzer_logger()
         success, eval_time = MerlinAnalyzer.analyze_merlin_log(job, 'Estimation successfully.')
         if not success:
             return None
@@ -165,14 +173,14 @@ class MerlinAnalyzer(Analyzer):
         hier_path = os.path.join(report_path, 'hierarchy.json')
         info_path = os.path.join(report_path, 'final_info.json')
         if not os.path.exists(hier_path) or not os.path.exists(info_path):
-            LOG.debug('Cannot find Merlin report files for analysis')
+            log.debug('Cannot find Merlin report files for analysis')
             return None
 
         with open(info_path, 'r') as filep:
             try:
                 hls_info = json.load(filep)
             except ValueError as err:
-                LOG.error('Failed to read Merlin report %s: %s', info_path, str(err))
+                log.error('Failed to read Merlin report %s: %s', info_path, str(err))
                 return None
 
         # Backup an entire report for future usage
@@ -189,7 +197,7 @@ class MerlinAnalyzer(Analyzer):
                     # Some compoenents may be flatten and do not have cycle number (valid),
                     # or HLS cannot estimate the cycle due to insufficient information.
                     if str(err).find('?') != -1:
-                        LOG.error('Found "?" in HLS report. Please use assert to indicate '
+                        log.error('Found "?" in HLS report. Please use assert to indicate '
                                   'the loop trip count to get rid of all "?" in HLS report.')
                         return None
 
@@ -215,7 +223,7 @@ class MerlinAnalyzer(Analyzer):
                     # Some compoenents may not have resource number (valid),
                     # or HLS cannot estimate the cycle due to insufficient information.
                     if str(err).find('?') != -1:
-                        LOG.error('Found "?" in HLS report. Please use assert to indicate '
+                        log.error('Found "?" in HLS report. Please use assert to indicate '
                                   'the loop trip count to get rid of all "?" in HLS report.')
                         return None
 
@@ -237,12 +245,14 @@ class MerlinAnalyzer(Analyzer):
     def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[ResultBase]:
         #pylint:disable=missing-docstring
 
+        log = Analyzer.get_analyzer_logger()
+
         if mode == 'transform':
             result: Optional[ResultBase] = MerlinAnalyzer.analyze_merlin_transform(job)
         elif mode == 'hls':
             result = MerlinAnalyzer.analyze_merlin_hls(job, config)
         else:
-            LOG.error('Unrecognized analysis target %s', mode)
+            log.error('Unrecognized analysis target %s', mode)
             return None
 
         # QoR computation
@@ -255,6 +265,7 @@ class MerlinAnalyzer(Analyzer):
     def desire(mode: str) -> List[str]:
         #pylint:disable=missing-docstirng
 
+        log = Analyzer.get_analyzer_logger()
         if mode == 'transform':
             return ['merlin.log']
         if mode == 'hls':
@@ -263,5 +274,5 @@ class MerlinAnalyzer(Analyzer):
                 '.merlin_prj/run/implement/exec/hls/report_merlin/hierarchy.json'
             ]
 
-        LOG.error('Unrecognized analysis target %s', mode)
+        log.error('Unrecognized analysis target %s', mode)
         return []

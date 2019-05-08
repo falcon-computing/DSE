@@ -11,20 +11,19 @@ from typing import Any, List, Optional, Tuple, Union
 from .logger import get_default_logger
 from .result import ResultBase
 
-LOG = get_default_logger('Database')
-
 
 class Database():
     """The base class of result database with API definitions"""
 
     def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
         self.db_id = '{0}-{1}'.format(name, int(time()))
+        self.log = get_default_logger('Database')
 
         # Set the database name to default if not specified
         if db_file_path is None:
             self.db_file_path = '{0}/{1}.db'.format(os.getcwd(), name)
-            LOG.warning('No file name was given for dumping the database, dumping to %s',
-                        self.db_file_path)
+            self.log.warning('No file name was given for dumping the database, dumping to %s',
+                             self.db_file_path)
         else:
             self.db_file_path = db_file_path
 
@@ -55,7 +54,7 @@ class Database():
             try:
                 self.best_cache.put((result.quality, time(), result))
             except Exception as err:
-                LOG.error('Failed to update best cache: %s', str(err))
+                self.log.error('Failed to update best cache: %s', str(err))
                 raise RuntimeError()
 
     def commit_best(self) -> None:
@@ -76,7 +75,7 @@ class Database():
         """
 
         if not self.commit_impl(key, result):
-            LOG.error('Failed to commit results to the database')
+            self.log.error('Failed to commit results to the database')
             raise RuntimeError()
         self.update_best(result)
 
@@ -90,7 +89,7 @@ class Database():
         """
 
         if self.batch_commit_impl(pairs) != len(pairs):
-            LOG.error('Failed to commit results to the database')
+            self.log.error('Failed to commit results to the database')
             raise RuntimeError()
 
         # Update the best result
@@ -228,7 +227,7 @@ class RedisDatabase(Database):
         try:
             self.database.client_list()
         except redis.ConnectionError:
-            LOG.error('Failed to connect to Redis database')
+            self.log.error('Failed to connect to Redis database')
             raise RuntimeError()
 
     def load(self) -> None:
@@ -241,17 +240,17 @@ class RedisDatabase(Database):
                 try:
                     data = pickle.load(filep)
                 except ValueError as err:
-                    LOG.error('Failed to initialize the database: %s', str(err))
+                    self.log.error('Failed to initialize the database: %s', str(err))
                     raise RuntimeError()
-            LOG.info('Load %d data from an existing database', len(data))
+            self.log.info('Load %d data from an existing database', len(data))
             self.database.hmset(self.db_id, data)
 
         # Update the best cache
         if self.count() > 0:
             best_cache = self.query('meta-best-cache')
             if not best_cache:
-                LOG.warning('Key "meta-best-cache" is missing in the DB. '
-                            'The best result may not be real.')
+                self.log.warning('Key "meta-best-cache" is missing in the DB. '
+                                 'The best result may not be real.')
             else:
                 for quality, _, result in best_cache:
                     if result and result.valid:
@@ -261,10 +260,6 @@ class RedisDatabase(Database):
         """Delete the data we generated in Redis database"""
         if self.database:
             self.database.delete(self.db_id)
-            if self.database.exists(self.db_id):
-                LOG.warning('Fail to cleanup the Redis database')
-            else:
-                LOG.info('Detach and cleanup the Redis database')
 
     def query(self, key: str) -> Optional[Any]:
         #pylint:disable=missing-docstring
@@ -277,7 +272,7 @@ class RedisDatabase(Database):
             try:
                 return pickle.loads(pickled_obj)
             except ValueError as err:
-                LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
+                self.log.error('Failed to deserialize the result of %s: %s', key, str(err))
         return None
 
     def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
@@ -289,7 +284,7 @@ class RedisDatabase(Database):
                 try:
                     data.append(pickle.loads(pickled_obj))
                 except ValueError as err:
-                    LOG.error('Failed to deserialize the result of %s: %s', key, str(err))
+                    self.log.error('Failed to deserialize the result of %s: %s', key, str(err))
                     data.append(None)
             else:
                 data.append(None)
@@ -350,7 +345,7 @@ class PickleDatabase(Database):
             # Note that we cannot enable auto dump since we will pickle all data before persisting
             self.database: pickledb.PickleDB = pickledb.load(self.db_file_path, False)
         except ValueError as err:
-            LOG.error('Failed to initialize the database: %s', str(err))
+            self.log.error('Failed to initialize the database: %s', str(err))
             raise RuntimeError()
 
     def load(self) -> None:
@@ -362,17 +357,17 @@ class PickleDatabase(Database):
             for key in self.database.getall():
                 obj = jsonpickle.decode(self.database.get(key))
                 self.database.set(key, obj)
-            LOG.info('Load %d data from an existing database', self.count())
+            self.log.info('Load %d data from an existing database', self.count())
         except ValueError as err:
-            LOG.error('Failed to load the data from the database: %s', str(err))
+            self.log.error('Failed to load the data from the database: %s', str(err))
             raise RuntimeError()
 
         # Update the best cache
         if self.count() > 0:
             best_cache = self.query('meta-best-cache')
             if not best_cache:
-                LOG.warning('Key "meta-best-cache" is missing in the DB. '
-                            'The best result may not be real.')
+                self.log.warning('Key "meta-best-cache" is missing in the DB. '
+                                 'The best result may not be real.')
             else:
                 for quality, _, result in best_cache:
                     if result and result.valid:

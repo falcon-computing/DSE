@@ -3,13 +3,17 @@ Design Space Processor
 """
 from collections import deque
 from copy import deepcopy
+from logging import Logger
 from typing import Deque, Dict, List, Optional, Set, Union
 
 from ..logger import get_default_logger
 from ..parameter import (DesignParameter, DesignSpace, MerlinParameter, create_design_parameter)
 from ..util import safe_eval
 
-LOG = get_default_logger('DSProc')
+
+def get_dsproc_logger() -> Logger:
+    """Attach the logger of this module"""
+    return get_default_logger('DSProc')
 
 
 def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
@@ -29,6 +33,7 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
         The design space compiled from the kernel code; or None if failed.
 
     """
+    log = get_dsproc_logger()
     params: Dict[str, DesignParameter] = {}
     for param_id, param_config in user_ds_config.items():
         param = create_design_parameter(param_id, param_config, MerlinParameter)
@@ -38,12 +43,12 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
 
     error = check_design_space(params)
     if error > 0:
-        LOG.error('Design space has %d errors', error)
+        log.error('Design space has %d errors', error)
         return None
 
     analyze_child_in_design_space(params)
 
-    LOG.info('Finished design space compilation')
+    log.info('Finished design space compilation')
     return params
 
 
@@ -60,16 +65,18 @@ def check_design_space(params: DesignSpace) -> int:
     int:
         The number of errors found in the design space
     """
+
+    log = get_dsproc_logger()
     error = 0
 
     # Check dependencies
     for pid, param in params.items():
         for dep in param.deps:
             if dep == pid:
-                LOG.error('Parameter %s cannot depend on itself', pid)
+                log.error('Parameter %s cannot depend on itself', pid)
                 error += 1
             if dep not in params.keys():
-                LOG.error('Parameter %s depends on %s which is undefined or not allowed', pid, dep)
+                log.error('Parameter %s depends on %s which is undefined or not allowed', pid, dep)
                 error += 1
     return error
 
@@ -155,7 +162,7 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
     Optional[List[DesignSpace]]:
         The list of design space partitions
     """
-
+    log = get_dsproc_logger()
     sorted_ids = topo_sort_param_ids(space)
 
     part_queue = deque([deepcopy(space)])
@@ -178,12 +185,12 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
             if param.order and isinstance(param, MerlinParameter) and param.ds_type == 'PIPELINE':
                 options = safe_eval(param.option_expr, local)
                 if options is None:
-                    LOG.error('Failed to evaluate options for parameter %s', param.name)
+                    log.error('Failed to evaluate options for parameter %s', param.name)
                     return None
                 for option in options:
                     part_idx = safe_eval(param.order['expr'], {param.order['var']: option})
                     if part_idx is None:
-                        LOG.error('Failed to evaluate the order of option %s in parameter %s',
+                        log.error('Failed to evaluate the order of option %s in parameter %s',
                                   option, param.name)
                         return None
                     if parts is None:
@@ -199,14 +206,14 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
                 default = copied_space[param_id].default
                 copied_space[param_id].option_expr = "['{0}']".format(default)
                 next_queue.append(copied_space)
-                LOG.debug('%d: Stop partition %s due to shadow', ptr, param_id)
+                log.debug('%d: Stop partition %s due to shadow', ptr, param_id)
             elif not parts or accum_part + len(parts) > limit:
                 # Do not partition because it is either
                 # 1) not a partitionable parameter, or
                 # 2) the accumulated partition number reaches to the limit
                 copied_space = deepcopy(curr_space)
                 next_queue.append(copied_space)
-                LOG.debug('%d: Stop partition %s due to not partitionable or too many %d', ptr,
+                log.debug('%d: Stop partition %s due to not partitionable or too many %d', ptr,
                           param_id, limit)
             else:
                 # Partition
@@ -215,7 +222,7 @@ def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
                     copied_space[param_id].option_expr = str(part)
                     copied_space[param_id].default = part[0]
                     next_queue.append(copied_space)
-                LOG.debug('%d: Partition %s to %d parts, so far %d parts', ptr, param_id,
+                log.debug('%d: Partition %s to %d parts, so far %d parts', ptr, param_id,
                           len(parts),
                           len(part_queue) + len(next_queue))
         part_queue = next_queue

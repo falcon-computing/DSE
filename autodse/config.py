@@ -5,8 +5,6 @@ from typing import Any, Dict, Optional
 
 from autodse.logger import get_default_logger
 
-LOG = get_default_logger('Config')
-
 # All configurable attributes. Please follow the following rules if you want to add new config.
 # 1) Follow the naming: <main-category>.<attribute>.<sub-attribute>
 # 2) 'require' is necessary for every config.
@@ -104,6 +102,8 @@ def build_config(user_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         A nested dict of configs, or None if there has any errors
     """
 
+    log = get_default_logger('Config')
+
     # Check user config and make up optional values
     error = 0
     for key, attr in CONFIG_SETTING.items():
@@ -111,15 +111,15 @@ def build_config(user_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             if 'options' in attr:
                 # Specified config, check if it is legal
                 if user_config[key] not in attr['options']:
-                    LOG.error('"%s" is not a valid option for %s', user_config[key], key)
+                    log.error('"%s" is not a valid option for %s', user_config[key], key)
                     error += 1
         else:
             # Missing config, check if it is optional (set to default if so)
             if attr['require']:
-                LOG.error('Missing "%s" in the config which is required', key)
+                log.error('Missing "%s" in the config which is required', key)
                 error += 1
             else:
-                LOG.debug('Use default value for %s: %s', key, str(attr['default']))
+                log.debug('Use default value for %s: %s', key, str(attr['default']))
                 user_config[key] = attr['default']
 
     if error > 0:

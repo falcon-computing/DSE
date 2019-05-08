@@ -2,6 +2,7 @@
 The main DSE flow that integrates all modules
 """
 import argparse
+import glob
 import json
 import os
 import shutil
@@ -9,7 +10,7 @@ import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .config import build_config
 from .database import Database, RedisDatabase
@@ -43,197 +44,247 @@ ARG_PARSER.add_argument('--db',
                         help='path to the result database')
 ARGS = ARG_PARSER.parse_args()
 
-LOG = get_default_logger('Main')
 
+class Main():
+    """The main class of DSE flow"""
 
-def launch_exploration(ds_list: List[DesignSpace], db: Database, evaluator: Evaluator,
-                       reporter: Reporter, config: Dict[str, Any]) -> None:
-    """Launch exploration"""
+    def __init__(self, args):
+        self.args = args
+        self.src_dir = os.path.abspath(args.src_dir)
+        self.work_dir = os.path.abspath(args.work_dir)
+        self.out_dir = os.path.join(self.work_dir, 'output')
+        self.eval_dir = os.path.join(self.work_dir, 'evaluate')
+        self.log_dir = os.path.join(self.work_dir, 'logs')
+        if args.db:
+            self.db_path = os.path.abspath(args.db)
+        else:
+            self.db_path = os.path.join(self.work_dir, 'result.db')
+        self.cfg_path = os.path.abspath(args.config)
 
-    pool = []
+        # Processing path and directory
+        dir_prefix = os.path.commonprefix([self.src_dir, self.work_dir])
+        if dir_prefix in [self.src_dir, self.work_dir]:
+            print('Error: Merlin project and workspace cannot be subdirectories!')
+            raise RuntimeError()
+        if not os.path.exists(self.src_dir):
+            print('Error: Project folder not found: %s', self.src_dir)
+            raise RuntimeError()
 
-    # Launch a thread pool
-    with ThreadPoolExecutor(max_workers=len(ds_list)) as executor:
-        for idx, ds in enumerate(ds_list):
-            pool.append(
-                executor.submit(dse,
-                                tag='part{0}'.format(idx),
-                                ds=ds,
-                                db=db,
-                                evaluator=evaluator,
-                                config=config))
+        # Initialize workspace
+        # Note that the log file must be created after workspace initialization
+        # so any message before this point will not be logged.
+        bak_dir = self.init_workspace()
+        self.log = get_default_logger('Main')
+        if bak_dir is not None:
+            self.log.warning('Workspace is not empty, backup files to %s', bak_dir)
+        self.log.info('Workspace initialized')
 
-        LOG.info('%d explorers have been launched', len(pool))
+        # Check and load config
+        self.config = self.load_config()
 
-        timer: float = 0  # in minutes
-        while any([not exe.done() for exe in pool]):
-            time.sleep(1)
-            while db.best_cache.qsize() > db.best_cache_size:
-                db.best_cache.get()
-            reporter.log_best()
-            reporter.print_status(timer)
-            timer += 0.0167
+        # Initialize database
+        self.log.info('Initializing the database')
+        self.db = RedisDatabase(self.config['project']['name'],
+                                int(self.config['project']['output-num']), self.db_path)
+        self.db.load()
 
+        # Initialize evaluator
+        self.log.info('Initializing the evaluator')
+        self.evaluator = MerlinEvaluator(src_path=self.src_dir,
+                                         work_path=self.eval_dir,
+                                         mode=EvalMode[self.config['evaluate']['estimate-mode']],
+                                         db=self.db,
+                                         scheduler=PythonSubprocessScheduler(
+                                             self.config['evaluate']['worker-per-part']),
+                                         analyzer_cls=MerlinAnalyzer,
+                                         backup_mode=BackupMode[self.config['project']['backup']],
+                                         dse_config=self.config['evaluate'])
+        self.evaluator.set_timeout(self.config['timeout'])
+        self.evaluator.set_command(self.config['evaluate']['command'])
 
-def dse(tag: str, ds: DesignSpace, db: Database, evaluator: Evaluator, config: Dict[str, Any]):
-    """Perform DSE for a given design space"""
+        # Initialize reporter
+        self.reporter = Reporter(self.config, self.db)
 
-    explorer = Explorer(ds=ds,
-                        db=db,
-                        evaluator=evaluator,
-                        timeout=config['timeout']['exploration'],
-                        tag=tag)
-    explorer.run(config['search']['algorithm'])
+        # Display important configs
+        self.reporter.log_config()
 
+    def init_workspace(self) -> Optional[str]:
+        """Initialize the workspace
 
-def main() -> None:
-    """The main function of the DSE flow"""
+        Returns
+        ------
+        Optional[str]:
+            The backup directory if available.
+        """
 
-    src_dir = os.path.abspath(ARGS.src_dir)
-    work_dir = os.path.abspath(ARGS.work_dir)
-    dir_prefix = os.path.commonprefix([src_dir, work_dir])
-    if dir_prefix in [src_dir, work_dir]:
-        LOG.error('Merlin project and workspace cannot be subdirectories!')
-        return
+        bak_dir: Optional[str] = None
+        old_files = os.listdir(self.work_dir)
+        if old_files:
+            bak_dir = tempfile.mkdtemp(prefix='bak_', dir='.')
 
-    out_dir = os.path.join(work_dir, 'output')
-    if ARGS.db:
-        db_path = os.path.abspath(ARGS.db)
-    else:
-        db_path = os.path.join(work_dir, 'result.db')
-    cfg_path = os.path.abspath(ARGS.config)
+            # Move all files except for config and database files to the backup directory
+            for old_file in old_files:
+                # Skip the backup directory of previous runs
+                if old_file.startswith('bak_'):
+                    continue
+                full_path = os.path.join(self.work_dir, old_file)
+                if full_path not in [self.cfg_path, self.db_path]:
+                    shutil.move(full_path, bak_dir)
 
-    # Initialize workspace
-    LOG.info('Initializing the workspace')
-    old_files = os.listdir(work_dir)
-    if old_files:
-        bak_dir = tempfile.mkdtemp(prefix='bak_dse', dir='.')
-        LOG.warning('Workspace is not empty, backup files to %s', bak_dir)
-        for old_file in old_files:
-            shutil.move(os.path.join(work_dir, old_file), bak_dir)
+        return bak_dir
 
-        # Copy back config and database files if they are also in the old workspace
-        if os.path.commonprefix([work_dir, cfg_path]) == work_dir:
-            file_name = os.path.basename(cfg_path)
-            shutil.copyfile(os.path.join(bak_dir, file_name), file_name)
-        if os.path.commonprefix([work_dir, db_path]) == work_dir:
-            file_name = os.path.basename(db_path)
-            shutil.copyfile(os.path.join(bak_dir, file_name), file_name)
+    def load_config(self) -> Dict[str, Any]:
+        """Load the DSE config"""
 
-    # Check and load config
-    if not os.path.exists(ARGS.config):
-        LOG.error('Config JSON file not found: %s', ARGS.config)
-        raise RuntimeError()
+        if not os.path.exists(self.args.config):
+            self.log.error('Config JSON file not found: %s', self.args.config)
+            raise RuntimeError()
 
-    LOG.info('Loading configurations')
-    with open(ARGS.config, 'r') as filep:
+        self.log.info('Loading configurations')
+        with open(self.args.config, 'r') as filep:
+            try:
+                user_config = json.load(filep)
+            except ValueError as err:
+                self.log.error('Failed to load config: %s', str(err))
+                raise RuntimeError()
+
+        config = build_config(user_config)
+        if config is None:
+            self.log.error('Config %s is invalid', self.args.config)
+            raise RuntimeError()
+
+        return config
+
+    def gen_outputs(self) -> None:
+        """Generate final outputs"""
+
+        # Clean output directory
+        if os.path.exists(self.out_dir):
+            shutil.rmtree(self.out_dir)
+        os.makedirs(self.out_dir)
+
+        # Fetch database cache for the best results
+        output = []
+        idx = 0
+        best_cache: PriorityQueue = self.db.best_cache
+        while not best_cache.empty():
+            _, _, result = best_cache.get()
+            job = self.evaluator.create_job()
+            if not job:
+                raise RuntimeError()
+
+            assert result.point is not None
+            self.evaluator.apply_design_point(job, result.point)
+            os.rename(job.path, os.path.join(self.out_dir, str(idx)))
+            result.path = str(idx)
+            output.append(result)
+            idx += 1
+
+        rpt = self.reporter.report_output(output)
+        if rpt:
+            with open(os.path.join(self.out_dir, 'output.rpt'), 'w') as filep:
+                filep.write(rpt)
+
+    def launch_exploration(self, ds_list: List[DesignSpace]) -> None:
+        """Launch exploration"""
+
+        pool = []
+
+        # Launch a thread pool
+        with ThreadPoolExecutor(max_workers=len(ds_list)) as executor:
+            for idx, ds in enumerate(ds_list):
+                pool.append(
+                    executor.submit(self.dse,
+                                    tag='part{0}'.format(idx),
+                                    ds=ds,
+                                    db=self.db,
+                                    evaluator=self.evaluator,
+                                    config=self.config))
+
+            self.log.info('%d explorers have been launched', len(pool))
+
+            timer: float = 0  # in minutes
+            while any([not exe.done() for exe in pool]):
+                time.sleep(1)
+                while self.db.best_cache.qsize() > self.db.best_cache_size:
+                    self.db.best_cache.get()
+                self.reporter.log_best()
+                self.reporter.print_status(timer)
+                timer += 0.0167
+
+    @staticmethod
+    def dse(tag: str, ds: DesignSpace, db: Database, evaluator: Evaluator, config: Dict[str, Any]):
+        """Perform DSE for a given design space"""
+
+        explorer = Explorer(ds=ds,
+                            db=db,
+                            evaluator=evaluator,
+                            timeout=config['timeout']['exploration'],
+                            tag=tag)
+        explorer.run(config['search']['algorithm'])
+
+    def main(self) -> None:
+        """The main function of the DSE flow"""
+
+        # Compile design space
+        self.log.info('Compiling design space')
+        ds = compile_design_space(self.config['design-space']['definition'])
+        if ds is None:
+            self.log.error('Failed to compile design space')
+            raise RuntimeError()
+
+        # Partition design space
+        self.log.info('Partitioning the design space to at maximum %d parts',
+                      int(self.config['design-space']['max-part-num']))
+        ds_list = partition(ds, int(self.config['design-space']['max-part-num']))
+        if ds_list is None:
+            self.log.error('No design space partition is available for exploration')
+            raise RuntimeError()
+
+        #with open('ds_part{0}.json'.format(idx), 'w') as filep:
+        #    filep.write(
+        #        json.dumps({n: p.__dict__
+        #                    for n, p in ds.items()}, sort_keys=True, indent=4))
+
+        self.log.info('%d parts generated', len(ds_list))
+
+        # TODO: profiling and pruning
+
+        # Launch exploration
         try:
-            user_config = json.load(filep)
-        except ValueError as err:
-            LOG.error('Failed to load config: %s', str(err))
-            raise RuntimeError()
+            self.log.info('Start the exploration')
+            self.launch_exploration(ds_list)
+        except KeyboardInterrupt:
+            pass
 
-    config = build_config(user_config)
-    if config is None:
-        LOG.error('Config %s is invalid', ARGS.config)
-        raise RuntimeError()
+        self.log.info('Finish the exploration')
 
-    if not os.path.exists(src_dir):
-        LOG.error('Project folder not found: %s', src_dir)
-        raise RuntimeError()
+        # Backup database
+        self.db.commit_best()
+        self.db.persist()
 
-    # Initialize database
-    LOG.info('Initializing the database')
-    db = RedisDatabase(config['project']['name'], int(config['project']['output-num']), db_path)
-    db.load()
-
-    # Initialize evaluator
-    LOG.info('Initializing the evaluator')
-    merlin_eval = MerlinEvaluator(src_path=src_dir,
-                                  work_path=os.path.join(work_dir, 'evaluate'),
-                                  mode=EvalMode[config['evaluate']['estimate-mode']],
-                                  db=db,
-                                  scheduler=PythonSubprocessScheduler(
-                                      config['evaluate']['worker-per-part']),
-                                  analyzer_cls=MerlinAnalyzer,
-                                  backup_mode=BackupMode[config['project']['backup']],
-                                  dse_config=config['evaluate'])
-    merlin_eval.set_timeout(config['timeout'])
-    merlin_eval.set_command(config['evaluate']['command'])
-
-    # Initialize reporter
-    reporter = Reporter(config, db)
-
-    # Display important configs
-    reporter.log_config()
-
-    # Compile design space
-    LOG.info('Compiling design space')
-    ds = compile_design_space(config['design-space']['definition'])
-    if ds is None:
-        LOG.error('Failed to compile design space')
-        raise RuntimeError()
-
-    # Partition design space
-    LOG.info('Partitioning the design space to at maximum %d parts',
-             int(config['design-space']['max-part-num']))
-    ds_list = partition(ds, int(config['design-space']['max-part-num']))
-    if ds_list is None:
-        LOG.error('No design space partition is available for exploration')
-        raise RuntimeError()
-
-    #with open('ds_part{0}.json'.format(idx), 'w') as filep:
-    #    filep.write(json.dumps({n: p.__dict__ for n, p in ds.items()}, sort_keys=True, indent=4))
-
-    LOG.info('%d parts generated', len(ds_list))
-
-    # TODO: profiling and pruning
-
-    # Launch exploration
-    try:
-        LOG.info('Start the exploration')
-        launch_exploration(ds_list, db, merlin_eval, reporter, config)
-    except KeyboardInterrupt:
-        pass
-
-    reporter.log_best_close()
-    LOG.info('Finish the exploration')
-
-    # Backup database
-    db.commit_best()
-    db.persist()
-
-    # Report and summary
-    rpt = reporter.report_summary()
-    LOG.info('DSE Summary\n%s', rpt)
-    with open(os.path.join(work_dir, 'summary.rpt'), 'w') as filep:
-        filep.write(rpt)
-
-    # Create outputs
-    if os.path.exists(out_dir):
-        shutil.rmtree(out_dir)
-    os.makedirs(out_dir)
-    output = []
-    idx = 0
-    best_cache: PriorityQueue = db.best_cache
-    while not best_cache.empty():
-        _, _, result = best_cache.get()
-        job = merlin_eval.create_job()
-        if not job:
-            raise RuntimeError()
-
-        assert result.point is not None
-        merlin_eval.apply_design_point(job, result.point)
-        os.rename(job.path, os.path.join(out_dir, str(idx)))
-        result.path = str(idx)
-        output.append(result)
-        idx += 1
-
-    rpt = reporter.report_output(output)
-    if rpt:
-        with open(os.path.join(out_dir, 'output.rpt'), 'w') as filep:
+        # Report and summary
+        rpt = self.reporter.report_summary()
+        self.log.info('DSE Summary')
+        for line in rpt.split('\n'):
+            if line:
+                self.log.info(line)
+        with open(os.path.join(self.work_dir, 'summary.rpt'), 'w') as filep:
             filep.write(rpt)
+
+        # Create outputs
+        self.gen_outputs()
+        self.log.info('Outputs are generated')
+
+        # Backup logs
+        if os.path.exists(self.log_dir):
+            shutil.rmtree(self.log_dir)
+        os.makedirs(self.log_dir)
+
+        for log in glob.glob('*.log'):
+            shutil.move(log, os.path.join(self.log_dir, log))
 
 
 # Launch the DSE flow
-main()
+FLOW = Main(ARGS)
+FLOW.main()

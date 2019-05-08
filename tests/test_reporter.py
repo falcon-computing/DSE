@@ -45,7 +45,6 @@ def test_reporter(test_dir, mocker, capsys):
     # Test log best
     # TODO: Capture log and check the format
     reporter.log_best()
-    reporter.log_best_close()
 
     # Test summary
     rpt = reporter.report_summary()

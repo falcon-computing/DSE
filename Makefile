@@ -4,7 +4,9 @@ env:
 
 lint:
 	python3 -m pylint autodse --rcfile=tests/lint/pylintrc
-	mypy autodse/
+
+type:
+	mypy autodse
 
 tox:
 	tox
@@ -23,7 +25,7 @@ format:
 	yapf -ir --style=tests/lint/yapf_style.cfg tests
 
 cov:
-	pytest --cov=autodse --cov-config=tests/lint/coveragerc
+	pytest --cov=autodse --cov-report term
 
 doc:
 	make -C docs clean html

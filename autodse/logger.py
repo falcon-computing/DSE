@@ -1,6 +1,8 @@
 """
 The format and config of logging.
 """
+
+from typing import Dict
 import logging
 import threading
 
@@ -28,15 +30,20 @@ class LogFormatter(logging.Formatter):
 
 logging.Formatter = LogFormatter  # type: ignore
 
+DSE_LOGGERS: Dict[str, logging.Logger] = {}
 
 def get_default_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
     """Attach to the default logger"""
+    global DSE_LOGGERS
 
+    if name in DSE_LOGGERS:
+        return DSE_LOGGERS[name]
+ 
     logger = logging.getLogger(name)
     if level != 'DEFAULT':
         logger.setLevel(level)
     else:
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
     handler1 = logging.StreamHandler()
     handler1.setFormatter(
@@ -48,11 +55,13 @@ def get_default_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
         logging.Formatter('[%(relativeCreated)4.0fm] %(levelname)7s %(name)s: %(message)s'))
     logger.addHandler(handler2)
 
+    DSE_LOGGERS[name] = logger
     return logger
 
 
 def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> logging.Logger:
     """Attach to the algorithm logger"""
+    global DSE_LOGGERS
 
     class ThreadFilter():
         """TBA"""
@@ -63,11 +72,15 @@ def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> loggin
         def filter(self, record):
             return record.thread == self.tid
 
+    key = '{0}-{1}'.format(name, file_name)
+    if key in DSE_LOGGERS:
+        return DSE_LOGGERS[key]
+
     logger = logging.getLogger(name)
     if level != 'DEFAULT':
         logger.setLevel(level)
     else:
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
     handler = logging.FileHandler(file_name)
     handler.setFormatter(
@@ -75,17 +88,22 @@ def get_algo_logger(name: str, file_name: str, level: str = 'DEFAULT') -> loggin
     handler.addFilter(ThreadFilter(threading.get_ident()))  # type: ignore
     logger.addHandler(handler)
 
+    DSE_LOGGERS[key] = logger
     return logger
 
 
 def get_eval_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
     """Attach to the evaluator logger"""
+    global DSE_LOGGERS
+
+    if name in DSE_LOGGERS:
+        return DSE_LOGGERS[name]
 
     logger = logging.getLogger(name)
     if level != 'DEFAULT':
         logger.setLevel(level)
     else:
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
     handler = logging.FileHandler('eval.log')
     handler.setFormatter(
@@ -93,4 +111,5 @@ def get_eval_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
                           '%(levelname)7s %(name)s: %(message)s'))
     logger.addHandler(handler)
 
+    DSE_LOGGERS[name] = logger
     return logger

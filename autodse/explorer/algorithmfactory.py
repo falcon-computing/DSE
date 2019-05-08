@@ -9,8 +9,6 @@ from .exhaustive import ExhaustiveAlgorithm
 from ..logger import get_default_logger
 from ..parameter import DesignSpace
 
-LOG = get_default_logger('AlgorithmFactory')
-
 
 class AlgorithmFactory():
     """Static class for registering and making algorithm instances"""
@@ -21,6 +19,8 @@ class AlgorithmFactory():
         """TBA
         """
 
+        log = get_default_logger('AlgorithmFactory')
+
         name = config['name']
         assert isinstance(name, str)
         if name == 'exhaustive':
@@ -29,5 +29,5 @@ class AlgorithmFactory():
             return ExhaustiveAlgorithm(ds=ds,
                                        log_file_name=log_file_name,
                                        batch_size=algo_config['batch-size'])
-        LOG.error('Unrecognized algorithm: %s', name)
+        log.error('Unrecognized algorithm: %s', name)
         raise RuntimeError()

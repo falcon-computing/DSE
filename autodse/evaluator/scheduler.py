@@ -5,19 +5,19 @@ import os
 import shutil
 import signal
 import time
+from math import ceil
 from typing import List, Optional
 
 from ..logger import get_eval_logger
 from ..result import Job
 from ..util import copy_dir
 
-LOG = get_eval_logger('Scheduler')
-
 
 class Scheduler():
     """The base class of job scheduler with API definitions"""
 
     def __init__(self, max_worker: int = 8):
+        self.log = get_eval_logger('Scheduler')
         self.max_worker = max_worker
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
@@ -71,6 +71,8 @@ class PythonSubprocessScheduler(Scheduler):
         None:
             This function is slient and will not check if the backup was success or not.
         """
+
+        log = get_eval_logger('Scheduler')
         for file_name in file_list:
             try:
                 dst_file = os.path.join(dst_path, file_name)
@@ -79,7 +81,7 @@ class PythonSubprocessScheduler(Scheduler):
                     os.makedirs(dst_full_path)
                 shutil.move(os.path.join(src_path, file_name), dst_file)
             except FileNotFoundError as err:
-                LOG.error('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
+                log.error('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
                           dst_path, str(err))
 
         shutil.rmtree(src_path)
@@ -93,7 +95,7 @@ class PythonSubprocessScheduler(Scheduler):
         rets = [-1] * len(jobs)
 
         # Batch jobs when the number is larger than the max workers
-        num_batch = int(len(jobs) / self.max_worker) + 1
+        num_batch = ceil(len(jobs) / self.max_worker)
         for batch in range(num_batch):
             procs = []
             for offset in range(self.max_worker):
@@ -118,8 +120,8 @@ class PythonSubprocessScheduler(Scheduler):
                 break
 
             time_limit = float('inf') if timeout is None else timeout
-            LOG.info('Launching batch %d/%d with %d jobs and timeout %.2f mins', batch, num_batch,
-                     len(procs), time_limit)
+            self.log.info('Launching batch %d/%d with %d jobs and timeout %.2f mins', batch + 1,
+                          num_batch, len(procs), time_limit)
             timer = time.time()
             try:
                 while (time.time() - timer) < time_limit * 60.0 and procs:
@@ -140,12 +142,12 @@ class PythonSubprocessScheduler(Scheduler):
                 if procs:
                     # One or more processes are timeout.
                     # Note that timeout is considered as a success run
-                    LOG.info('%d processes timeout (%.2f mins)', len(procs), time_limit)
+                    self.log.info('%d processes timeout (%.2f mins)', len(procs), time_limit)
                     for idx, proc in procs:
                         rets[idx] = -3
                         os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
             except KeyboardInterrupt:
-                LOG.warning('Received user keyboard interrupt, stopping the process.')
+                self.log.warning('Received user keyboard interrupt, stopping the process.')
                 for idx, proc in procs:
                     os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
                 break

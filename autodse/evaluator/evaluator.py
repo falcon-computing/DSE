@@ -16,8 +16,6 @@ from ..util import copy_dir
 from .analyzer import Analyzer, MerlinAnalyzer
 from .scheduler import Scheduler
 
-LOG = get_eval_logger('Evaluator')
-
 
 class EvalMode(Enum):
     FAST = 0
@@ -44,6 +42,7 @@ class Evaluator():
                  backup_mode: BackupMode,
                  dse_config: Dict[str, Any],
                  temp_prefix: str = 'eval'):
+        self.log = get_eval_logger('Evaluator')
         self.mode = mode
         self.db = db
         self.src_path = src_path
@@ -76,7 +75,7 @@ class Evaluator():
                         self.src_files.append(os.path.relpath(file_abs_path, src_path))
 
         if not self.src_files:
-            LOG.error('Cannot find any kernel files with auto pragma.')
+            self.log.error('Cannot find any kernel files with auto pragma.')
             raise RuntimeError()
 
     def set_timeout(self, config: Dict[str, int]) -> None:
@@ -115,7 +114,7 @@ class Evaluator():
         path = tempfile.mkdtemp(prefix=self.temp_dir_prefix, dir='{0}/'.format(self.work_path))
         if not copy_dir(self.src_path, path):
             return None
-        #LOG.debug('Created a new job at %s', path)
+        #self.log.debug('Created a new job at %s', path)
         return Job(path)
 
     def apply_design_point(self, job: Job, point: DesignPoint) -> bool:
@@ -137,7 +136,7 @@ class Evaluator():
         """
 
         if job.status != Job.Status.INIT:
-            LOG.error('Job with key %s at %s cannot be applied again', job.key, job.path)
+            self.log.error('Job with key %s at %s cannot be applied again', job.key, job.path)
             return False
 
         job_path = job.path
@@ -148,7 +147,7 @@ class Evaluator():
                 for line in src_file:
                     for auto, ds_id in re.findall(r'(auto{(.*?)})', line, re.IGNORECASE):
                         if ds_id not in point:
-                            LOG.debug('Parameter %s not found in design point', ds_id)
+                            self.log.debug('Parameter %s not found in design point', ds_id)
                         else:
                             # Replace "auto{?}" with a specific value
                             line = line.replace(auto, str(point[ds_id]))
@@ -161,7 +160,7 @@ class Evaluator():
         error = 0
         for ds_id in point.keys():
             if ds_id not in applied:
-                LOG.error('Cannot find the corresponding auto{%s} in source files', ds_id)
+                self.log.error('Cannot find the corresponding auto{%s} in source files', ds_id)
                 error += 1
 
         # Assign the key to the job
@@ -190,7 +189,7 @@ class Evaluator():
         """
 
         assert all([job.status == Job.Status.APPLIED for job in jobs])
-        LOG.info('Submit %d jobs for evaluation', len(jobs))
+        self.log.info('Submit %d jobs for evaluation', len(jobs))
 
         # Determine the submission flow
         if self.mode == EvalMode.FAST:
@@ -198,7 +197,7 @@ class Evaluator():
         elif self.mode == EvalMode.ACCURATE:
             submitter = self.submit_accurate
         else:
-            LOG.error('Evaluation mode %s does has not yet supported', self.mode)
+            self.log.error('Evaluation mode %s does has not yet supported', self.mode)
             raise RuntimeError()
 
         # Submit un-evaluated jobs and commit results to the database
@@ -206,9 +205,9 @@ class Evaluator():
         for job, result in zip(jobs, results):
             result.point = job.point
 
-        LOG.debug('Committing %d results', len(results))
+        self.log.debug('Committing %d results', len(results))
         self.db.batch_commit([(job.key, result) for job, result in zip(jobs, results)])
-        LOG.info('Results are committed to the database')
+        self.log.info('Results are committed to the database')
 
         # Backup jobs if needed
         if self.backup_mode == BackupMode.NO_BACKUP:
@@ -278,10 +277,10 @@ class MerlinEvaluator(Evaluator):
 
         # Check commands
         if 'transform' not in self.commands:
-            LOG.error('Command for transform is not properly set up.')
+            self.log.error('Command for transform is not properly set up.')
             return rets
         if 'hls' not in self.commands:
-            LOG.error('Command for HLS is not properly set up.')
+            self.log.error('Command for HLS is not properly set up.')
             return rets
 
         # Run Merlin transformations and make sure it works as expected
@@ -292,8 +291,8 @@ class MerlinEvaluator(Evaluator):
             if ret_code == 0:
                 result = self.analyzer.analyze(jobs[idx], 'transform', self.config)
                 if not result:
-                    LOG.error('Failed to analyze result of %s after Merlin transformation',
-                              jobs[idx].key)
+                    self.log.error('Failed to analyze result of %s after Merlin transformation',
+                                   jobs[idx].key)
                     rets[idx].ret_code = -2
                     continue
                 assert isinstance(result, MerlinResult)
@@ -308,7 +307,7 @@ class MerlinEvaluator(Evaluator):
                 rets[idx].ret_code = ret_code
 
         if not pending_hls:
-            LOG.info('All jobs are stopped at the Merlin transform stage.')
+            self.log.info('All jobs are stopped at the Merlin transform stage.')
             return rets
 
         # Run HLS and analyze the Merlin report
@@ -319,7 +318,7 @@ class MerlinEvaluator(Evaluator):
             if ret_code == 0:
                 result = self.analyzer.analyze(jobs[idx], 'hls', self.config)
                 if not result:
-                    LOG.error('Failed to analyze result of %s after HLS', jobs[idx].key)
+                    self.log.error('Failed to analyze result of %s after HLS', jobs[idx].key)
                     rets[idx].ret_code = -2
                     continue
                 rets[idx] = result
@@ -336,7 +335,7 @@ class MerlinEvaluator(Evaluator):
 
         # Check commands
         if 'bitgen' not in self.commands:
-            LOG.error('Command for bitgen is not properly set up.')
+            self.log.error('Command for bitgen is not properly set up.')
             return rets
 
         sche_rets = self.scheduler.run(jobs, self.analyzer.desire('bitgen'),
@@ -345,7 +344,7 @@ class MerlinEvaluator(Evaluator):
             if ret_code == 0:
                 result = self.analyzer.analyze(jobs[idx], 'bitgen', self.config)
                 if not result:
-                    LOG.error('Failed to analyze result of %s after bitgen', jobs[idx].key)
+                    self.log.error('Failed to analyze result of %s after bitgen', jobs[idx].key)
                     rets[idx].ret_code = -2
                     continue
                 assert isinstance(result, BitgenResult)

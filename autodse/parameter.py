@@ -2,12 +2,17 @@
 The definition of supported design parameters
 """
 import ast
+from logging import Logger
 from typing import Dict, List, Optional, Tuple, Type, Union
 
 from .logger import get_default_logger
 from .util import SAFE_LIST
 
-LOG = get_default_logger('Parameter')
+
+def get_param_logger() -> Logger:
+    """Attach design parameter logger"""
+
+    return get_default_logger('Parameter')
 
 
 class DesignParameter(object):
@@ -71,10 +76,12 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
             Indicate if the expression is valid or not;
             A list of dependent design parameter IDs
     """
+
+    log = get_param_logger()
     try:
         stree = ast.parse(option_expr)
     except SyntaxError:
-        LOG.error('"options" error: Illegal option list %s', option_expr)
+        log.error('"options" error: Illegal option list %s', option_expr)
         return (False, [])
 
     # Traverse AST of the option_expression for all variables
@@ -127,10 +134,12 @@ def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
         Indicate if the expression is valid or not;
         The single variable name in the expression
     """
+
+    log = get_param_logger()
     try:
         stree = ast.parse(order_expr)
     except SyntaxError:
-        LOG.error('"order" error: Illegal order expression %s', order_expr)
+        log.error('"order" error: Illegal order expression %s', order_expr)
         return (False, '')
 
     # Traverse AST of the expression for the variable
@@ -140,7 +149,7 @@ def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
             names.add(node.id)
 
     if len(names) != 1:
-        LOG.error('"order" should have one and only one variable in %s but found %d', order_expr,
+        log.error('"order" should have one and only one variable in %s but found %d', order_expr,
                   len(names))
         return (False, '')
     return (True, names.pop())
@@ -167,23 +176,25 @@ def create_design_parameter(param_id: str, ds_config: Dict[str, Union[str, int]]
         The created DesignParameter object
     """
 
+    log = get_param_logger()
     if param_cls == MerlinParameter:
         param = MerlinParameter(param_id)
 
         # Type checking
         if 'ds_type' not in ds_config:
-            LOG.warning(
+            log.warning(
                 'Missing attribute "ds_type" in %s. Some optimization may not be triggered',
                 param_id)
         else:
             param.ds_type = str(ds_config['ds_type']).upper()
     else:
-        param = param_cls(param_id)
+        log.error('Unrecognized parameter type')
+        return None
 
     # General settings for parameters
     # Option checking
     if 'options' not in ds_config:
-        LOG.error('Missing attribute "options" in %s', param_id)
+        log.error('Missing attribute "options" in %s', param_id)
         return None
     param.option_expr = str(ds_config['options'])
     check, param.deps = check_option_syntax(param.option_expr)
@@ -194,13 +205,13 @@ def create_design_parameter(param_id: str, ds_config: Dict[str, Union[str, int]]
     if 'order' in ds_config:
         check, var = check_order_syntax(str(ds_config['order']))
         if not check:
-            LOG.warning('Failed to parse "order" of %s, ignore.', param_id)
+            log.warning('Failed to parse "order" of %s, ignore.', param_id)
         else:
             param.order = {'expr': str(ds_config['order']), 'var': var}
 
     # Default checking
     if 'default' not in ds_config:
-        LOG.error('Missing attribute "default" in %s', param_id)
+        log.error('Missing attribute "default" in %s', param_id)
         return None
     param.default = ds_config['default']
 

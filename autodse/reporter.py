@@ -7,8 +7,6 @@ from .database import Database
 from .logger import get_default_logger
 from .result import ResultBase
 
-LOG = get_default_logger('Report')
-
 
 class Reporter():
     """Main reporter class"""
@@ -20,6 +18,8 @@ class Reporter():
     SummaryFormat = '|{0:15s}|{1:15s}|\n'
 
     def __init__(self, config: Dict[str, Any], db: Database):
+        self.log = get_default_logger('Report')
+
         self.config = config
         self.db = db
         self.anime_ptr = 0
@@ -30,25 +30,26 @@ class Reporter():
     def log_config(self) -> None:
         """Log important configs"""
 
-        LOG.info('DSE Configure')
-        LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
-        LOG.info(self.ConfigFormat.format('Config', 'Value'))
-        LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
-        LOG.info(self.ConfigFormat.format('Project', self.config['project']['name']))
-        LOG.info(self.ConfigFormat.format('Backup mode', self.config['project']['backup']))
-        LOG.info(
+        self.log.info('DSE Configure')
+        self.log.info('+{0:15s}+{1:40s}+'.format('-' * 15, '-' * 40))
+        self.log.info(self.ConfigFormat.format('Config', 'Value'))
+        self.log.info('+{0:15s}+{1:40s}+'.format('-' * 15, '-' * 40))
+        self.log.info(self.ConfigFormat.format('Project', self.config['project']['name']))
+        self.log.info(self.ConfigFormat.format('Backup mode', self.config['project']['backup']))
+        self.log.info(
             self.ConfigFormat.format('Expected output', str(self.config['project']['output-num'])))
-        LOG.info(
+        self.log.info(
             self.ConfigFormat.format('Evaluate mode', self.config['evaluate']['estimate-mode']))
-        LOG.info(
+        self.log.info(
             self.ConfigFormat.format('Search approach',
                                      self.config['search']['algorithm']['name']))
-        LOG.info(self.ConfigFormat.format('DSE time', str(self.config['timeout']['exploration'])))
-        LOG.info(self.ConfigFormat.format('HLS time', str(self.config['timeout']['hls'])))
-        LOG.info(self.ConfigFormat.format('P&R time', str(self.config['timeout']['bitgen'])))
-        LOG.info(self.ConfigFormat.format('-' * 15, '-' * 40))
-        LOG.info('The actual elapsed time may be over the set up exploration time because '
-                 'we do not abandon the effort of running cases')
+        self.log.info(
+            self.ConfigFormat.format('DSE time', str(self.config['timeout']['exploration'])))
+        self.log.info(self.ConfigFormat.format('HLS time', str(self.config['timeout']['hls'])))
+        self.log.info(self.ConfigFormat.format('P&R time', str(self.config['timeout']['bitgen'])))
+        self.log.info('+{0:15s}+{1:40s}+'.format('-' * 15, '-' * 40))
+        self.log.info('The actual elapsed time may be over the set up exploration time because '
+                      'we do not abandon the effort of running cases')
 
     def log_best(self) -> None:
         """Log the new best result if available"""
@@ -61,25 +62,21 @@ class Reporter():
             return
 
         if self.is_first_best:
-            LOG.info('Best result reporting...')
-            LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
-            LOG.info(self.BestHistFormat.format('Quality', 'Perf.', 'Resource'))
-            LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
+            self.log.info('Best result reporting...')
+            self.log.info('+{0:7s}+{1:7s}+{2:43s}+'.format('-' * 7, '-' * 7, '-' * 43))
+            self.log.info(self.BestHistFormat.format('Quality', 'Perf.', 'Resource'))
+            self.log.info('+{0:7s}+{1:7s}+{2:43s}+'.format('-' * 7, '-' * 7, '-' * 43))
             self.is_first_best = False
 
         if self.best_quality < best_quality:
             self.best_quality = best_quality
-            LOG.info(
+            self.log.info(
                 self.BestHistFormat.format(
                     '{:.1e}'.format(best_quality), '{:.1e}'.format(best_result.perf), ', '.join([
                         '{0}:{1:.1f}%'.format(k[5:], v * 100.0)
                         for k, v in best_result.res_util.items() if k.startswith('util')
                     ])))
-
-    def log_best_close(self) -> None:
-        """Log the final line of the best result progress"""
-
-        LOG.info(self.BestHistFormat.format('-' * 7, '-' * 7, '-' * 43))
+            self.log.info('+{0:7s}+{1:7s}+{2:43s}+'.format('-' * 7, '-' * 7, '-' * 43))
 
     def report_output(self, outputs: List[ResultBase]) -> str:
         """Report the final output.
@@ -96,13 +93,13 @@ class Reporter():
         """
 
         if not outputs:
-            LOG.warning('No design point is outputed')
+            self.log.warning('No design point is outputed')
             return ''
 
         rpt = ''
-        rpt += self.OutputFormat.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
+        rpt += '+{0:14s}+{1:7s}+{2:7s}+{3:43s}+\n'.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
         rpt += self.OutputFormat.format('Directory', 'Quality', 'Perf.', 'Resource')
-        rpt += self.OutputFormat.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
+        rpt += '+{0:14s}+{1:7s}+{2:7s}+{3:43s}+\n'.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
 
         for result in outputs:
             assert result.path is not None
@@ -113,7 +110,7 @@ class Reporter():
                     if k.startswith('util')
                 ]))
 
-        rpt += self.OutputFormat.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
+        rpt += '+{0:14s}+{1:7s}+{2:7s}+{3:43s}+\n'.format('-' * 14, '-' * 7, '-' * 7, '-' * 43)
         return rpt
 
     def report_summary(self) -> str:
@@ -126,7 +123,7 @@ class Reporter():
         """
 
         rpt = ''
-        rpt += self.SummaryFormat.format('-' * 15, '-' * 15)
+        rpt += '+{0:15s}+{1:15s}+\n'.format('-' * 15, '-' * 15)
         rpt += self.SummaryFormat.format('Total Explored', str(self.db.count_ret_code(0)))
         rpt += self.SummaryFormat.format('Timeout', str(self.db.count_ret_code(-3)))
         rpt += self.SummaryFormat.format('Analysis Error', str(self.db.count_ret_code(-2)))
@@ -142,7 +139,7 @@ class Reporter():
         except ValueError:
             pass
 
-        rpt += self.SummaryFormat.format('-' * 15, '-' * 15)
+        rpt += '+{0:15s}+{1:15s}+\n'.format('-' * 15, '-' * 15)
         return rpt
 
     def print_status(self, timer: float) -> None:
