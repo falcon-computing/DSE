@@ -32,13 +32,14 @@ logging.Formatter = LogFormatter  # type: ignore
 
 DSE_LOGGERS: Dict[str, logging.Logger] = {}
 
+
 def get_default_logger(name: str, level: str = 'DEFAULT') -> logging.Logger:
     """Attach to the default logger"""
     global DSE_LOGGERS
 
     if name in DSE_LOGGERS:
         return DSE_LOGGERS[name]
- 
+
     logger = logging.getLogger(name)
     if level != 'DEFAULT':
         logger.setLevel(level)
