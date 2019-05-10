@@ -2,11 +2,10 @@
 The unit test module for database.
 """
 import os
-import pytest
 
 from autodse import logger
 from autodse.database import PickleDatabase, RedisDatabase
-from autodse.result import HLSResult
+from autodse.result import HLSResult, Result
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -44,7 +43,7 @@ def database_tester(db_cls):
     point.key = 'point0'
     point.valid = True
     point.quality = 10
-    point.ret_code = 0
+    point.ret_code = Result.RetCode.PASS
     point.perf = 1024.0
     point.res_util = {'BRAM': 47.5, 'FF': 1, 'LUT': 50.4, 'DSP': 78.2}
     db.commit('point0', point)
@@ -55,7 +54,7 @@ def database_tester(db_cls):
     point.key = 'point1'
     point.valid = True
     point.quality = 20
-    point.ret_code = 0
+    point.ret_code = Result.RetCode.PASS
     point.perf = 512.0
     point.res_util = {'BRAM': 74.4, 'FF': 4, 'LUT': 75.4, 'DSP': 78.2}
     db.commit('point1', point)
@@ -65,7 +64,7 @@ def database_tester(db_cls):
     point.key = 'point2'
     point.valid = True
     point.quality = 20
-    point.ret_code = 0
+    point.ret_code = Result.RetCode.PASS
     point.perf = 2048.0
     point.res_util = {'BRAM': 5.4, 'FF': 1, 'LUT': 4, 'DSP': 8}
     db.commit('point2', point)
@@ -76,14 +75,14 @@ def database_tester(db_cls):
     point.key = 'point3'
     point.valid = False
     point.quality = 20
-    point.ret_code = -3
+    point.ret_code = Result.RetCode.TIMEOUT
     point.perf = 2046.0
     point.res_util = {'BRAM': 5.4, 'FF': 1, 'LUT': 4, 'DSP': 8}
     db.commit('point3', point)
     assert db.count() == 4
 
     # Query count
-    assert db.count_ret_code(-3) == 1
+    assert db.count_ret_code(Result.RetCode.TIMEOUT) == 1
 
     # Query all data
     data = db.query_all()

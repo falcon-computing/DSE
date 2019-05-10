@@ -2,14 +2,14 @@
 The main module of explorer.
 """
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from .algorithmfactory import AlgorithmFactory
 from ..evaluator.evaluator import Evaluator
 from ..logger import get_algo_logger
 from ..database import Database
 from ..parameter import DesignSpace, gen_key_from_design_point
-from ..result import ResultBase
+from ..result import Result
 
 
 class Explorer():
@@ -46,7 +46,7 @@ class Explorer():
 
         timer = time.time()
         duplicated_iters = 0
-        results: Optional[List[ResultBase]] = None
+        results: Optional[Dict[str, Result]] = None
         while (time.time() - timer) < self.timeout:
             try:
                 # Generate the next set of design points
@@ -54,6 +54,8 @@ class Explorer():
                 self.log.debug('The algorithm generates %d design points', len(next_points))
             except StopIteration:
                 break
+
+            results = {}
 
             # Create jobs and check duplications
             jobs = []
@@ -67,6 +69,8 @@ class Explorer():
                     else:
                         self.log.error('Fail to create a new job (disk space?)')
                         return
+                else:
+                    results[gen_key_from_design_point(point)] = result
             if not jobs:
                 duplicated_iters += 1
                 self.log.debug('All design points are already evaluated (%d iterations)',
@@ -77,4 +81,5 @@ class Explorer():
 
             # Evaluate design points and get results
             self.log.debug('Evaluating %d new design points', len(jobs))
-            results = self.evaluator.submit(jobs)
+            for key, result in self.evaluator.submit(jobs):
+                results[key] = result

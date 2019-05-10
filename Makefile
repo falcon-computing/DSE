@@ -6,7 +6,7 @@ lint:
 	python3 -m pylint autodse --rcfile=tests/lint/pylintrc
 
 type:
-	mypy autodse
+	mypy autodse --ignore-missing-imports
 
 tox:
 	tox

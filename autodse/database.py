@@ -9,7 +9,7 @@ from time import time
 from typing import Any, List, Optional, Tuple, Union
 
 from .logger import get_default_logger
-from .result import ResultBase
+from .result import Result
 
 
 class Database():
@@ -37,7 +37,7 @@ class Database():
         self.best_cache_size = cache_size
         self.best_cache: PriorityQueue = PriorityQueue()
 
-    def update_best(self, result: ResultBase) -> None:
+    def update_best(self, result: Result) -> None:
         """Check if the new result has the best QoR and update it if so.
            Note that we allow value overwritten in the database for the
            performance issue, although it should not happen during the
@@ -96,7 +96,7 @@ class Database():
         for _, result in pairs:
             self.update_best(result)
 
-    def count_ret_code(self, ret_code: int) -> int:
+    def count_ret_code(self, ret_code: Result.RetCode) -> int:
         """Count the number of results with the given return code
 
         Parameters
@@ -111,7 +111,7 @@ class Database():
         """
 
         return len(
-            [r for r in self.query_all() if isinstance(r, ResultBase) and r.ret_code == ret_code])
+            [r for r in self.query_all() if isinstance(r, Result) and r.ret_code == ret_code])
 
     def load(self) -> None:
         """Load existing data from the given database and update the best cahce (if available)"""
@@ -377,7 +377,7 @@ class PickleDatabase(Database):
         #pylint:disable=missing-docstring
 
         self.lock.acquire()
-        value: Union[bool, ResultBase] = self.database.get(key)
+        value: Union[bool, Result] = self.database.get(key)
         self.lock.release()
         return None if isinstance(value, bool) else value
 
@@ -396,7 +396,7 @@ class PickleDatabase(Database):
         #pylint:disable=missing-docstring
         return [v for v in self.batch_query(self.database.getall()) if v is not None]
 
-    def commit_impl(self, key: str, result: ResultBase) -> bool:
+    def commit_impl(self, key: str, result: Result) -> bool:
         #pylint:disable=missing-docstring
 
         self.lock.acquire()

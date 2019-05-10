@@ -1,17 +1,15 @@
 """
 The unit test module of config.
 """
-import queue
 
-from autodse.database import Database, PickleDatabase
+from autodse.database import PickleDatabase
 from autodse.logger import get_default_logger
-from autodse.result import ResultBase
 from autodse.reporter import Reporter
 
 LOG = get_default_logger('UNIT-TEST', 'DEBUG')
 
 
-def test_reporter(test_dir, mocker, capsys):
+def test_reporter(test_dir, capsys):
     #pylint:disable=missing-docstring
 
     LOG.info('=== Testing reporter start')
@@ -32,15 +30,15 @@ def test_reporter(test_dir, mocker, capsys):
     # Test print status
     reporter.print_status(0)
     captured = capsys.readouterr()
-    assert captured.out == '[   0m] Explored 49 points, still working...-\r'
+    assert captured.out == '[   0m] Explored 145 points, still working...-\r'
 
     reporter.print_status(1)
     captured = capsys.readouterr()
-    assert captured.out == '[   1m] Explored 49 points, still working...\\\r'
+    assert captured.out == '[   1m] Explored 145 points, still working...\\\r'
 
     reporter.print_status(2)
     captured = capsys.readouterr()
-    assert captured.out == '[   2m] Explored 49 points, finishing...|    \r'
+    assert captured.out == '[   2m] Explored 145 points, finishing...|    \r'
 
     # Test log best
     # TODO: Capture log and check the format
@@ -48,7 +46,8 @@ def test_reporter(test_dir, mocker, capsys):
 
     # Test summary
     rpt = reporter.report_summary()
-    assert rpt.find('|Total Explored') != -1
+    assert rpt[0].find('Total Explored') != -1
+    assert rpt[1].find('Result Details') != -1
 
     # Test output
     output = []

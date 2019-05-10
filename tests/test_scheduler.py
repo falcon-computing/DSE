@@ -5,6 +5,7 @@ import os
 import shutil
 
 from autodse import logger
+from autodse.result import Result
 from autodse.util import copy_dir
 from autodse.evaluator.evaluator import Job
 from autodse.evaluator.scheduler import PythonSubprocessScheduler
@@ -56,7 +57,7 @@ def test_python_scheduler(test_dir):
 
     # Timeout
     rets = sche.run(jobs[:2], ['test'], 'make', 0.05)
-    assert all([ret == -3 for ret in rets])
+    assert all([ret == Result.RetCode.TIMEOUT for _, ret in rets])
 
     # TODO: keyboard interrupt testing. Have no idea about how to test it.
 

@@ -23,20 +23,23 @@ class Job(object):
         self.status: Job.Status = Job.Status.INIT
 
 
-class ResultBase(object):
+class Result(object):
     """The base module of evaluation result"""
 
-    def __init__(self, ret_code: int = 0):
+    class RetCode(Enum):
+        PASS = 0
+        UNAVAILABLE = -1
+        ANALYZE_ERROR = -2
+        EARLY_REJECT = -3
+        TIMEOUT = -4
+
+    def __init__(self, ret_code_str: str = 'PASS'):
 
         # The design point of this result.
         self.point: Optional[DesignPoint] = None
 
-        # The return code of the evaluation:
-        #  0: normal
-        # -1: unavailable
-        # -2: failed to analyze result
-        # -3: timeout
-        self.ret_code: int = ret_code
+        # The return code of the evaluation
+        self.ret_code: Result.RetCode = self.RetCode[ret_code_str]
 
         # Indicate if this result is valid to be a final output. For example, a result that
         # out-of-resource is invalid.
@@ -67,21 +70,21 @@ class ResultBase(object):
         self.eval_time: float = 0.0
 
 
-class MerlinResult(ResultBase):
+class MerlinResult(Result):
     """The result after running Merlin transformations"""
 
-    def __init__(self, ret_code: int = 0):
-        super(MerlinResult, self).__init__(ret_code)
+    def __init__(self, ret_code_str: str = 'PASS'):
+        super(MerlinResult, self).__init__(ret_code_str)
 
         # Critical messages from the Merlin transformations
         self.criticals: List[str] = []
 
 
-class HLSResult(ResultBase):
+class HLSResult(Result):
     """The result after running the HLS"""
 
-    def __init__(self, ret_code: int = 0):
-        super(HLSResult, self).__init__(ret_code)
+    def __init__(self, ret_code_str: str = 'PASS'):
+        super(HLSResult, self).__init__(ret_code_str)
 
         # Merlin report (in JSON format)
         self.report: Optional[Dict[str, Any]] = None
@@ -91,11 +94,11 @@ class HLSResult(ResultBase):
         self.ordered_hotspot: Optional[List[Tuple[str, str]]] = None
 
 
-class BitgenResult(ResultBase):
+class BitgenResult(Result):
     """The result after bit-stream generation"""
 
-    def __init__(self, ret_code: int = 0):
-        super(BitgenResult, self).__init__(ret_code)
+    def __init__(self, ret_code_str: str = 'PASS'):
+        super(BitgenResult, self).__init__(ret_code_str)
 
         # Frequency
         self.freq: float = 0.0

@@ -1,12 +1,12 @@
 """
 The exhaustive search algorithm
 """
-from typing import Generator, List, Optional
+from typing import Dict, Generator, List, Optional
 
 from .algorithm import SearchAlgorithm
 from ..dsproc.dsproc import topo_sort_param_ids
 from ..parameter import DesignPoint, DesignSpace
-from ..result import ResultBase
+from ..result import Result
 
 
 class ExhaustiveAlgorithm(SearchAlgorithm):
@@ -49,7 +49,7 @@ class ExhaustiveAlgorithm(SearchAlgorithm):
                 yield from self.traverse(new_point, idx + 1)
                 new_point = self.clone_point(new_point)
 
-    def gen(self) -> Generator[List[DesignPoint], Optional[List[ResultBase]], None]:
+    def gen(self) -> Generator[List[DesignPoint], Optional[Dict[str, Result]], None]:
         #pylint:disable=missing-docstring
 
         self.log.info('Launch exhaustive search algorithm')

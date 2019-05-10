@@ -13,3 +13,4 @@ argparse
 jsonpickle
 pickledb
 redis
+texttable

@@ -122,18 +122,21 @@ class Main():
         """
 
         bak_dir: Optional[str] = None
-        old_files = os.listdir(self.work_dir)
-        if old_files:
-            bak_dir = tempfile.mkdtemp(prefix='bak_', dir='.')
+        try:
+            old_files = os.listdir(self.work_dir)
+            if old_files:
+                bak_dir = tempfile.mkdtemp(prefix='bak_', dir='.')
 
-            # Move all files except for config and database files to the backup directory
-            for old_file in old_files:
-                # Skip the backup directory of previous runs
-                if old_file.startswith('bak_'):
-                    continue
-                full_path = os.path.join(self.work_dir, old_file)
-                if full_path not in [self.cfg_path, self.db_path]:
-                    shutil.move(full_path, bak_dir)
+                # Move all files except for config and database files to the backup directory
+                for old_file in old_files:
+                    # Skip the backup directory of previous runs
+                    if old_file.startswith('bak_'):
+                        continue
+                    full_path = os.path.join(self.work_dir, old_file)
+                    if full_path not in [self.cfg_path, self.db_path]:
+                        shutil.move(full_path, bak_dir)
+        except FileNotFoundError:
+            os.makedirs(self.work_dir)
 
         return bak_dir
 
@@ -268,13 +271,14 @@ class Main():
         self.db.persist()
 
         # Report and summary
-        rpt = self.reporter.report_summary()
-        self.log.info('DSE Summary')
-        for line in rpt.split('\n'):
+        summary, detail = self.reporter.report_summary()
+        for line in summary.split('\n'):
             if line:
                 self.log.info(line)
         with open(os.path.join(self.work_dir, 'summary.rpt'), 'w') as filep:
-            filep.write(rpt)
+            filep.write(summary)
+            filep.write('\n\n')
+            filep.write(detail)
 
         # Create outputs
         self.gen_outputs()

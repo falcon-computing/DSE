@@ -6,10 +6,10 @@ import shutil
 import signal
 import time
 from math import ceil
-from typing import List, Optional
+from typing import List, Tuple, Optional
 
 from ..logger import get_eval_logger
-from ..result import Job
+from ..result import Job, Result
 from ..util import copy_dir
 
 
@@ -21,7 +21,7 @@ class Scheduler():
         self.max_worker = max_worker
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
-            timeout: Optional[int] = None) -> List[int]:
+            timeout: Optional[int] = None) -> List[Tuple[str, Result.RetCode]]:
         """The main API of scheduling and running given jobs
 
         Parameters
@@ -42,8 +42,8 @@ class Scheduler():
 
         Returns
         -------
-        List[int]:
-            The return code of each job.
+        List[Tuple[str, Result.RetCode]]:
+            A list of each job key and its corresponding return code.
         """
         raise NotImplementedError()
 
@@ -87,12 +87,12 @@ class PythonSubprocessScheduler(Scheduler):
         shutil.rmtree(src_path)
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
-            timeout: Optional[int] = None) -> List[int]:
+            timeout: Optional[int] = None) -> List[Tuple[str, Result.RetCode]]:
         #pylint: disable=missing-docstring
 
         from subprocess import Popen, DEVNULL
 
-        rets = [-1] * len(jobs)
+        rets = {job.key: Result.RetCode.UNAVAILABLE for job in jobs}
 
         # Batch jobs when the number is larger than the max workers
         num_batch = ceil(len(jobs) / self.max_worker)
@@ -131,7 +131,7 @@ class PythonSubprocessScheduler(Scheduler):
                         ret = proc.poll()
                         if ret is not None:
                             # Finished, check if success, remove from list, and backup wanted files
-                            rets[idx] = 0
+                            rets[jobs[idx].key] = Result.RetCode.PASS
                             self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),
                                                          jobs[idx].path, keep_files)
                         else:
@@ -144,7 +144,7 @@ class PythonSubprocessScheduler(Scheduler):
                     # Note that timeout is considered as a success run
                     self.log.info('%d processes timeout (%.2f mins)', len(procs), time_limit)
                     for idx, proc in procs:
-                        rets[idx] = -3
+                        rets[jobs[idx].key] = Result.RetCode.TIMEOUT
                         os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
             except KeyboardInterrupt:
                 self.log.warning('Received user keyboard interrupt, stopping the process.')
@@ -152,4 +152,4 @@ class PythonSubprocessScheduler(Scheduler):
                     os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
                 break
 
-        return rets
+        return list(rets.items())

@@ -13,5 +13,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     platforms='any',
-    install_requires=['argparse', 'pickledb', 'jsonpickle', 'redis'],
+    install_requires=['argparse', 'pickledb', 'jsonpickle', 'redis', 'texttable'],
 )

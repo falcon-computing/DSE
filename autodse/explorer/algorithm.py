@@ -1,11 +1,11 @@
 """
 The main module of search algorithm.
 """
-from typing import Generator, List, Optional, Union
+from typing import Dict, Generator, List, Optional, Union
 
 from ..logger import get_algo_logger
 from ..parameter import DesignSpace, DesignPoint
-from ..result import ResultBase
+from ..result import Result
 from ..util import safe_eval
 
 
@@ -164,12 +164,12 @@ class SearchAlgorithm():
         """
         return dict(point)
 
-    def gen(self) -> Generator[List[DesignPoint], Optional[List[ResultBase]], None]:
+    def gen(self) -> Generator[List[DesignPoint], Optional[Dict[str, Result]], None]:
         """The main generator function of search algorithm
 
         Returns
         -------
-        Generator[List[DesignPoint], None, None]:
+        Generator[List[DesignPoint], Optional[Dict[str, Result]], None]:
             A generator that keeps producing design points for exploration.
         """
         raise NotImplementedError()

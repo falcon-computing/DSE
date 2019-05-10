@@ -10,7 +10,7 @@ import pytest
 from autodse import database, logger
 from autodse.evaluator import analyzer, scheduler
 from autodse.evaluator.evaluator import BackupMode, EvalMode, Evaluator, MerlinEvaluator
-from autodse.result import BitgenResult, HLSResult, MerlinResult
+from autodse.result import BitgenResult, HLSResult, MerlinResult, Result
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -21,7 +21,7 @@ def required_args(mocker):
 
     def mock_run(jobs, keep_files, cmd, timeout):
         #pylint:disable=missing-docstring,unused-argument
-        return [0] * len(jobs)
+        return [(job.key, Result.RetCode.PASS) for job in jobs]
 
     sche = scheduler.Scheduler()
     mocker.patch.object(sche, 'run', new=mock_run)
@@ -124,7 +124,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 3, 'R': ''}
             eval_ins.apply_design_point(job0, point)
             results = eval_ins.submit([job0])
-            assert results[0].ret_code == -1
+            assert results[0][1].ret_code == Result.RetCode.UNAVAILABLE
 
             # Set up commands and re-submit, although we have mocked the execution so
             # those commands will not be executed in this test.
@@ -137,7 +137,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 4, 'R': ''}
             eval_ins.apply_design_point(job1, point)
             results = eval_ins.submit([job1])
-            assert results[0].ret_code == 0
+            assert results[0][1].ret_code == Result.RetCode.PASS
 
         def mock_analyze_fail1(job, mode, config):
             #pylint:disable=unused-argument
@@ -150,7 +150,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 5, 'R': ''}
             eval_ins.apply_design_point(job2, point)
             results = eval_ins.submit([job2])
-            assert results[0].ret_code == -2
+            assert results[0][1].ret_code == Result.RetCode.ANALYZE_ERROR
 
             # No backup so the job directory should be gone
             assert not os.path.exists(job2.path)
@@ -172,7 +172,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 6, 'R': ''}
             eval_ins.apply_design_point(job3, point)
             results = eval_ins.submit([job3])
-            assert results[0].ret_code == -2
+            assert results[0][1].ret_code == Result.RetCode.ANALYZE_ERROR
             assert os.path.exists(job3.path)
 
         def mock_analyze_fail3(job, mode, config):
@@ -192,7 +192,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 7, 'R': ''}
             eval_ins.apply_design_point(job4, point)
             results = eval_ins.submit([job4])
-            assert results[0].ret_code == 0
+            assert results[0][1].ret_code == Result.RetCode.EARLY_REJECT
             assert not os.path.exists(job4.path)
 
         def mock_analyze_fail4(job, mode, config):
@@ -212,7 +212,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             point = {'PE': 7, 'R': ''}
             eval_ins.apply_design_point(job5, point)
             results = eval_ins.submit([job5])
-            assert results[0].ret_code == 0
-            assert not results[0].valid
+            assert results[0][1].ret_code == Result.RetCode.PASS
+            assert not results[0][1].valid
 
     LOG.debug('=== Testing evaluator phase 2 end')

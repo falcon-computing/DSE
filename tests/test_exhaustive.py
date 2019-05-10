@@ -5,7 +5,7 @@ The unit test module for exhaustive serach algorithm.
 from autodse import logger
 from autodse.parameter import MerlinParameter
 from autodse.explorer.exhaustive import ExhaustiveAlgorithm
-from autodse.result import ResultBase
+from autodse.result import Result
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -40,7 +40,7 @@ def test_exhaustive():
 
     algo = ExhaustiveAlgorithm(space)
     gen = algo.gen()
-    results = [ResultBase()] * 8
+    results = [Result()] * 8
     iter_cnt = 0
     point_cnt = 0
 

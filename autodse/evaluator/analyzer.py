@@ -7,7 +7,7 @@ from logging import Logger
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..logger import get_eval_logger
-from ..result import HLSResult, Job, MerlinResult, ResultBase
+from ..result import HLSResult, Job, MerlinResult, Result
 
 
 class Analyzer():
@@ -20,7 +20,7 @@ class Analyzer():
         return get_eval_logger('Analyzer')
 
     @staticmethod
-    def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[ResultBase]:
+    def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[Result]:
         """Analyze the job result and return a result object
 
         Parameters
@@ -36,7 +36,7 @@ class Analyzer():
 
         Returns
         -------
-        Optional[ResultBase]:
+        Optional[Result]:
             The analysis result.
         """
         raise NotImplementedError()
@@ -242,13 +242,13 @@ class MerlinAnalyzer(Analyzer):
         return result
 
     @staticmethod
-    def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[ResultBase]:
+    def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[Result]:
         #pylint:disable=missing-docstring
 
         log = Analyzer.get_analyzer_logger()
 
         if mode == 'transform':
-            result: Optional[ResultBase] = MerlinAnalyzer.analyze_merlin_transform(job)
+            result: Optional[Result] = MerlinAnalyzer.analyze_merlin_transform(job)
         elif mode == 'hls':
             result = MerlinAnalyzer.analyze_merlin_hls(job, config)
         else:
