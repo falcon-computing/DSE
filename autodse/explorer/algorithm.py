@@ -56,6 +56,34 @@ class SearchAlgorithm():
 
         return options
 
+    def get_order(self, point: DesignPoint, pid: str) -> int:
+        """Evaluate the order of the current value.
+
+        Parameters
+        ----------
+        point:
+            The current design point.
+
+        pid:
+            The target design parameter ID.
+
+        Returns
+        -------
+        int:
+            The order.
+        """
+
+        if not self.ds[pid].order:
+            return 0
+
+        order = safe_eval(self.ds[pid].order['expr'], {self.ds[pid].order['var']: point[pid]})
+        if order is None or not isinstance(order, int):
+            self.log.warning('Failed to evaluate the order of %s with value %s: %s', pid,
+                             str(point[pid]), str(order))
+            return 0
+
+        return order
+
     def update_child(self, point: DesignPoint, pid: str) -> None:
         """Check values of affect parameters and update them in place if it is invalid
 

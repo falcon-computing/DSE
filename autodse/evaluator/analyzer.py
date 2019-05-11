@@ -183,9 +183,6 @@ class MerlinAnalyzer(Analyzer):
                 log.error('Failed to read Merlin report %s: %s', info_path, str(err))
                 return None
 
-        # Backup an entire report for future usage
-        #result.report = hls_info
-
         # Fetch total cycle and resource util as performance QoR
         top_res_info = {}
         for elt in hls_info:

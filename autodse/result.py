@@ -3,7 +3,7 @@ The definition of evaluation results
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from .parameter import DesignPoint
 
@@ -85,9 +85,6 @@ class HLSResult(Result):
 
     def __init__(self, ret_code_str: str = 'PASS'):
         super(HLSResult, self).__init__(ret_code_str)
-
-        # Merlin report (in JSON format)
-        self.report: Optional[Dict[str, Any]] = None
 
         # The topo IDs and the performance bottleneck type (compute, memory)
         # in the order of importance

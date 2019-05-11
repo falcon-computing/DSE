@@ -36,7 +36,7 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
 
         Returns
         -------
-        result:
+        Any:
             The evaluated value
     """
     table = dict(SAFE_BUILTINS)
