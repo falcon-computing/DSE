@@ -3,7 +3,7 @@ The definition of evaluation results
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional
 
 from .parameter import DesignPoint
 
@@ -79,6 +79,12 @@ class MerlinResult(Result):
         # Critical messages from the Merlin transformations
         self.criticals: List[str] = []
 
+class HierPathNode(NamedTuple):
+    """The datastructure of hierarchy path node"""
+    nid: str
+    latency: float
+    is_compute_bound: bool
+
 
 class HLSResult(Result):
     """The result after running the HLS"""
@@ -86,9 +92,8 @@ class HLSResult(Result):
     def __init__(self, ret_code_str: str = 'PASS'):
         super(HLSResult, self).__init__(ret_code_str)
 
-        # The topo IDs and the performance bottleneck type (compute, memory)
-        # in the order of importance
-        self.ordered_hotspot: Optional[List[Tuple[str, str]]] = None
+        # A list of hierarchy paths in the order of importance
+        self.ordered_paths: Optional[List[List[HierPathNode]]] = None
 
 
 class BitgenResult(Result):

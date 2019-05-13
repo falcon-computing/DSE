@@ -8,6 +8,7 @@ import os
 import shutil
 import tempfile
 import time
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue
 from typing import Any, Dict, List, Optional
@@ -228,7 +229,12 @@ class Main():
                             evaluator=evaluator,
                             timeout=config['timeout']['exploration'],
                             tag=tag)
-        explorer.run(config['search']['algorithm'])
+        try:
+            explorer.run(config['search']['algorithm'])
+        except Exception as err:
+            log = get_default_logger('DSE')
+            log.error('Encounter error during the exploration: %s', str(err))
+            log.error(trackback.format_exc(err))
 
     def main(self) -> None:
         """The main function of the DSE flow"""

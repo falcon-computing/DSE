@@ -73,9 +73,12 @@ def test_merlin_analyzer(test_dir):
     # Note that we fake the DSP resource util (which should be 0) to test out of resource.
     hls_ref_path = os.path.join(test_dir, 'temp_fixture/anal_rpts0')
     job_rpt_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin')
+    topo_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin/gen_token')
     os.makedirs(job_rpt_path, exist_ok=True)
+    os.makedirs(topo_path, exist_ok=True)
     shutil.copy(os.path.join(hls_ref_path, 'final_info.json'), job_rpt_path)
     shutil.copy(os.path.join(hls_ref_path, 'hierarchy.json'), job_rpt_path)
+    shutil.copy(os.path.join(hls_ref_path, 'topo_info.json'), topo_path)
     with open(os.path.join(job_path, 'merlin.log'), 'w') as filep:
         filep.write('INFO: [MERCC-1040] Compilation finished successfully\n')
         filep.write('Total time: 65.50 seconds\n')
@@ -84,20 +87,32 @@ def test_merlin_analyzer(test_dir):
     result = MerlinAnalyzer.analyze(job, 'hls', config)
     assert result is not None
 
-    assert abs(result.quality - 5.086e-6) < 1e-6
-    assert result.perf == 196608.0
+    assert abs(result.quality - 0.00055) < 1e-5
+    assert result.perf == 1800.0
     assert result.eval_time == 91.62
-    print(str(result.res_util))
-    assert abs(result.res_util['util-BRAM'] - 0.1059) < 0.01
+    assert abs(result.res_util['util-BRAM'] - 0.1367) < 0.01
+    # Note that we manually modified the DSP utilization for testing
     assert abs(result.res_util['util-DSP'] - 0.99) < 0.01
-    assert abs(result.res_util['util-LUT'] - 0.0995) < 0.01
-    assert abs(result.res_util['util-FF'] - 0.099) < 0.01
-    assert result.res_util['total-BRAM'] == 268
+    assert abs(result.res_util['util-LUT'] - 0.1047) < 0.01
+    assert abs(result.res_util['util-FF'] - 0.1023) < 0.01
+    assert result.res_util['total-BRAM'] == 346
     assert result.res_util['total-DSP'] == 0
-    assert result.res_util['total-LUT'] == 78457
-    assert result.res_util['total-FF'] == 156257
+    assert result.res_util['total-LUT'] == 82453
+    assert result.res_util['total-FF'] == 161213
 
-    # Result is invalid due to out of BRAM utilization
+    # Hotspot analysis should output 4 hierarchy paths and each path should have 3 components
+    assert len(result.ordered_paths) == 4
+    assert all([len(path) == 3 for path in result.ordered_paths])
+
+    # The first path should be computation bound
+    assert all([node.is_compute_bound for node in result.ordered_paths[0]])
+
+    # The rest paths should be memory bound except for the last component
+    assert len([node for node in result.ordered_paths[1] if node.is_compute_bound]) == 1
+    assert len([node for node in result.ordered_paths[2] if node.is_compute_bound]) == 1
+    assert len([node for node in result.ordered_paths[3] if node.is_compute_bound]) == 1
+
+    # Result is invalid due to out of DSP utilization
     assert not result.valid
 
     LOG.debug('=== Testing MerlinAnalyzer end')

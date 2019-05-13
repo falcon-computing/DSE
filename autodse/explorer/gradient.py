@@ -83,7 +83,7 @@ class GradientAlgorithm(SearchAlgorithm):
                     param for pid, param in self.ds.items() if pid not in tuned
                     and isinstance(param, MerlinParameter) and param.ds_type.startswith('TIL')
                 ]
-        elif isinstance(result, HLSResult) and result.ordered_hotspot:
+        elif isinstance(result, HLSResult) and result.ordered_paths:
             # FIXME: Take the hotspot result into consideration
             pass
 
@@ -377,7 +377,7 @@ class GradientAlgorithm(SearchAlgorithm):
             The quantified result quality.
 
         result:
-            The result to be logged. 
+            The result to be logged.
         """
 
         tbl = Texttable(max_width=120)

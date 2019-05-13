@@ -81,7 +81,7 @@ class PythonSubprocessScheduler(Scheduler):
                     os.makedirs(dst_full_path)
                 shutil.move(os.path.join(src_path, file_name), dst_file)
             except FileNotFoundError as err:
-                log.error('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
+                log.debug('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
                           dst_path, str(err))
 
         shutil.rmtree(src_path)

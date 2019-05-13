@@ -7,7 +7,7 @@ from logging import Logger
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..logger import get_eval_logger
-from ..result import HLSResult, Job, MerlinResult, Result
+from ..result import HLSResult, HierPathNode, Job, MerlinResult, Result
 
 
 class Analyzer():
@@ -163,6 +163,7 @@ class MerlinAnalyzer(Analyzer):
         log = Analyzer.get_analyzer_logger()
         success, eval_time = MerlinAnalyzer.analyze_merlin_log(job, 'Estimation successfully.')
         if not success:
+            log.debug('Merlin estimation failure, no analysis result')
             return None
 
         result = HLSResult()
@@ -170,9 +171,10 @@ class MerlinAnalyzer(Analyzer):
 
         # Merlin HLS report analysis
         report_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin')
-        hier_path = os.path.join(report_path, 'hierarchy.json')
+        #hier_path = os.path.join(report_path, 'hierarchy.json')
+        topo_path = os.path.join(report_path, 'gen_token/topo_info.json')
         info_path = os.path.join(report_path, 'final_info.json')
-        if not os.path.exists(hier_path) or not os.path.exists(info_path):
+        if not os.path.exists(info_path):
             log.debug('Cannot find Merlin report files for analysis')
             return None
 
@@ -180,7 +182,7 @@ class MerlinAnalyzer(Analyzer):
             try:
                 hls_info = json.load(filep)
             except ValueError as err:
-                log.error('Failed to read Merlin report %s: %s', info_path, str(err))
+                log.debug('Failed to read Merlin report %s: %s', info_path, str(err))
                 return None
 
         # Fetch total cycle and resource util as performance QoR
@@ -234,9 +236,143 @@ class MerlinAnalyzer(Analyzer):
         utils = {k[5:]: u for k, u in result.res_util.items() if k.startswith('util-')}
         result.valid = all([utils[res] < max_utils[res] for res in max_utils])
 
-        # TODO: Hotspot analysis
+        # Hotspot analysis
+        result.ordered_paths = MerlinAnalyzer.analyze_hotspot(topo_path, info_path)
 
         return result
+
+    @staticmethod
+    def find_all_hotspot_paths(cycles: Dict[str, Any], sub_funcs: Dict[str, Any],
+                               node: Dict[str, Any]) -> List[List[HierPathNode]]:
+        """TBA"""
+
+        def int_or_zero(string: str) -> int:
+            """Cast the input string to an integer or 0 otherwise.
+
+            Parameters
+            ----------
+            string:
+                The string to be casted.
+
+            Returns
+            -------
+            int:
+                The integer that the string represents, or 0 if the string cannot be represented
+                as an integer.
+            """
+            try:
+                return int(string)
+            except ValueError:
+                return 0
+
+        def float_or_zero(string: str) -> float:
+            """Cast the input string to a float point or 0 otherwise.
+
+            Parameters
+            ----------
+            string:
+                The string to be casted.
+
+            Returns
+            -------
+            float:
+                The float that the string represents, or 0 if the string cannot be represented
+                as an float.
+            """
+            try:
+                return float(string)
+            except ValueError:
+                return 0
+
+        if not node['childs']:
+            if node['type'] == 'callfunction' and node['name'] in sub_funcs:
+                # Traverse functions by its function call
+                paths = MerlinAnalyzer.find_all_hotspot_paths(cycles, sub_funcs,
+                                                              sub_funcs[node['name']])
+            else:
+                # Innermost component, terminate
+                paths = []
+        else:
+            # Sort child based on cycle count
+            sorted_child = sorted(
+                [child for child in node['childs']],
+                key=lambda c: int_or_zero(cycles[c['topo_id']]['CYCLE_TOT'])
+                if c['topo_id'] in cycles and 'CYCLE_TOT' in cycles[c['topo_id']] else 0,
+                reverse=True)
+            paths = []
+            for child in sorted_child:
+                paths += MerlinAnalyzer.find_all_hotspot_paths(cycles, sub_funcs, child)
+
+        if node['topo_id'] in cycles:
+            org_id = cycles[node['topo_id']]['org_identifier']
+            total = (float_or_zero(cycles[node['topo_id']]['CYCLE_TOT'])
+                     if 'CYCLE_TOT' in cycles[node['topo_id']] else 0)
+            comm = (float_or_zero(cycles[node['topo_id']]['CYCLE_BURST'])
+                    if 'CYCLE_BURST' in cycles[node['topo_id']] else 0)
+
+            is_compute_bound = None
+            if total == 0:
+                pass  # No data, set to an invalid value
+            elif comm == 0:
+                is_compute_bound = True
+            else:
+                # This is a heuristic since BURST cycle is from
+                # model but total cycle is from vendor report.
+                # FIXME we should have a better way to judge it.
+                is_compute_bound = (comm / total) < 0.8
+
+            # Fitler out the components that we should not spend time on
+            if (is_compute_bound is not None and not org_id.startswith('X')):
+                if not org_id.startswith('BuiltIn') or is_compute_bound is False:
+                    # Cover Merlin generated memcpy functions
+                    # since we will try memory coalescing when
+                    # bounded by bandwidth no matter what this
+                    # scope can be mapped to pragma or not.
+                    if paths:
+                        for path in paths:
+                            path.append(HierPathNode(org_id, total, is_compute_bound))
+                    else:
+                        paths = [[HierPathNode(org_id, total, is_compute_bound)]]
+        else:
+            log = Analyzer.get_analyzer_logger()
+            log.warning('Hierarchy node %s has no cycle info', node['topo_id'])
+
+        return paths
+
+    @staticmethod
+    def analyze_hotspot(hier_path: str, rpt_path: str) -> List[List[HierPathNode]]:
+        """TBA"""
+
+        log = Analyzer.get_analyzer_logger()
+
+        # Check and load necessary reports
+        if not os.path.exists(hier_path) or not os.path.exists(rpt_path):
+            log.debug('Cannot find Merlin report files for hotspot analysis: %s and %s', hier_path,
+                      rpt_path)
+            return []
+
+        with open(rpt_path, 'r') as filep:
+            try:
+                cycles = json.load(filep)
+            except ValueError as err:
+                log.error('Failed to read Merlin report %s: %s', rpt_path, str(err))
+                return []
+
+        with open(hier_path, 'r') as filep:
+            try:
+                hier = json.load(filep)
+            except ValueError as err:
+                log.error('Failed to read hierarchy info %s: %s', hier_path, str(err))
+                return []
+
+        # Find all critical paths
+        crit_paths: List[List[HierPathNode]] = []
+        for kernel in hier:
+            sub_funcs = {func['name']: func for func in kernel['sub_functions']}
+            for path in MerlinAnalyzer.find_all_hotspot_paths(cycles, sub_funcs, kernel):
+                crit_paths.append(path)
+
+        return crit_paths
 
     @staticmethod
     def analyze(job: Job, mode: str, config: Dict[str, Any]) -> Optional[Result]:
@@ -268,6 +404,7 @@ class MerlinAnalyzer(Analyzer):
         if mode == 'hls':
             return [
                 'merlin.log', '.merlin_prj/run/implement/exec/hls/report_merlin/final_info.json',
+                '.merlin_prj/run/implement/exec/hls/report_merlin/gen_token/topo_info.json',
                 '.merlin_prj/run/implement/exec/hls/report_merlin/hierarchy.json'
             ]
 
