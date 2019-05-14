@@ -77,7 +77,9 @@ class Database():
         if not self.commit_impl(key, result):
             self.log.error('Failed to commit results to the database')
             raise RuntimeError()
-        self.update_best(result)
+
+        if isinstance(result, Result):
+            self.update_best(result)
 
     def batch_commit(self, pairs: List[Tuple[str, Any]]) -> None:
         """Commit a set of new results to the database.

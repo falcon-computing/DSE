@@ -66,13 +66,19 @@ class Evaluator():
         # applying the design point. If a valid parameter does not have corresponding definition
         # in the design point, then the Merlin compiler will error out so we could let user know.
         self.src_files: List[str] = []
+        self.auto_map: Dict[str, List[str]] = {}
         for root, _, files in os.walk(src_path):
             for file_name in files:
                 file_abs_path = os.path.join(root, file_name)
+                has_auto = False
                 with open(file_abs_path, 'r') as filep:
-                    autos = re.findall(r'(auto{(.*?)})', filep.read(), re.IGNORECASE)
-                    if autos:
-                        self.src_files.append(os.path.relpath(file_abs_path, src_path))
+                    for idx, line in enumerate(filep):
+                        autos = re.findall(r'auto{(.*?)}', line, re.IGNORECASE)
+                        if autos:
+                            has_auto = True
+                            self.auto_map['{0}:{1}'.format(file_name, idx)] = autos
+                if has_auto:
+                    self.src_files.append(os.path.relpath(file_abs_path, src_path))
 
         if not self.src_files:
             self.log.error('Cannot find any kernel files with auto pragma.')
@@ -201,7 +207,7 @@ class Evaluator():
         elif self.mode == EvalMode.ACCURATE:
             submitter = self.submit_accurate
         else:
-            self.log.error('Evaluation mode %s does has not yet supported', self.mode)
+            self.log.error('Evaluation mode %s does not yet supported', self.mode)
             raise RuntimeError()
 
         # Submit un-evaluated jobs and commit results to the database
@@ -273,6 +279,48 @@ class MerlinEvaluator(Evaluator):
                  dse_config: Dict[str, Any]):
         super(MerlinEvaluator, self).__init__(src_path, work_path, mode, db, scheduler,
                                               analyzer_cls, backup_mode, dse_config, 'merlin')
+
+        self.scope_map: Optional[Dict[str, str]] = None
+
+    def build_scope_map(self) -> bool:
+        """Build the scope map that maps auto positions to the scope in source code.
+
+        Returns
+        -------
+        bool:
+            Indicate if the build was success or not.
+        """
+
+        scope_map = self.db.query('scope-map')
+        if scope_map is not None:
+            self.log.info('Load the scope map from database')
+            self.scope_map = scope_map
+            return True
+
+        if self.analyzer != MerlinAnalyzer:
+            self.log.error('MerlinAnalyer is requied to build the scope map')
+            return False
+
+        if 'hls' not in self.commands:
+            self.log.error('Command for HLS is not properly set up.')
+            return False
+
+        job = self.create_job()
+        assert job is not None
+        sche_rets = self.scheduler.run([job], self.analyzer.desire('hls'), self.commands['hls'],
+                                       self.timeouts['hls'])
+        assert len(sche_rets) == 1
+        _, ret = sche_rets[0]
+        if ret == Result.RetCode.PASS:
+            scope_map = self.analyzer.analyze_scope(job, self.auto_map)  # type: ignore
+            if scope_map is not None:
+                self.scope_map = scope_map
+                if self.db.query('scope-map') is None:
+                    self.db.commit('scope-map', scope_map)
+                return True
+
+        self.log.error('Failed to build the scope map')
+        return False
 
     def submit_fast(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         #pylint:disable=missing-docstring

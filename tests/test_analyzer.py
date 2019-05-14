@@ -108,11 +108,26 @@ def test_merlin_analyzer(test_dir):
     assert all([node.is_compute_bound for node in result.ordered_paths[0]])
 
     # The rest paths should be memory bound except for the last component
+    LOG.info(result.ordered_paths[1])
     assert len([node for node in result.ordered_paths[1] if node.is_compute_bound]) == 1
     assert len([node for node in result.ordered_paths[2] if node.is_compute_bound]) == 1
     assert len([node for node in result.ordered_paths[3] if node.is_compute_bound]) == 1
 
     # Result is invalid due to out of DSP utilization
     assert not result.valid
+
+    # Test scope analysis with a fake auto map
+    auto_map = {
+        'kernel1.cpp:6': ['auto-in-top1', 'auto-in-top2'],
+        'kernel1.cpp:7': ['auto-in-top3'],
+        'kernel2.cpp:2': ['auto-not-for-loop']
+    }
+    scope_map = MerlinAnalyzer.analyze_scope(job, auto_map)
+    assert len(scope_map) == 4
+    LOG.info(scope_map)
+    assert 'auto-in-top1' in scope_map and scope_map['auto-in-top1'] == 'L_0_0_0_2_2_0_2'
+    assert 'auto-in-top2' in scope_map and scope_map['auto-in-top2'] == 'L_0_0_0_2_2_0_2'
+    assert 'auto-in-top3' in scope_map and scope_map['auto-in-top3'] == 'L_0_0_0_2_2_0_2'
+    assert 'auto-not-for-loop' in scope_map and scope_map['auto-not-for-loop'] == 'UNKNOWN'
 
     LOG.debug('=== Testing MerlinAnalyzer end')

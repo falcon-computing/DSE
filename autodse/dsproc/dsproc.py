@@ -16,8 +16,8 @@ def get_dsproc_logger() -> Logger:
     return get_default_logger('DSProc')
 
 
-def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
-                         ) -> Optional[DesignSpace]:
+def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]],
+                         scope_map: Optional[Dict[str, str]]) -> Optional[DesignSpace]:
     """Compile the design space from the config JSON file
 
     Parameters
@@ -26,6 +26,9 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
         The input design space configure loaded from a JSON file.
         Note that the duplicated ID checking should be done when loading the JSON file and
         here we assume no duplications.
+
+    scope_map:
+        The scope map that maps design parameter ID to its scope.
 
     Returns
     -------
@@ -38,8 +41,9 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]]
     for param_id, param_config in user_ds_config.items():
         param = create_design_parameter(param_id, param_config, MerlinParameter)
         if param:
+            if scope_map and param_id in scope_map:
+                param.scope = scope_map[param_id]
             params[param_id] = param
-            #print(param.__dict__)
 
     error = check_design_space(params)
     if error > 0:

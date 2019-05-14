@@ -231,17 +231,18 @@ class Main():
                             tag=tag)
         try:
             explorer.run(config['search']['algorithm'])
-        except Exception as err:
+        except Exception as err: # pylint:disable=broad-except
             log = get_default_logger('DSE')
             log.error('Encounter error during the exploration: %s', str(err))
-            log.error(trackback.format_exc(err))
+            log.error(traceback.format_exc())
 
     def main(self) -> None:
         """The main function of the DSE flow"""
 
         # Compile design space
         self.log.info('Compiling design space')
-        ds = compile_design_space(self.config['design-space']['definition'])
+        ds = compile_design_space(self.config['design-space']['definition'],
+                                  self.eval_dir.scope_map)
         if ds is None:
             self.log.error('Failed to compile design space')
             raise RuntimeError()

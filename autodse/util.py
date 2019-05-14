@@ -5,7 +5,7 @@ import math
 import os
 import shutil
 from subprocess import PIPE, Popen, TimeoutExpired
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 from .logger import get_default_logger
 
@@ -109,3 +109,33 @@ def command(cmd: str, timeout: Optional[int] = None) -> Tuple[bool, str]:
         proc.kill()
         stdout, _ = proc.communicate()
         return (False, stdout)
+
+
+def gen_dict_extract(key: str,
+                     var: Union[Dict[str, Any], List[Any]]) -> Generator[Any, None, None]:
+    """A generator that extracts all values in a nested dict with the given key.
+
+    Parameters
+    ----------
+    key:
+        The key we are looking for.
+
+    var:
+        The target dictionary (maybe a list during the recursion).
+
+    Returns
+    -------
+    Generator[Any, None, None]:
+        The value of the given key that can be any type.
+    """
+    if hasattr(var, 'iteritems'):
+        for k, v in var.iteritems():  # type: ignore
+            if k == key:
+                yield v
+            if isinstance(v, dict):
+                for result in gen_dict_extract(key, v):
+                    yield result
+            elif isinstance(v, list):
+                for elt in v:
+                    for result in gen_dict_extract(key, elt):
+                        yield result

@@ -18,15 +18,16 @@ def test_compile_design_space(mocker):
     ds_config = {'X': {}}
     param = DesignParameter()
     param.name = 'X'
+    scope_map = {'X': 'L_0_0_3'}
     mocker.patch('autodse.dsproc.dsproc.create_design_parameter', return_value=param)
     mock1 = mocker.patch('autodse.dsproc.dsproc.check_design_space', return_value=0)
-    ret = dsproc.compile_design_space(ds_config)
+    ret = dsproc.compile_design_space(ds_config, scope_map)
     assert len(ret) == 1
     mock1.assert_called_once()
 
     # Design space with errors
     mocker.patch('autodse.dsproc.dsproc.check_design_space', return_value=1)
-    ret = dsproc.compile_design_space(ds_config)
+    ret = dsproc.compile_design_space(ds_config, scope_map)
     assert ret is None
 
     LOG.debug('=== Testing compile_design_space end')

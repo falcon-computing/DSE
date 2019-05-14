@@ -54,6 +54,7 @@ def test_evaluator_phase1(required_args, test_dir, mocker):
                          required_args['scheduler'], required_args['analyzer_cls'],
                          BackupMode.NO_BACKUP, required_args['dse_config'])
     assert len(eval_ins.src_files) == 1 and eval_ins.src_files[0] == 'src/kernel1.cpp'
+    assert 'kernel1.cpp:5' in eval_ins.auto_map and len(eval_ins.auto_map['kernel1.cpp:5']) == 2
 
     # Create a job
     job = eval_ins.create_job()
@@ -125,6 +126,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             eval_ins.apply_design_point(job0, point)
             results = eval_ins.submit([job0])
             assert results[0][1].ret_code == Result.RetCode.UNAVAILABLE
+            assert not eval_ins.build_scope_map()
 
             # Set up commands and re-submit, although we have mocked the execution so
             # those commands will not be executed in this test.
@@ -138,6 +140,11 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             eval_ins.apply_design_point(job1, point)
             results = eval_ins.submit([job1])
             assert results[0][1].ret_code == Result.RetCode.PASS
+
+        with mocker.patch('autodse.evaluator.analyzer.MerlinAnalyzer.analyze_scope',
+                          return_value={}):
+            # Test build scope
+            assert eval_ins.build_scope_map()
 
         def mock_analyze_fail1(job, mode, config):
             #pylint:disable=unused-argument
