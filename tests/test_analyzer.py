@@ -73,7 +73,8 @@ def test_merlin_analyzer(test_dir):
     # Note that we fake the DSP resource util (which should be 0) to test out of resource.
     hls_ref_path = os.path.join(test_dir, 'temp_fixture/anal_rpts0')
     job_rpt_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin')
-    topo_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin/gen_token')
+    topo_path = os.path.join(job.path,
+                             '.merlin_prj/run/implement/exec/hls/report_merlin/gen_token')
     os.makedirs(job_rpt_path, exist_ok=True)
     os.makedirs(topo_path, exist_ok=True)
     shutil.copy(os.path.join(hls_ref_path, 'final_info.json'), job_rpt_path)

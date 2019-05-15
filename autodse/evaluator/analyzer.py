@@ -69,8 +69,7 @@ class MerlinAnalyzer(Analyzer):
     resource_types = ['BRAM', 'FF', 'LUT', 'DSP']
 
     @staticmethod
-    def build_scope_map(hier: Union[Dict[str, Any], List[Any]],
-                        auto_map: Dict[str, List[str]],
+    def build_scope_map(hier: Union[Dict[str, Any], List[Any]], auto_map: Dict[str, List[str]],
                         scope_map: Dict[str, str]) -> None:
         """Buil a map that maps each auto keyword to the scope in the source code.
 

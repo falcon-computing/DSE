@@ -79,6 +79,7 @@ class MerlinResult(Result):
         # Critical messages from the Merlin transformations
         self.criticals: List[str] = []
 
+
 class HierPathNode(NamedTuple):
     """The datastructure of hierarchy path node"""
     nid: str

@@ -66,12 +66,20 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
     },
     'search.algorithm.name': {
         'require': False,
-        'default': 'exhaustive',
-        'options': ['exhaustive']
+        'default': 'gradient',
+        'options': ['exhaustive', 'gradient']
     },
     'search.algorithm.exhaustive.batch-size': {
         'require': False,
         'default': 8
+    },
+    'search.algorithm.gradient.latency-threshold': {
+        'require': False,
+        'default': 64
+    },
+    'search.algorithm.gradient.fine-grained-first': {
+        'require': False,
+        'default': True
     },
     'timeout.exploration': {
         'require': True,

@@ -2,13 +2,14 @@
 The gradient-based search algorithm
 """
 import heapq as pq
+from collections import OrderedDict
 from typing import Dict, Generator, List, NamedTuple, Optional, Set, Tuple
 
 from texttable import Texttable
 
 from ..parameter import (DesignParameter, DesignPoint, DesignSpace, MerlinParameter,
                          gen_key_from_design_point)
-from ..result import HLSResult, MerlinResult, Result
+from ..result import HierPathNode, HLSResult, MerlinResult, Result
 from .algorithm import SearchAlgorithm
 
 
@@ -47,11 +48,25 @@ class GradientAlgorithm(SearchAlgorithm):
     at the early stage of exploration.
     """
 
-    def __init__(self, ds: DesignSpace, log_file_name: str = 'algo.log'):
+    def __init__(self,
+                 ds: DesignSpace,
+                 latency_thd: float = 64,
+                 fg_first=True,
+                 log_file_name: str = 'algo.log'):
         super(GradientAlgorithm, self).__init__(ds, log_file_name)
+        self.latency_thd = latency_thd
+        self.fg_first = fg_first
 
-        # TODO: Build scope map
+        # TODO: Customizable
+        self.comp_order = ['PARALLEL', 'PIPELINE']
+        self.comm_order = ['INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING']
+
+        # Build scope map
         self.scope2param: Dict[str, List[DesignParameter]] = {}
+        for param in ds.values():
+            if param.scope not in self.scope2param:
+                self.scope2param[param.scope] = []
+            self.scope2param[param.scope].append(param)
 
     def get_hotspot_params(self, result: Result, tuned: Set[str]) -> List[DesignParameter]:
         """Identify the hotspot and tunable parameters using ordered_hotspot in result.
@@ -84,8 +99,66 @@ class GradientAlgorithm(SearchAlgorithm):
                     and isinstance(param, MerlinParameter) and param.ds_type.startswith('TIL')
                 ]
         elif isinstance(result, HLSResult) and result.ordered_paths:
-            # FIXME: Take the hotspot result into consideration
-            pass
+            # Generate hotspot scopes
+            hotspot_scopes: Dict[str, HierPathNode] = OrderedDict()
+            for path in result.ordered_paths:
+                for node in path if not self.fg_first else reversed(path):
+                    if node.latency >= self.latency_thd:
+                        hotspot_scopes[node.nid] = node
+
+            scope_params: Set[DesignParameter] = set()
+            cand_params_set: Dict[str, DesignParameter] = OrderedDict()
+            lowest_order_params: Dict[str, DesignParameter] = OrderedDict()
+            for node in hotspot_scopes.values():
+                if node.nid not in self.scope2param:  # No parameters can benefit this scope
+                    continue
+
+                # The parameters to this scope
+                for param in self.scope2param[node.nid]:
+                    scope_params.add(param)
+
+                # The global parameters for memory bound scope
+                if not node.is_compute_bound and 'GLOBAL' in self.scope2param:
+                    for param in self.scope2param['GLOBAL']:
+                        scope_params.add(param)
+
+                # Remove tuned parameters
+                tunable_params = [p for p in scope_params if p.name not in tuned]
+                if not tunable_params:
+                    continue
+
+                # Sort the tunable parameters according to the bottleneck type
+                params_w_order = []
+                for param in tunable_params:
+                    try:
+                        if not isinstance(param, MerlinParameter):
+                            raise ValueError()
+                        if node.is_compute_bound:  # Compute bound
+                            order = self.comp_order.index(param.ds_type)
+                        else:  # Memory bound
+                            order = self.comm_order.index(param.ds_type)
+                        params_w_order.append((order, param))
+                    except ValueError:
+                        # DS type is not listed in the both lists. This may be due to UNKNOWN
+                        # or unspecified ds_type or the new pragma type.
+                        # Set it to the lowest priority but do not ignore.
+                        lowest_order_params[param.name] = param
+
+                # Add parameters to the candidate set in order
+                for _, param in sorted(params_w_order, key=lambda x: x[0]):
+                    if param.name in cand_params_set:
+                        continue
+                    cand_params_set[param.name] = param
+
+            # Add the lowest priority parameters
+            for param in lowest_order_params.values():
+                cand_params_set[param.name] = param
+
+            cand_params = [param for param in cand_params_set.values()]
+
+            # Reverse the list so that the high priority goes to the tail
+            # as we will use it as a stack.
+            cand_params.reverse()
 
         return cand_params
 
@@ -236,6 +309,8 @@ class GradientAlgorithm(SearchAlgorithm):
             self.log.warning('This exploration is low confidence to achieve high QoR.')
 
         focus_params = self.get_hotspot_params(curr_result, set())
+        self.log.info('Focus parameters (high order goes to tail): %s',
+                      [p.name for p in focus_params])
         child = self.gen_child_points(curr_point, focus_params)
         flatten_child = self.gen_flatten_points(curr_point)
         if flatten_child:
@@ -322,8 +397,9 @@ class GradientAlgorithm(SearchAlgorithm):
                     pq.heappush(
                         explore_tree[curr_lv + 1],
                         ExploreTreeNode(key, quality, result.perf, result, child, new_tuned))
-                    self.log.info('-> Add to level %d with %d tunable parameters',
-                                  len(explore_tree) + curr_lv + 1, len(child))
+                    self.log.info('-> Add to level %d with %d tunable parameters: %s',
+                                  len(explore_tree) + curr_lv + 1, len(child),
+                                  [p.name for p in focus_params])
             else:
                 self.log.info('No batch to be worked')
 

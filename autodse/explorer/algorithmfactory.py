@@ -31,6 +31,11 @@ class AlgorithmFactory():
                                        log_file_name=log_file_name,
                                        batch_size=algo_config['batch-size'])
         if name == 'gradient':
-            return GradientAlgorithm(ds=ds, log_file_name=log_file_name)
+            algo_config = config[name]
+            assert isinstance(algo_config, dict)
+            return GradientAlgorithm(ds=ds,
+                                     latency_thd=algo_config['latency-threshold'],
+                                     fg_first=algo_config['fine-grained-first'],
+                                     log_file_name=log_file_name)
         log.error('Unrecognized algorithm: %s', name)
         raise RuntimeError()

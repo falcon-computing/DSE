@@ -54,7 +54,7 @@ def test_evaluator_phase1(required_args, test_dir, mocker):
                          required_args['scheduler'], required_args['analyzer_cls'],
                          BackupMode.NO_BACKUP, required_args['dse_config'])
     assert len(eval_ins.src_files) == 1 and eval_ins.src_files[0] == 'src/kernel1.cpp'
-    assert 'kernel1.cpp:5' in eval_ins.auto_map and len(eval_ins.auto_map['kernel1.cpp:5']) == 2
+    assert 'kernel1.cpp:6' in eval_ins.auto_map and len(eval_ins.auto_map['kernel1.cpp:6']) == 2
 
     # Create a job
     job = eval_ins.create_job()

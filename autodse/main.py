@@ -107,6 +107,9 @@ class Main():
         self.evaluator.set_timeout(self.config['timeout'])
         self.evaluator.set_command(self.config['evaluate']['command'])
 
+        self.log.info('Building the scope map')
+        self.evaluator.build_scope_map()
+
         # Initialize reporter
         self.reporter = Reporter(self.config, self.db)
 
@@ -231,7 +234,7 @@ class Main():
                             tag=tag)
         try:
             explorer.run(config['search']['algorithm'])
-        except Exception as err: # pylint:disable=broad-except
+        except Exception as err:  # pylint:disable=broad-except
             log = get_default_logger('DSE')
             log.error('Encounter error during the exploration: %s', str(err))
             log.error(traceback.format_exc())
@@ -242,7 +245,7 @@ class Main():
         # Compile design space
         self.log.info('Compiling design space')
         ds = compile_design_space(self.config['design-space']['definition'],
-                                  self.eval_dir.scope_map)
+                                  self.evaluator.scope_map)
         if ds is None:
             self.log.error('Failed to compile design space')
             raise RuntimeError()

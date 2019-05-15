@@ -41,8 +41,13 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]],
     for param_id, param_config in user_ds_config.items():
         param = create_design_parameter(param_id, param_config, MerlinParameter)
         if param:
-            if scope_map and param_id in scope_map:
-                param.scope = scope_map[param_id]
+            if not isinstance(param, MerlinParameter) or param.ds_type not in [
+                    'PARALLEL', 'PIPELINE', 'TILING', 'TILE'
+            ]:
+                param.scope = 'GLOBAL'
+            else:
+                if scope_map and param_id in scope_map:
+                    param.scope = scope_map[param_id]
             params[param_id] = param
 
     error = check_design_space(params)

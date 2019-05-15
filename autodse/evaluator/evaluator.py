@@ -76,7 +76,10 @@ class Evaluator():
                         autos = re.findall(r'auto{(.*?)}', line, re.IGNORECASE)
                         if autos:
                             has_auto = True
-                            self.auto_map['{0}:{1}'.format(file_name, idx)] = autos
+                            # Note
+                            # 1) The line number starts from one instead of zero.
+                            # 2) The scope for pragmas other than loop-pragmas may not be accurate.
+                            self.auto_map['{0}:{1}'.format(file_name, idx + 1)] = autos
                 if has_auto:
                     self.src_files.append(os.path.relpath(file_abs_path, src_path))
 

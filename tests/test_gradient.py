@@ -60,9 +60,17 @@ def test_gradient(test_dir):
         }
     }
 
+    scope_map = {
+        'B': 'L_0_0_0_47_2_0_3',
+        'CGPAR1': 'L_0_0_0_47_2_0_3',
+        'CGPIP1': 'L_0_0_0_47_2_0_3',
+        'CGPAR2': 'L_0_0_0_47_2_0_3_3_3',
+        'CGPIP2': 'L_0_0_0_47_2_0_3_3_3'
+    }
+
     db = RedisDatabase('test', 3, '{0}/temp_fixture/db/1.db'.format(test_dir))
     db.load()
-    ds = compile_design_space(config['design-space']['definition'])
+    ds = compile_design_space(config['design-space']['definition'], scope_map)
     algo = GradientAlgorithm(ds)
     gen = algo.gen()
     results = None

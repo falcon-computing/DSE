@@ -157,7 +157,7 @@ class Reporter():
             't',  # Resource
             't',  # Status
             't',  # Valid
-            'f'   # Time
+            'f'  # Time
         ])
         detail_tbl.set_precision(1)
         detail_tbl.header([
