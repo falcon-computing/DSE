@@ -25,8 +25,26 @@ class Explorer():
         self.db = db
         self.evaluator = evaluator
         self.timeout = timeout * 60.0
-        self.log_file_name = '{0}_algo.log'.format(tag) if tag else 'algo.log'
-        self.log = get_algo_logger('Explorer', self.log_file_name)
+        self.algo_log_file_name = '{0}_algo.log'.format(tag) if tag else 'algo.log'
+        self.log = get_algo_logger('Explorer', '{0}_expr.log'.format(tag) if tag else 'expr.log')
+
+        # Status checking
+        self.best_result: Result = Result()
+        self.explored_point = 0
+
+    def update_best(self, result: Result) -> None:
+        """Keep tracking the best result found in this explorer.
+
+        Parameters
+        ---------
+        result:
+            The new result to be checked.
+
+        """
+        if result.valid and result.quality > self.best_result.quality:
+            self.best_result = result
+            self.log.info('Found a better result at #%04d: Quality %.1e, Perf %.1e',
+                          self.explored_point, result.quality, result.perf)
 
     def run(self, algo_config: Dict[str, Any]) -> None:
         """The main function of the explorer to launch the search algorithm
@@ -41,7 +59,7 @@ class Explorer():
         """
 
         # Create a search algorithm generator
-        algo = AlgorithmFactory.make(algo_config, self.ds, self.log_file_name)
+        algo = AlgorithmFactory.make(algo_config, self.ds, self.algo_log_file_name)
         gen_next = algo.gen()
 
         timer = time.time()
@@ -52,6 +70,7 @@ class Explorer():
                 # Generate the next set of design points
                 next_points = gen_next.send(results)
                 self.log.debug('The algorithm generates %d design points', len(next_points))
+                self.explored_point += len(next_points)
             except StopIteration:
                 break
 
@@ -70,6 +89,7 @@ class Explorer():
                         self.log.error('Fail to create a new job (disk space?)')
                         return
                 else:
+                    self.update_best(result)
                     results[gen_key_from_design_point(point)] = result
             if not jobs:
                 duplicated_iters += 1
@@ -82,4 +102,7 @@ class Explorer():
             # Evaluate design points and get results
             self.log.debug('Evaluating %d new design points', len(jobs))
             for key, result in self.evaluator.submit(jobs):
+                self.update_best(result)
                 results[key] = result
+
+        self.log.info('Explored %d points', self.explored_point)
