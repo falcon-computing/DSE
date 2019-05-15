@@ -54,6 +54,7 @@ class Main():
     """The main class of DSE flow"""
 
     def __init__(self):
+        self.start_time = time.time()
         self.args = arg_parser()
         self.src_dir = os.path.abspath(self.args.src_dir)
         self.work_dir = os.path.abspath(self.args.work_dir)
@@ -214,7 +215,7 @@ class Main():
 
             self.log.info('%d explorers have been launched', len(pool))
 
-            timer: float = 0  # in minutes
+            timer: float = (time.time() - self.start_time) / 60.0  # in minutes
             while any([not exe.done() for exe in pool]):
                 time.sleep(1)
                 while self.db.best_cache.qsize() > self.db.best_cache_size:

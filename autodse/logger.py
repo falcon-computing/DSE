@@ -2,6 +2,7 @@
 The format and config of logging.
 """
 
+from copy import deepcopy
 from typing import Dict
 import logging
 import threading
@@ -10,7 +11,7 @@ import threading
 class LogFormatter(logging.Formatter):
     """Customized log formatter."""
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, _record: logging.LogRecord) -> str:
         """The customized formatter function
 
         Parameters
@@ -24,6 +25,7 @@ class LogFormatter(logging.Formatter):
             The customized formatted log data
         """
         # Display the elapsed time in minutes
+        record = deepcopy(_record)
         record.relativeCreated = int(record.relativeCreated / 1000.0 / 60.0)
         return super(LogFormatter, self).format(record)
 
