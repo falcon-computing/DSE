@@ -109,6 +109,12 @@ class GradientAlgorithm(SearchAlgorithm):
             scope_params: Set[DesignParameter] = set()
             cand_params_set: Dict[str, DesignParameter] = OrderedDict()
             lowest_order_params: Dict[str, DesignParameter] = OrderedDict()
+
+            # Add unknown parameters to the lowest priority
+            if 'UNKNOWN' in self.scope2param:
+                for param in self.scope2param['UNKNOWN']:
+                    lowest_order_params[param.name] = param
+
             for node in hotspot_scopes.values():
                 if node.nid not in self.scope2param:  # No parameters can benefit this scope
                     continue
