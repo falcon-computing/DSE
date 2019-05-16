@@ -91,15 +91,16 @@ def test_merlin_analyzer(test_dir):
     assert abs(result.quality - 0.00055) < 1e-5
     assert result.perf == 1800.0
     assert result.eval_time == 91.62
-    assert abs(result.res_util['util-BRAM'] - 0.1367) < 0.01
+    print(result.res_util)
+    assert abs(result.res_util['util-BRAM'] - 0.0320032) < 0.01
     # Note that we manually modified the DSP utilization for testing
     assert abs(result.res_util['util-DSP'] - 0.99) < 0.01
-    assert abs(result.res_util['util-LUT'] - 0.1047) < 0.01
-    assert abs(result.res_util['util-FF'] - 0.1023) < 0.01
-    assert result.res_util['total-BRAM'] == 346
+    assert abs(result.res_util['util-LUT'] - 0.00732098) < 0.01
+    assert abs(result.res_util['util-FF'] - 0.0070664) < 0.01
+    assert result.res_util['total-BRAM'] == 81
     assert result.res_util['total-DSP'] == 0
-    assert result.res_util['total-LUT'] == 82453
-    assert result.res_util['total-FF'] == 161213
+    assert result.res_util['total-LUT'] == 5766
+    assert result.res_util['total-FF'] == 11131
 
     # Hotspot analysis should output 4 hierarchy paths and each path should have 3 components
     assert len(result.ordered_paths) == 4

@@ -311,10 +311,12 @@ class MerlinAnalyzer(Analyzer):
                                   'the loop trip count to get rid of all "?" in HLS report.')
                         return None
 
+        # FIXME: We do not add BSP resource since the current Merlin report does not do so,
+        # but not sure the impact of ignoring BSP resource on P&R and fmax.
         # Sum the kernel resource and BSP resource
-        for key in result.res_util:
-            if key in top_res_info:
-                result.res_util[key] += top_res_info[key]
+        #for key in result.res_util:
+        #    if key in top_res_info:
+        #        result.res_util[key] += top_res_info[key]
 
         # Result validation: resource utilization is under the threshold
         max_utils = config['max-util']

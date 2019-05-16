@@ -47,6 +47,12 @@ def arg_parser() -> argparse.Namespace:
                         action='store',
                         default='',
                         help='path to the result database')
+    parser.add_argument('--check-only',
+                        required=False,
+                        action='store_true',
+                        default=False,
+                        help='only check the design space definition without running DSE')
+
     return parser.parse_args()
 
 
@@ -87,6 +93,11 @@ class Main():
 
         # Check and load config
         self.config = self.load_config()
+
+        # Stop here if we only need to check the design space definition
+        if self.args.check_only:
+            self.log.warning('DSE will not be performed because "--check-only" is enabled.')
+            return
 
         # Initialize database
         self.log.info('Initializing the database')
@@ -158,7 +169,7 @@ class Main():
                 user_config = json.load(filep)
             except ValueError as err:
                 self.log.error('Failed to load config: %s', str(err))
-                raise RuntimeError()
+                raise
 
         config = build_config(user_config)
         if config is None:
@@ -246,10 +257,10 @@ class Main():
         # Compile design space
         self.log.info('Compiling design space')
         ds = compile_design_space(self.config['design-space']['definition'],
-                                  self.evaluator.scope_map)
+                                  self.evaluator.scope_map if not self.args.check_only else None)
         if ds is None:
             self.log.error('Failed to compile design space')
-            raise RuntimeError()
+            return
 
         # Partition design space
         self.log.info('Partitioning the design space to at maximum %d parts',
@@ -257,7 +268,7 @@ class Main():
         ds_list = partition(ds, int(self.config['design-space']['max-part-num']))
         if ds_list is None:
             self.log.error('No design space partition is available for exploration')
-            raise RuntimeError()
+            return
 
         #with open('ds_part{0}.json'.format(idx), 'w') as filep:
         #    filep.write(
@@ -265,6 +276,10 @@ class Main():
         #                    for n, p in ds.items()}, sort_keys=True, indent=4))
 
         self.log.info('%d parts generated', len(ds_list))
+
+        if self.args.check_only:
+            self.log.info('Finished checking the design space.')
+            return
 
         # TODO: profiling and pruning
 

@@ -72,10 +72,15 @@ def test_check_design_space():
     param = DesignParameter()
     param.name = 'X'
     param.deps = ['Y']
+    param.option_expr = '[x for x in range(10) if x < Y]'
+    param.default = 1
     params['X'] = param
+
     param = DesignParameter()
     param.name = 'Y'
     param.deps = []
+    param.option_expr = '[1,2,4,8]'
+    param.default = 1
     params['Y'] = param
     assert dsproc.check_design_space(params) == 0, 'expect no errors'
 
@@ -83,6 +88,8 @@ def test_check_design_space():
     param = DesignParameter()
     param.name = 'Z'
     param.deps = ['X', 'Z']
+    param.option_expr = '[x for x in range(10) if x < X and x < Z]'
+    param.default = 0
     params['Z'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
     del params['Z']
@@ -101,6 +108,48 @@ def test_check_design_space():
     param.deps = ['X', 'sin']
     params['B'] = param
     assert dsproc.check_design_space(params) == 1, 'expect 1 error'
+    del params['B']
+
+    # Dependency type error in the option expression
+    # Note that 1!="off" is valid in Python although it is always False
+    param = DesignParameter()
+    param.name = 'C'
+    param.deps = ['X']
+    param.option_expr = '[x for x in range(10) if X!="off"]'
+    param.default = 0
+    params['C'] = param
+    assert dsproc.check_design_space(params) == 0, 'expect no error'
+    del params['C']
+
+    # Type error in the option expression
+    param = DesignParameter()
+    param.name = 'D'
+    param.option_expr = '[x for x in range(10)+[16,32]]'
+    param.default = 0
+    params['D'] = param
+    assert dsproc.check_design_space(params) == 1, 'expect 1 error'
+    del params['D']
+
+    # Type error in the order expression
+    # Note that 1!="off" is valid in Python although it is always False
+    param = DesignParameter()
+    param.name = 'E'
+    param.option_expr = 'list(range(10))'
+    param.order = {'expr': '0 if x!="off" else 1', 'var': 'x'}
+    param.default = 0
+    params['E'] = param
+    assert dsproc.check_design_space(params) == 0, 'expect no error'
+    del params['E']
+
+    # Pass options and order expression checking
+    param = DesignParameter()
+    param.name = 'F'
+    param.option_expr = 'list(range(10))'
+    param.order = {'expr': '0 if x&(x-1)==0 else 1', 'var': 'x'}
+    param.default = 0
+    params['F'] = param
+    assert dsproc.check_design_space(params) == 0, 'expect no errors'
+    del params['F']
 
     LOG.debug('=== Testing check_design_space end')
 

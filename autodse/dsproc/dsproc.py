@@ -78,15 +78,44 @@ def check_design_space(params: DesignSpace) -> int:
     log = get_dsproc_logger()
     error = 0
 
-    # Check dependencies
     for pid, param in params.items():
+        has_error = False
+
+        # Check dependencies
         for dep in param.deps:
             if dep == pid:
                 log.error('Parameter %s cannot depend on itself', pid)
                 error += 1
+                has_error = True
             if dep not in params.keys():
                 log.error('Parameter %s depends on %s which is undefined or not allowed', pid, dep)
                 error += 1
+                has_error = True
+
+        if has_error:
+            continue
+
+        # Check expression types
+        # Assign default value to dependent parameters
+        local = {}
+        for dep in param.deps:
+            local[dep] = params[dep].default
+
+        # Try to get an option list
+        options: Optional[List[Union[int, str]]] = None
+        try:
+            options = safe_eval(param.option_expr, local)
+        except (NameError, ValueError, TypeError, ZeroDivisionError):
+            log.error('Failed to get the options of parameter %s', pid)
+            error += 1
+
+        # Try to get the order of options
+        if options is not None and param.order and isinstance(param, MerlinParameter):
+            for option in options:
+                if safe_eval(param.order['expr'], {param.order['var']: option}) is None:
+                    log.error('Failed to evaluate the order of option %s in parameter %s',
+                              option, pid)
+                    error += 1
     return error
 
 

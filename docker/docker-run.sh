@@ -1,8 +1,12 @@
 #!/bin/bash
-script_dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
-#cmd=$(echo $(readlink -f $1))
 
-#shift
+if [ ! $MERLIN_COMPILER_HOME ]; then
+    echo "MERLIN_COMPILER_HOME is not set!"
+    exit 0
+fi
+
+script_dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
+
 docker run -it \
     -v "$script_dir/..":"/opt/merlin_dse" \
     -v "$MERLIN_COMPILER_HOME":"/opt/merlin" \

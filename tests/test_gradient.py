@@ -3,7 +3,7 @@ The unit test module for gradient-based serach algorithm.
 """
 
 from autodse import logger
-from autodse.database import RedisDatabase
+from autodse.database import PickleDatabase
 from autodse.dsproc.dsproc import compile_design_space
 from autodse.parameter import gen_key_from_design_point
 from autodse.explorer.gradient import GradientAlgorithm
@@ -68,7 +68,7 @@ def test_gradient(test_dir):
         'CGPIP2': 'L_0_0_0_47_2_0_3_3_3'
     }
 
-    db = RedisDatabase('test', 3, '{0}/temp_fixture/db/1.db'.format(test_dir))
+    db = PickleDatabase('test', 3, '{0}/temp_fixture/db/1.db'.format(test_dir))
     db.load()
     ds = compile_design_space(config['design-space']['definition'], scope_map)
     algo = GradientAlgorithm(ds)
