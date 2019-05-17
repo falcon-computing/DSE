@@ -1,3 +1,5 @@
 #!/bin/bash
 . /opt/merlin/test/setup.sh
-nohup redis-server &
+redis-server &> /dev/null &
+
+exec "$@"

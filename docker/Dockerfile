@@ -11,6 +11,13 @@ RUN python3.6 -m pip install --trusted-host pypi.python.org setuptools future my
 
 RUN yum install -y redis
 
-ADD . /opt/init
+COPY autodse /usr/local/bin
+RUN chmod +x /usr/local/bin/autodse
+COPY checkds /usr/local/bin
+RUN chmod +x /usr/local/bin/checkds
+
+COPY entrypoint.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
 
 ENV PYTHONPATH /opt/merlin_dse:${PYTHONPATH}

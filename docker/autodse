@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ "$#" -eq 3 ]; then
+    python3.6 -m autodse --src-dir $1 --work-dir $2 --config $3
+elif [ "$#" -eq 4 ]; then
+    python3.6 -m autodse --src-dir $1 --work-dir $2 --config $3 --db $4
+else
+    echo "Usage: autodse <project dir> <working dir> <config file> [<database file>]"
+fi

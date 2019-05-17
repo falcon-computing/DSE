@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$#" -eq 2 ]; then
+    python3.6 -m autodse --src-dir $1 --work-dir /tmp/checkds_tmp --config $2 --check-only
+    rm -rf /tmp/checkds_tmp
+else
+    echo "Usage: autodse <project dir> <config file>"
+fi

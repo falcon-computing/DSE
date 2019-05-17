@@ -105,8 +105,8 @@ def check_design_space(params: DesignSpace) -> int:
         options: Optional[List[Union[int, str]]] = None
         try:
             options = safe_eval(param.option_expr, local)
-        except (NameError, ValueError, TypeError, ZeroDivisionError):
-            log.error('Failed to get the options of parameter %s', pid)
+        except (NameError, ValueError, TypeError, ZeroDivisionError) as err:
+            log.error('Failed to get the options of parameter %s: %s', pid, str(err))
             error += 1
 
         # Try to get the order of options
