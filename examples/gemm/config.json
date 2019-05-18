@@ -1,0 +1,58 @@
+{
+    "project.name": "gemm-blocked",
+    "project.backup": "BACKUP_ERROR",
+    "project.output-num": 3,
+    "timeout.exploration": 240,
+    "timeout.transform": 5,
+    "timeout.hls": 20,
+    "timeout.bitgen": 480,
+    "evaluate.command.transform": "make mcc_acc",
+    "evaluate.command.hls": "make mcc_estimate",
+    "evaluate.command.bitgen": "make mcc_bitgen",
+    "evaluate.estimate-mode": "FAST",
+    "evaluate.worker-per-part": 2,
+    "evaluate.max-util.BRAM": 0.8,
+    "evaluate.max-util.DSP": 0.8,
+    "evaluate.max-util.LUT": 0.8,
+    "evaluate.max-util.FF": 0.8,
+    "search.algorithm.name": "gradient",
+    "search.algorithm.exhaustive.batch-size": 2,
+    "search.algorithm.gradient.latency-threshold": 64,
+    "search.algorithm.gradient.fine-grained-first": true,
+    "design-space.max-part-num": 4,
+    "design-space.definition": {
+        "B": {
+            "options": "[64,256,512]",
+            "ds_type": "INTERFACE",
+            "default": 64
+        },
+        "PARI": {
+            "options": "[1,2,4,8,16,32,64,128]",
+            "ds_type": "PARALLEL",
+            "default": 1
+        },
+        "PIPI": {
+            "options": "[x for x in ['off', 'flatten'] if x=='off' or PIPK=='off']",
+            "order": "0 if v == 'off' else 1",
+            "ds_type": "PIPELINE",
+            "default": "off"
+        },
+        "PARK": {
+            "options": "[x for x in [1,2,4,8] if x==1 or PIPI=='off']",
+            "ds_type": "PARALLEL",
+            "default": 1
+        },
+        "PIPK": {
+            "options": "[x for x in ['off', 'flatten'] if x=='off' or PIPI=='off']",
+            "order": "0 if v == 'off' else 1",
+            "ds_type": "PIPELINE",
+            "default": "off"
+        },
+        "PARJ": {
+            "options": "[x for x in [1,4,8] if x==1 or (PIPI=='off' and PIPK=='off')]",
+            "ds_type": "PARALLEL",
+            "default": 1
+        }
+    }
+}
+

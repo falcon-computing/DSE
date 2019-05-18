@@ -80,19 +80,28 @@ int main(int argc, char **argv)
   #endif
 
   // Validate benchmark results
+  int status = 0;
   #ifdef CHECK_OUTPUT
   if( !check_data(data, ref) ) {
     fprintf(stderr, "Benchmark results are incorrect\n");
     char file_name[256] = "fail.o";
     FILE *fp=fopen(file_name,"ab+");
-    if(fp==NULL) printf("can't create file!");
-    return -1;
+    if(fp==NULL) printf("can't create file %s!", file_name);
+    status = -1;
   }
   #endif
 
-  printf("Success.\n");
-  char file_name_s[256] = "pass.o";
-  FILE *fp_s=fopen(file_name_s,"ab+");
-  if(fp_s==NULL) printf("can't create file!");
-  return 0;
+#ifdef MCC_ACC
+  printf("__merlin_release()\n");
+  __merlin_release();
+#endif
+
+    if (status == 0) {
+        printf("Success.\n");
+        char file_name_s[256] = "pass.o";
+        FILE *fp_s=fopen(file_name_s,"ab+");
+        if(fp_s==NULL) printf("can't create file %s!", file_name_s);
+        return 0;
+    }
+    return(status);
 }

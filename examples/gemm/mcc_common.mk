@@ -12,7 +12,8 @@ MAKEFLAGS += --no-print-directory
 # Modify target platform to your choosing
 ifeq ($(VENDOR),XILINX)
     ifeq ($(DEVICE),)
-        DEVICE=xilinx_vcu1525_dynamic_5_0
+        #DEVICE=xilinx:adm-pcie-ku3:2ddr-xpr:4.0###
+        DEVICE=xilinx_vcu1525_dynamic_5_1
     endif
     PLATFORM=sdaccel::$(DEVICE)
     BIN_EXT=xclbin
@@ -53,6 +54,7 @@ ACC_SIM_EXE=$(ACC_EXE)_sim
 #####################################################################
 # Merlin Compiler related settings 
 #####################################################################
+EXEC := merlincc
 EST_OUTPUT := merlin.rpt
 ACCGEN_OUTPUT=$(KERNEL_NAME)
 SIMGEN_OUTPUT=$(KERNEL_NAME)_sim
@@ -97,13 +99,13 @@ mcc_afigen : $(AFIGEN_OUTPUT).awsxclbin
 
 
 $(BITGEN_OUTPUT) : $(ACCGEN_OUTPUT).mco
-	merlincc $^ -o $(BITGEN_OUTPUT) $(LNK_OPT) --platform=$(PLATFORM)
+	$(EXEC) $^ -o $(BITGEN_OUTPUT) $(LNK_OPT) --platform=$(PLATFORM)
 	cp $(BITGEN_OUTPUT) $(BITGEN_OUTPUT_TIMESTAMPED)
 
 mcc_estimate : $(EST_OUTPUT)
 
 $(EST_OUTPUT) : $(ACCGEN_OUTPUT).mco
-	merlincc $^ --report=estimate $(LNK_OPT) --platform=$(PLATFORM)
+	$(EXEC) $^ --report=estimate $(LNK_OPT) --platform=$(PLATFORM)
 
 mcc_runsim: mcc_simgen $(ACC_EXE)
 	$(SIM_ENV)=$(SIM_ENV_VAL) ./$(ACC_EXE) $(EXE_ARGS) $(SIMGEN_OUTPUT).$(BIN_EXT)
@@ -111,7 +113,7 @@ mcc_runsim: mcc_simgen $(ACC_EXE)
 mcc_simgen : $(SIMGEN_OUTPUT).$(BIN_EXT)
 
 $(SIMGEN_OUTPUT).$(BIN_EXT) : $(ACCGEN_OUTPUT).mco
-	merlincc $^ -march=sw_emu -D MCC_SIM -o $(SIMGEN_OUTPUT) $(LNK_OPT) --platform=$(PLATFORM)
+	$(EXEC) $^ -march=sw_emu -D MCC_SIM -o $(SIMGEN_OUTPUT) $(LNK_OPT) --platform=$(PLATFORM)
 
 mcc_accexe: $(ACC_EXE)
 
@@ -137,10 +139,10 @@ $(ACC_PKG_FILE) : $(BITGEN_OUTPUT) $(ACC_EXE)
 	echo "Package $(ACC_PKG_FILE) is ready"
 
 $(ACCGEN_OUTPUT).mco : $(KERNEL_SRC_FILES)
-	merlincc -c $^ -D $(VENDOR) -o $(ACCGEN_OUTPUT) $(CMP_OPT) $(KERNEL_INC_DIR) --platform=$(PLATFORM)
+	$(EXEC) -c $^ -D $(VENDOR) -o $(ACCGEN_OUTPUT) $(CMP_OPT) $(KERNEL_INC_DIR) --platform=$(PLATFORM)
 
 $(SIMGEN_OUTPUT).mco : $(KERNEL_SRC_FILES)
-	merlincc -D MCC_SIM -c $^ -D $(VENDOR) -o $(SIMGEN_OUTPUT) $(CMP_OPT) $(KERNEL_INC_DIR) --platform=$(PLATFORM)
+	$(EXEC) -D MCC_SIM -c $^ -D $(VENDOR) -o $(SIMGEN_OUTPUT) $(CMP_OPT) $(KERNEL_INC_DIR) --platform=$(PLATFORM)
 
 run: $(EXE)
 	./$(EXE) $(EXE_ARGS)
