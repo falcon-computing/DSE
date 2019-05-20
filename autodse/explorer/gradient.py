@@ -98,13 +98,15 @@ class GradientAlgorithm(SearchAlgorithm):
                     param for pid, param in self.ds.items() if pid not in tuned
                     and isinstance(param, MerlinParameter) and param.ds_type.startswith('TIL')
                 ]
+                self.log.debug('Hotspot: memory burst')
         elif isinstance(result, HLSResult) and result.ordered_paths:
             # Generate hotspot scopes
             hotspot_scopes: Dict[str, HierPathNode] = OrderedDict()
             for path in result.ordered_paths:
-                for node in path if not self.fg_first else reversed(path):
+                for node in path if self.fg_first else reversed(path):
                     if node.latency >= self.latency_thd:
                         hotspot_scopes[node.nid] = node
+            self.log.debug('Hotspot: %s', ', '.join(list(hotspot_scopes.keys())))
 
             scope_params: Set[DesignParameter] = set()
             cand_params_set: Dict[str, DesignParameter] = OrderedDict()
@@ -116,16 +118,14 @@ class GradientAlgorithm(SearchAlgorithm):
                     lowest_order_params[param.name] = param
 
             for node in hotspot_scopes.values():
-                if node.nid not in self.scope2param:  # No parameters can benefit this scope
-                    continue
-
-                # The parameters to this scope
-                for param in self.scope2param[node.nid]:
-                    scope_params.add(param)
-
                 # The global parameters for memory bound scope
                 if not node.is_compute_bound and 'GLOBAL' in self.scope2param:
                     for param in self.scope2param['GLOBAL']:
+                        scope_params.add(param)
+
+                # The parameters to this scope
+                if node.nid in self.scope2param:
+                    for param in self.scope2param[node.nid]:
                         scope_params.add(param)
 
                 # Remove tuned parameters
@@ -145,8 +145,10 @@ class GradientAlgorithm(SearchAlgorithm):
                             order = self.comm_order.index(param.ds_type)
                         params_w_order.append((order, param))
                     except ValueError:
-                        # DS type is not listed in the both lists. This may be due to UNKNOWN
-                        # or unspecified ds_type or the new pragma type.
+                        # DS type is not listed in the list. This may be due to
+                        # 1) the DS is not used for tuning this bottleneck (compute/memory),
+                        # 2) UNKNOWN type,
+                        # 3) unspecified ds_type or the new pragma type.
                         # Set it to the lowest priority but do not ignore.
                         lowest_order_params[param.name] = param
 
@@ -323,10 +325,10 @@ class GradientAlgorithm(SearchAlgorithm):
             child.append(flatten_child)
 
         # Push the default point as the tree node
-        explore_tree: List[List[ExploreTreeNode]] = [[]]
+        explore_tree: List[List[Tuple[float, ExploreTreeNode]]] = [[]]
         tuned: Set[str] = set()
         pq.heappush(explore_tree[0],
-                    ExploreTreeNode(curr_key, 0, curr_result.perf, curr_result, child, tuned))
+                    (0, ExploreTreeNode(curr_key, 0, curr_result.perf, curr_result, child, tuned)))
 
         iter_cnt = 0
         while True:
@@ -344,7 +346,7 @@ class GradientAlgorithm(SearchAlgorithm):
 
             # Take the next point with the best cost to explore
             # Note: we only peek the first node in the heap without popping it
-            curr_node = explore_tree[curr_lv][0]
+            _, curr_node = explore_tree[curr_lv][0]
             tuned = curr_node.tuned
 
             # Get the focus parameters to be tuned
@@ -402,7 +404,8 @@ class GradientAlgorithm(SearchAlgorithm):
                     child = self.gen_child_points(result.point, focus_params)
                     pq.heappush(
                         explore_tree[curr_lv + 1],
-                        ExploreTreeNode(key, quality, result.perf, result, child, new_tuned))
+                        (-quality,
+                         ExploreTreeNode(key, quality, result.perf, result, child, new_tuned)))
                     self.log.info('-> Add to level %d with %d tunable parameters: %s',
                                   len(explore_tree) + curr_lv + 1, len(child),
                                   [p.name for p in focus_params])

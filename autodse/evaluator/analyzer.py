@@ -394,6 +394,8 @@ class MerlinAnalyzer(Analyzer):
             org_id = cycles[node['topo_id']]['org_identifier']
             total = (float_or_zero(cycles[node['topo_id']]['CYCLE_TOT'])
                      if 'CYCLE_TOT' in cycles[node['topo_id']] else 0)
+            unit = (float_or_zero(cycles[node['topo_id']]['CYCLE_UNIT'])
+                    if 'CYCLE_UNIT' in cycles[node['topo_id']] else 0)
             comm = (float_or_zero(cycles[node['topo_id']]['CYCLE_BURST'])
                     if 'CYCLE_BURST' in cycles[node['topo_id']] else 0)
 
@@ -404,9 +406,9 @@ class MerlinAnalyzer(Analyzer):
                 is_compute_bound = True
             else:
                 # This is a heuristic since BURST cycle is from
-                # model but total cycle is from vendor report.
+                # model but unit cycle is from vendor report.
                 # FIXME we should have a better way to judge it.
-                is_compute_bound = (comm / total) < 0.8
+                is_compute_bound = (comm / unit) < 0.8
 
             # Fitler out the components that we should not spend time on
             if (is_compute_bound is not None and not org_id.startswith('X')):

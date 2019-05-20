@@ -102,8 +102,7 @@ class Reporter():
         for result in outputs:
             assert result.path is not None
             tbl.add_row([
-                result.path, '{:.1e}'.format(result.quality), '{:.1e}'.format(result.perf),
-                ', '.join([
+                result.path, result.quality, result.perf, ', '.join([
                     '{0}:{1:.1f}%'.format(k[5:], v * 100.0) for k, v in result.res_util.items()
                     if k.startswith('util')
                 ])

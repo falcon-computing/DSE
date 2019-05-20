@@ -113,8 +113,8 @@ def check_design_space(params: DesignSpace) -> int:
         if options is not None and param.order and isinstance(param, MerlinParameter):
             for option in options:
                 if safe_eval(param.order['expr'], {param.order['var']: option}) is None:
-                    log.error('Failed to evaluate the order of option %s in parameter %s',
-                              option, pid)
+                    log.error('Failed to evaluate the order of option %s in parameter %s', option,
+                              pid)
                     error += 1
     return error
 

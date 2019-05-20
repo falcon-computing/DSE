@@ -16,7 +16,7 @@ unit_test:
 
 example:
 	rm -f *.log
-	python -m autodse --src-dir=./examples/kmeans --work-dir=./work \
+	python3 -m autodse --src-dir=./examples/kmeans --work-dir=./work \
 					  --config=./examples/kmeans/dse_config.json \
 					  --db=./work/result.db
 

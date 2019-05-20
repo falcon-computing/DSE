@@ -9,6 +9,8 @@ RUN python3.6 -m pip install --trusted-host pypi.python.org setuptools future my
     pytest-cov pytest-mock Sphinx sphinx_rtd_theme yapf tox argparse jsonpickle pickledb \
     redis texttable
 
+RUN ln -s /usr/bin/python3.6 /usr/bin/python3
+
 RUN yum install -y redis
 
 COPY autodse /usr/local/bin
