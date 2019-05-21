@@ -36,6 +36,7 @@ class AlgorithmFactory():
             return GradientAlgorithm(ds=ds,
                                      latency_thd=algo_config['latency-threshold'],
                                      fg_first=algo_config['fine-grained-first'],
+                                     quality_type=algo_config['quality-type'],
                                      log_file_name=log_file_name)
         log.error('Unrecognized algorithm: %s', name)
         raise RuntimeError()

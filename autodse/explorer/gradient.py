@@ -3,6 +3,7 @@ The gradient-based search algorithm
 """
 import heapq as pq
 from collections import OrderedDict
+from math import ceil
 from typing import Dict, Generator, List, NamedTuple, Optional, Set, Tuple
 
 from texttable import Texttable
@@ -51,11 +52,13 @@ class GradientAlgorithm(SearchAlgorithm):
     def __init__(self,
                  ds: DesignSpace,
                  latency_thd: float = 64,
-                 fg_first=True,
+                 fg_first: bool = True,
+                 quality_type: str = 'resource-efficiency',
                  log_file_name: str = 'algo.log'):
         super(GradientAlgorithm, self).__init__(ds, log_file_name)
         self.latency_thd = latency_thd
         self.fg_first = fg_first
+        self.quality_type = quality_type
 
         # TODO: Customizable
         self.comp_order = ['PARALLEL', 'PIPELINE']
@@ -260,7 +263,8 @@ class GradientAlgorithm(SearchAlgorithm):
             return ParamWPointBatch(None, [batch])
         return None
 
-    def latency_as_quality(self, new_result: Result) -> float:
+    @staticmethod
+    def perf_as_quality(self, new_result: Result) -> float:
         """Compute the quality of the point by (1 / latency).
 
         Parameters
@@ -274,6 +278,89 @@ class GradientAlgorithm(SearchAlgorithm):
             The quality value. Larger the better.
         """
         return 1.0 / new_result.perf
+
+    def finte_diff_as_quality(self, new_result: Result, ref_result: Result) -> float:
+        """Compute the quality of the point by finite difference method.
+
+        Parameters
+        ----------
+        new_result:
+            The new result to be qualified.
+
+        ref_result:
+            The reference result.
+
+        Returns
+        -------
+        float:
+            The quality value (negative finite differnece). Larger the better.
+        """
+
+        def quantify_util(result: Result) -> float:
+            """Quantify the resource utilization to a float number:
+            util' = 5 * ceil(util / 5) for each util,
+            area = sum(2^1(1/(1-util))) for each util'
+
+            Parameters
+            ----------
+            result:
+                The evaluation result.
+
+            Returns
+            -------
+            float:
+                The quantified area value with the range (2*N) to infinite, where N is # of resources.
+            """
+
+            # Reduce the sensitivity to (100 / 5) = 20 intervals
+            utils = [
+                5 * ceil(u * 100 / 5) / 100 for k, u in result.res_util.items()
+                if k.startswith('util')
+            ]
+
+            # Compute the area
+            return sum([2.0**(1.0 / (1.0 - u)) for u in utils])
+
+        ref_util = quantify_util(ref_result)
+        new_util = quantify_util(new_result)
+
+        if (new_result.perf / ref_result.perf) > 1.05:
+            # Performance is too worse to be considered
+            return -float('inf')
+
+        if new_util == ref_util:
+            if new_result.perf < ref_result.perf:
+                # Free lunch
+                return float('inf')
+            # Same util but slightly worse performance, neutral
+            return 0
+
+        return -(new_result.perf - ref_result.perf) / (new_util - ref_util)
+
+    def eff_as_quality(self, new_result: Result, ref_result: Result) -> float:
+        """Compute the quality of the point by resource efficiency.
+
+        Parameters
+        ----------
+        new_result:
+            The new result to be qualified.
+
+        ref_result:
+            The reference result.
+
+        Returns
+        -------
+        float:
+            The quality value (negative finite differnece). Larger the better.
+        """
+
+        if (new_result.perf / ref_result.perf) > 1.05:
+            # Performance is too worse to be considered
+            return -float('inf')
+
+        area = sum([u for k, u in new_result.res_util.items() if k.startswith('util')])
+
+        return 1 / (new_result.perf * area)
 
     def compute_quality(self, curr_result: Result, new_result: Result) -> float:
         """Compute the quality of the point by referring the base one. Larger the better.
@@ -292,13 +379,17 @@ class GradientAlgorithm(SearchAlgorithm):
             The quality value. Larger the better.
         """
 
-        if not new_result.valid:  # New result is invalid, abandon.
+        if not new_result.valid:
+            # New result is invalid, no quality
             return -float('inf')
-        if not curr_result.valid:  # Current result is invalid, do not use it as a reference.
-            return 1.0 / new_result.perf
+        if not curr_result.valid or self.quality_type == 'performance':
+            # Reference result is invalid or user preference, use 1/latency as quality
+            return self.perf_as_quality(new_result)
+        if self.quality_type == 'finite-difference':
+            return self.finte_diff_as_quality(new_result, curr_result)
 
-        # FIXME: This can be configured by users
-        return self.latency_as_quality(new_result)
+        # Use resource efficiency as quality
+        return self.eff_as_quality(new_result, curr_result)
 
     def gen(self) -> Generator[List[DesignPoint], Optional[Dict[str, Result]], None]:
         #pylint:disable=missing-docstring
