@@ -1,5 +1,5 @@
 FROM merlin:latest
-MAINTAINER Du.Wu allwu@falcon-computing.com
+MAINTAINER Cody.Hao.Yu cody@falcon-computing.com
 LABEL Version "0.1"
 
 RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm

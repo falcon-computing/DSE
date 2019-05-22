@@ -263,7 +263,6 @@ class GradientAlgorithm(SearchAlgorithm):
             return ParamWPointBatch(None, [batch])
         return None
 
-    @staticmethod
     def perf_as_quality(self, new_result: Result) -> float:
         """Compute the quality of the point by (1 / latency).
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$#" -eq 2 ]; then
-    python3.6 -m autodse --src-dir $1 --work-dir /tmp/checkds_tmp --config $2 --check-only
+if [ "$#" -eq 3 ]; then
+    python3.6 -m autodse --src-dir $1 --work-dir /tmp/checkds_tmp --config $2 --check-mode $3
     rm -rf /tmp/checkds_tmp
 else
-    echo "Usage: autodse <project dir> <config file>"
+    echo "Usage: autodse <project dir> <config file> <fast|complete>"
 fi

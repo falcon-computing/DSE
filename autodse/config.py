@@ -83,7 +83,7 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
     },
     'search.algorithm.gradient.quality-type': {
         'require': False,
-        'default': 'resource-efficiency',
+        'default': 'performance',
         'options': ['finite-difference', 'performance', 'resource-efficiency']
     },
     'timeout.exploration': {

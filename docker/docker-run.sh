@@ -9,7 +9,6 @@ script_dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 
 docker run -it \
     -v "$script_dir/..":"/opt/merlin_dse" \
-    -v "$MERLIN_COMPILER_HOME":"/opt/merlin" \
     -v "/curr/software":"/curr/software" \
     -v "$HOME":"/home" \
     -v "$PWD":"/local" \
