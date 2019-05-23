@@ -129,7 +129,9 @@ class PythonSubprocessScheduler(Scheduler):
                     procs = []
                     for idx, proc in old_procs:
                         ret = proc.poll()
-                        if ret is not None:
+                        if ret is not None and ret != 0:
+                            self.log.error('Command "%s" has non-zero exit code: %d', cmd, ret)
+                        elif ret is not None:
                             # Finished, check if success, remove from list, and backup wanted files
                             rets[jobs[idx].key] = Result.RetCode.PASS
                             self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),

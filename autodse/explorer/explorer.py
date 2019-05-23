@@ -83,7 +83,8 @@ class Explorer():
                 if result is None:
                     job = self.evaluator.create_job()
                     if job:
-                        self.evaluator.apply_design_point(job, point)
+                        if not self.evaluator.apply_design_point(job, point):
+                            return
                         jobs.append(job)
                     else:
                         self.log.error('Fail to create a new job (disk space?)')

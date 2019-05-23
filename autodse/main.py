@@ -11,7 +11,7 @@ import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from .config import build_config
 from .database import Database, RedisDatabase
@@ -47,10 +47,10 @@ def arg_parser() -> argparse.Namespace:
                         action='store',
                         default='',
                         help='path to the result database')
-    parser.add_argument('--check-only',
+    parser.add_argument('--check-mode',
                         required=False,
-                        action='store_true',
-                        default=False,
+                        action='store',
+                        default='off',
                         help='only check the design space definition without running DSE')
 
     return parser.parse_args()
@@ -62,18 +62,28 @@ class Main():
     def __init__(self):
         self.start_time = time.time()
         self.args = arg_parser()
+
+        # Validate check mode
+        self.args.check_mode = self.args.check_mode.lower()
+        if self.args.check_mode not in ['off', 'fast', 'complete']:
+            print('Error: Invalid check-mode: %s. Must be either "off", "fast", or "complete"',
+                  self.args.check_mode)
+            raise RuntimeError()
+
+        # Processing path and directory
         self.src_dir = os.path.abspath(self.args.src_dir)
         self.work_dir = os.path.abspath(self.args.work_dir)
         self.out_dir = os.path.join(self.work_dir, 'output')
         self.eval_dir = os.path.join(self.work_dir, 'evaluate')
         self.log_dir = os.path.join(self.work_dir, 'logs')
-        if self.args.db:
+        if self.args.check_mode == 'complete':
+            self.db_path = os.path.join(self.work_dir, 'check.db')
+        elif self.args.db:
             self.db_path = os.path.abspath(self.args.db)
         else:
             self.db_path = os.path.join(self.work_dir, 'result.db')
         self.cfg_path = os.path.abspath(self.args.config)
 
-        # Processing path and directory
         dir_prefix = os.path.commonprefix([self.src_dir, self.work_dir])
         if dir_prefix in [self.src_dir, self.work_dir]:
             print('Error: Merlin project and workspace cannot be subdirectories!')
@@ -95,9 +105,24 @@ class Main():
         self.config = self.load_config()
 
         # Stop here if we only need to check the design space definition
-        if self.args.check_only:
-            self.log.warning('DSE will not be performed because "--check-only" is enabled.')
+        if self.args.check_mode == 'fast':
+            self.log.warning('Check mode "FAST": Only check design space syntax and type')
             return
+
+        # Hack the config for check mode:
+        # 1) Use exhaustive algorithm that always evaluates the default point first
+        # 2) Set the exploration time to <1 second so it will only explore the default point
+        # TODO: Check the bitgen execution
+        if self.args.check_mode == 'complete':
+            self.log.warning('Check mode "COMPLETE":')
+            self.log.warning('1. Check design space syntax and type')
+            self.log.warning('2. Evaluate one default point (may take up to 30 mins)')
+            self.config['search']['algorithm']['name'] = 'exhaustive'
+            self.config['timeout']['exploration'] = 0.01
+
+            # We leverage this log to check the evaluation result so it has to be up-to-date
+            if os.path.exists('eval.log'):
+                os.remove('eval.log')
 
         # Initialize database
         self.log.info('Initializing the database')
@@ -119,14 +144,15 @@ class Main():
         self.evaluator.set_timeout(self.config['timeout'])
         self.evaluator.set_command(self.config['evaluate']['command'])
 
-        self.log.info('Building the scope map')
-        self.evaluator.build_scope_map()
-
         # Initialize reporter
         self.reporter = Reporter(self.config, self.db)
 
-        # Display important configs
-        self.reporter.log_config()
+        if self.args.check_mode == 'off':
+            self.log.info('Building the scope map')
+            self.evaluator.build_scope_map()
+
+            # Display important configs
+            self.reporter.log_config()
 
     def init_workspace(self) -> Optional[str]:
         """Initialize the workspace
@@ -256,8 +282,9 @@ class Main():
 
         # Compile design space
         self.log.info('Compiling design space')
-        ds = compile_design_space(self.config['design-space']['definition'],
-                                  self.evaluator.scope_map if not self.args.check_only else None)
+        ds = compile_design_space(
+            self.config['design-space']['definition'],
+            self.evaluator.scope_map if self.args.check_mode == 'off' else None)
         if ds is None:
             self.log.error('Failed to compile design space')
             return
@@ -277,18 +304,34 @@ class Main():
 
         self.log.info('%d parts generated', len(ds_list))
 
-        if self.args.check_only:
-            self.log.info('Finished checking the design space.')
+        if self.args.check_mode == 'fast':
+            self.log.info('Finish checking the design space (fast mode)')
             return
 
         # TODO: profiling and pruning
 
         # Launch exploration
         try:
-            self.log.info('Start the exploration')
+            if self.args.check_mode == 'off':
+                self.log.info('Start the exploration')
             self.launch_exploration(ds_list)
         except KeyboardInterrupt:
             pass
+
+        if self.args.check_mode == 'complete':
+            if not os.path.exists('eval.log'):
+                self.log.error('Evaluation failure')
+            else:
+                log_msgs: Set[str] = set()
+                with open('eval.log', 'r') as filep:
+                    for line in filep:
+                        if line.find('ERROR') != -1:
+                            msg = line[line.find(':') + 2:-1]
+                            if msg not in log_msgs:
+                                self.log.error(msg)
+                                log_msgs.add(msg)
+            self.log.info('Finish checking the design space (complete mode)')
+            return
 
         self.log.info('Finish the exploration')
 

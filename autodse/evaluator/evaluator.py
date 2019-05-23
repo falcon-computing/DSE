@@ -347,8 +347,8 @@ class MerlinEvaluator(Evaluator):
             if ret_code == Result.RetCode.PASS:
                 result = self.analyzer.analyze(job_map[job_key], 'transform', self.config)
                 if not result:
-                    self.log.error('Failed to analyze result of %s after Merlin transformation',
-                                   job_map[job_key].key)
+                    self.log.warning('Failed to analyze result of %s after Merlin transformation',
+                                     job_map[job_key].key)
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
                 assert isinstance(result, MerlinResult)
@@ -374,7 +374,7 @@ class MerlinEvaluator(Evaluator):
             if ret_code == Result.RetCode.PASS:
                 result = self.analyzer.analyze(job_map[job_key], 'hls', self.config)
                 if not result:
-                    self.log.error('Failed to analyze result of %s after HLS', job_key)
+                    self.log.warning('Failed to analyze result of %s after HLS', job_key)
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
                 results[job_key] = result
@@ -401,7 +401,7 @@ class MerlinEvaluator(Evaluator):
             if ret_code == Result.RetCode.PASS:
                 result = self.analyzer.analyze(job_map[job_key], 'bitgen', self.config)
                 if not result:
-                    self.log.error('Failed to analyze result of %s after bitgen', job_key)
+                    self.log.warning('Failed to analyze result of %s after bitgen', job_key)
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
                 assert isinstance(result, BitgenResult)

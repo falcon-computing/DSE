@@ -308,7 +308,8 @@ class GradientAlgorithm(SearchAlgorithm):
             Returns
             -------
             float:
-                The quantified area value with the range (2*N) to infinite, where N is # of resources.
+                The quantified area value with the range (2*N) to infinite,
+                where N is # of resources.
             """
 
             # Reduce the sensitivity to (100 / 5) = 20 intervals
