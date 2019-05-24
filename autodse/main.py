@@ -110,14 +110,14 @@ class Main():
             return
 
         # Hack the config for check mode:
-        # 1) Use exhaustive algorithm that always evaluates the default point first
+        # 1) Use gradient algorithm that always evaluates the default point first
         # 2) Set the exploration time to <1 second so it will only explore the default point
         # TODO: Check the bitgen execution
         if self.args.check_mode == 'complete':
             self.log.warning('Check mode "COMPLETE":')
             self.log.warning('1. Check design space syntax and type')
             self.log.warning('2. Evaluate one default point (may take up to 30 mins)')
-            self.config['search']['algorithm']['name'] = 'exhaustive'
+            self.config['search']['algorithm']['name'] = 'gradient'
             self.config['timeout']['exploration'] = 0.01
 
             # We leverage this log to check the evaluation result so it has to be up-to-date
@@ -190,7 +190,7 @@ class Main():
             raise RuntimeError()
 
         self.log.info('Loading configurations')
-        with open(self.args.config, 'r') as filep:
+        with open(self.args.config, 'r', errors='replace') as filep:
             try:
                 user_config = json.load(filep)
             except ValueError as err:
@@ -323,7 +323,7 @@ class Main():
                 self.log.error('Evaluation failure')
             else:
                 log_msgs: Set[str] = set()
-                with open('eval.log', 'r') as filep:
+                with open('eval.log', 'r', errors='replace') as filep:
                     for line in filep:
                         if line.find('ERROR') != -1:
                             msg = line[line.find(':') + 2:-1]

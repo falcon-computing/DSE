@@ -71,8 +71,11 @@ class Evaluator():
             for file_name in files:
                 file_abs_path = os.path.join(root, file_name)
                 has_auto = False
-                with open(file_abs_path, 'r') as filep:
-                    for idx, line in enumerate(filep):
+                # "errors" is an optional string that specifies how encoding and decoding errors
+                # are to be handled. 'replace' causes a replacement marker (such as '?') to be
+                # inserted where there is malformed data.
+                with open(file_abs_path, 'r', errors='replace') as filep:
+                    for idx, line in enumerate(filep.readlines()):
                         autos = re.findall(r'auto{(.*?)}', line, re.IGNORECASE)
                         if autos:
                             has_auto = True
@@ -155,8 +158,8 @@ class Evaluator():
         job_path = job.path
         applied: Set[str] = set()
         for file_name in self.src_files:
-            with open(os.path.join(job_path, file_name), 'r') as src_file, \
-                 open('{0}/applier_temp.txt'.format(job_path), 'w') as dest_file:
+            with open(os.path.join(job_path, file_name), 'r', errors='replace') as src_file, \
+                 open('{0}/applier_temp.txt'.format(job_path), 'w', errors='replace') as dest_file:
                 for line in src_file:
                     for auto, ds_id in re.findall(r'(auto{(.*?)})', line, re.IGNORECASE):
                         if ds_id not in point:
