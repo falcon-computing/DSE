@@ -28,17 +28,17 @@ def test_reporter(test_dir, capsys):
     reporter = Reporter(config, db)
 
     # Test print status
-    reporter.print_status(0)
+    reporter.print_status(0, 130)
     captured = capsys.readouterr()
-    assert captured.out == '[   0m] Explored 145 points, still working...-\r'
+    assert captured.out == '[   0m] Explored 130 points, still working...-\r'
 
-    reporter.print_status(1)
+    reporter.print_status(1, 145)
     captured = capsys.readouterr()
     assert captured.out == '[   1m] Explored 145 points, still working...\\\r'
 
-    reporter.print_status(2)
+    reporter.print_status(2, 150)
     captured = capsys.readouterr()
-    assert captured.out == '[   2m] Explored 145 points, finishing...|    \r'
+    assert captured.out == '[   2m] Explored 150 points, finishing...|    \r'
 
     # Test log best
     # TODO: Capture log and check the format

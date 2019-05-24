@@ -17,11 +17,11 @@ from .config import build_config
 from .database import Database, RedisDatabase
 from .dsproc.dsproc import compile_design_space, partition
 from .evaluator.analyzer import MerlinAnalyzer
-from .evaluator.evaluator import (BackupMode, EvalMode, Evaluator, MerlinEvaluator)
+from .evaluator.evaluator import BackupMode, Evaluator, MerlinEvaluator
 from .evaluator.scheduler import PythonSubprocessScheduler
-from .explorer.explorer import Explorer
+from .explorer.explorer import AccurateExplorer, FastExplorer
 from .logger import get_default_logger
-from .parameter import DesignSpace
+from .parameter import DesignPoint, DesignSpace
 from .reporter import Reporter
 
 
@@ -47,11 +47,12 @@ def arg_parser() -> argparse.Namespace:
                         action='store',
                         default='',
                         help='path to the result database')
-    parser.add_argument('--check-mode',
-                        required=False,
-                        action='store',
-                        default='off',
-                        help='only check the design space definition without running DSE')
+    parser.add_argument(
+        '--mode',
+        required=False,
+        action='store',
+        default='fast',
+        help='the execution mode (fast-check|complete-check|fast-dse|accurate-dse)')
 
     return parser.parse_args()
 
@@ -64,10 +65,9 @@ class Main():
         self.args = arg_parser()
 
         # Validate check mode
-        self.args.check_mode = self.args.check_mode.lower()
-        if self.args.check_mode not in ['off', 'fast', 'complete']:
-            print('Error: Invalid check-mode: %s. Must be either "off", "fast", or "complete"',
-                  self.args.check_mode)
+        self.args.mode = self.args.mode.lower()
+        if self.args.mode not in ['fast-check', 'complete-check', 'fast-dse', 'accurate-dse']:
+            print('Error: Invalid mode: %s', self.args.mode)
             raise RuntimeError()
 
         # Processing path and directory
@@ -76,7 +76,7 @@ class Main():
         self.out_dir = os.path.join(self.work_dir, 'output')
         self.eval_dir = os.path.join(self.work_dir, 'evaluate')
         self.log_dir = os.path.join(self.work_dir, 'logs')
-        if self.args.check_mode == 'complete':
+        if self.args.mode == 'check-complete':
             self.db_path = os.path.join(self.work_dir, 'check.db')
         elif self.args.db:
             self.db_path = os.path.abspath(self.args.db)
@@ -105,7 +105,7 @@ class Main():
         self.config = self.load_config()
 
         # Stop here if we only need to check the design space definition
-        if self.args.check_mode == 'fast':
+        if self.args.mode == 'fast-check':
             self.log.warning('Check mode "FAST": Only check design space syntax and type')
             return
 
@@ -113,7 +113,7 @@ class Main():
         # 1) Use gradient algorithm that always evaluates the default point first
         # 2) Set the exploration time to <1 second so it will only explore the default point
         # TODO: Check the bitgen execution
-        if self.args.check_mode == 'complete':
+        if self.args.mode == 'complete-check':
             self.log.warning('Check mode "COMPLETE":')
             self.log.warning('1. Check design space syntax and type')
             self.log.warning('2. Evaluate one default point (may take up to 30 mins)')
@@ -127,14 +127,13 @@ class Main():
         # Initialize database
         self.log.info('Initializing the database')
         self.db = RedisDatabase(self.config['project']['name'],
-                                int(self.config['project']['output-num']), self.db_path)
+                                int(self.config['project']['fast-output-num']), self.db_path)
         self.db.load()
 
-        # Initialize evaluator
+        # Initialize evaluator with FAST mode
         self.log.info('Initializing the evaluator')
         self.evaluator = MerlinEvaluator(src_path=self.src_dir,
                                          work_path=self.eval_dir,
-                                         mode=EvalMode[self.config['evaluate']['estimate-mode']],
                                          db=self.db,
                                          scheduler=PythonSubprocessScheduler(
                                              self.config['evaluate']['worker-per-part']),
@@ -147,7 +146,7 @@ class Main():
         # Initialize reporter
         self.reporter = Reporter(self.config, self.db)
 
-        if self.args.check_mode == 'off':
+        if self.args.mode.find('check') == -1:
             self.log.info('Building the scope map')
             self.evaluator.build_scope_map()
 
@@ -204,15 +203,34 @@ class Main():
 
         return config
 
-    def gen_outputs(self) -> None:
+    def check_eval_log(self):
+        """Parse eval.log and display its errors"""
+        if not os.path.exists('eval.log'):
+            self.log.error('Evaluation failure')
+        else:
+            log_msgs: Set[str] = set()
+            with open('eval.log', 'r', errors='replace') as filep:
+                for line in filep:
+                    if line.find('ERROR') != -1:
+                        msg = line[line.find(':') + 2:-1]
+                        if msg not in log_msgs:
+                            self.log.error(msg)
+                            log_msgs.add(msg)
+
+    def gen_fast_outputs(self) -> List[DesignPoint]:
         """Generate final outputs"""
 
+        if not os.path.exists(self.out_dir):
+            os.makedirs(self.out_dir)
+        out_fast_dir = os.path.join(self.out_dir, 'fast')
+
         # Clean output directory
-        if os.path.exists(self.out_dir):
-            shutil.rmtree(self.out_dir)
-        os.makedirs(self.out_dir)
+        if os.path.exists(out_fast_dir):
+            shutil.rmtree(out_fast_dir)
+        os.makedirs(out_fast_dir)
 
         # Fetch database cache for the best results
+        points = []
         output = []
         idx = 0
         best_cache: PriorityQueue = self.db.best_cache
@@ -224,18 +242,20 @@ class Main():
 
             assert result.point is not None
             self.evaluator.apply_design_point(job, result.point)
-            os.rename(job.path, os.path.join(self.out_dir, str(idx)))
+            points.append(result.point)
+            os.rename(job.path, os.path.join(out_fast_dir, str(idx)))
             result.path = str(idx)
             output.append(result)
             idx += 1
 
         rpt = self.reporter.report_output(output)
         if rpt:
-            with open(os.path.join(self.out_dir, 'output.rpt'), 'w') as filep:
+            with open(os.path.join(out_fast_dir, 'output.rpt'), 'w') as filep:
                 filep.write(rpt)
+        return points
 
-    def launch_exploration(self, ds_list: List[DesignSpace]) -> None:
-        """Launch exploration"""
+    def launch_fast(self, ds_list: List[DesignSpace]) -> List[DesignPoint]:
+        """Launch fast exploration"""
 
         pool = []
 
@@ -243,7 +263,7 @@ class Main():
         with ThreadPoolExecutor(max_workers=len(ds_list)) as executor:
             for idx, ds in enumerate(ds_list):
                 pool.append(
-                    executor.submit(self.dse,
+                    executor.submit(self.fast_runner,
                                     tag='part{0}'.format(idx),
                                     ds=ds,
                                     db=self.db,
@@ -255,26 +275,97 @@ class Main():
             timer: float = (time.time() - self.start_time) / 60.0  # in minutes
             while any([not exe.done() for exe in pool]):
                 time.sleep(1)
+                # Keep the best cache size
                 while self.db.best_cache.qsize() > self.db.best_cache_size:
                     self.db.best_cache.get()
                 self.reporter.log_best()
-                self.reporter.print_status(timer)
+
+                count = 0
+                for idx in range(len(ds_list)):
+                    part_cnt = self.db.query('meta-expr-cnt-{0}'.format('part{0}'.format(idx)))
+                    if part_cnt:
+                        try:
+                            count += int(part_cnt)
+                        except ValueError:
+                            pass
+                self.reporter.print_status(timer, count)
                 timer += 0.0167
 
-    @staticmethod
-    def dse(tag: str, ds: DesignSpace, db: Database, evaluator: Evaluator, config: Dict[str, Any]):
-        """Perform DSE for a given design space"""
+        # Backup database
+        self.db.commit_best()
+        self.db.persist()
 
-        explorer = Explorer(ds=ds,
-                            db=db,
-                            evaluator=evaluator,
-                            timeout=config['timeout']['exploration'],
-                            tag=tag)
+        # Report and summary
+        summary, detail = self.reporter.report_summary()
+        for line in summary.split('\n'):
+            if line:
+                self.log.info(line)
+        with open(os.path.join(self.work_dir, 'summary.rpt'), 'w') as filep:
+            filep.write(summary)
+            filep.write('\n\n')
+            filep.write(detail)
+
+        # Create outputs
+        points = self.gen_fast_outputs()
+        self.log.info('Outputs of fast exploration are generated')
+        return points
+
+    @staticmethod
+    def fast_runner(tag: str, ds: DesignSpace, db: Database, evaluator: Evaluator,
+                    config: Dict[str, Any]):
+        """Perform fast DSE for a given design space"""
+
+        explorer = FastExplorer(ds=ds,
+                                db=db,
+                                evaluator=evaluator,
+                                timeout=config['timeout']['exploration'],
+                                tag=tag)
         try:
             explorer.run(config['search']['algorithm'])
         except Exception as err:  # pylint:disable=broad-except
             log = get_default_logger('DSE')
-            log.error('Encounter error during the exploration: %s', str(err))
+            log.error('Encounter error during the fast exploration: %s', str(err))
+            log.error(traceback.format_exc())
+
+    def launch_accurate(self, points: List[DesignPoint]) -> None:
+        """Launch accurate exploration"""
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            proc = executor.submit(self.accurate_runner,
+                                   points=points,
+                                   db=self.db,
+                                   evaluator=self.evaluator,
+                                   config=self.config)
+
+            timer: float = (time.time() - self.start_time) / 60.0  # in minutes
+            while not proc.done():
+                time.sleep(1)
+                count = self.db.query('meta-expr-cnt-accurate')
+                try:
+                    self.reporter.print_status(timer, int(count))
+                except (TypeError, ValueError):
+                    self.reporter.print_status(timer, 0)
+                timer += 0.0167
+
+        # Backup database again
+        self.db.persist()
+
+        # Create outputs
+        # TODO
+        self.log.info('The outputs of accurate exploration is generated')
+
+    @staticmethod
+    def accurate_runner(points: List[DesignPoint], db: Database, evaluator: Evaluator,
+                        config: Dict[str, Any]):
+        """Perform phase 2 DSE for a given set of points"""
+
+        explorer = AccurateExplorer(points=points, db=db, evaluator=evaluator, tag='accurate')
+
+        try:
+            explorer.run(config['search']['algorithm'])  # FIXME
+        except Exception as err:  # pylint:disable=broad-except
+            log = get_default_logger('DSE')
+            log.error('Encounter error during the accurate exploration: %s', str(err))
             log.error(traceback.format_exc())
 
     def main(self) -> None:
@@ -284,7 +375,7 @@ class Main():
         self.log.info('Compiling design space')
         ds = compile_design_space(
             self.config['design-space']['definition'],
-            self.evaluator.scope_map if self.args.check_mode == 'off' else None)
+            self.evaluator.scope_map if self.args.mode.find('dse') != -1 else None)
         if ds is None:
             self.log.error('Failed to compile design space')
             return
@@ -304,7 +395,7 @@ class Main():
 
         self.log.info('%d parts generated', len(ds_list))
 
-        if self.args.check_mode == 'fast':
+        if self.args.mode == 'fast-check':
             self.log.info('Finish checking the design space (fast mode)')
             return
 
@@ -312,46 +403,28 @@ class Main():
 
         # Launch exploration
         try:
-            if self.args.check_mode == 'off':
+            if self.args.mode.find('dse') != -1:
                 self.log.info('Start the exploration')
-            self.launch_exploration(ds_list)
+            fast_points = self.launch_fast(ds_list)
         except KeyboardInterrupt:
             pass
 
-        if self.args.check_mode == 'complete':
-            if not os.path.exists('eval.log'):
-                self.log.error('Evaluation failure')
-            else:
-                log_msgs: Set[str] = set()
-                with open('eval.log', 'r', errors='replace') as filep:
-                    for line in filep:
-                        if line.find('ERROR') != -1:
-                            msg = line[line.find(':') + 2:-1]
-                            if msg not in log_msgs:
-                                self.log.error(msg)
-                                log_msgs.add(msg)
+        if self.args.mode == 'complete-check':
+            self.check_eval_log()
             self.log.info('Finish checking the design space (complete mode)')
             return
 
-        self.log.info('Finish the exploration')
+        if self.args.mode == 'fast-dse':
+            self.log.info('Finish the exploration')
+        else:
+            self.log.info('Finish the exploration phase 1 with %d candidates',
+                          self.db.best_cache.qsize())
 
-        # Backup database
-        self.db.commit_best()
-        self.db.persist()
-
-        # Report and summary
-        summary, detail = self.reporter.report_summary()
-        for line in summary.split('\n'):
-            if line:
-                self.log.info(line)
-        with open(os.path.join(self.work_dir, 'summary.rpt'), 'w') as filep:
-            filep.write(summary)
-            filep.write('\n\n')
-            filep.write(detail)
-
-        # Create outputs
-        self.gen_outputs()
-        self.log.info('Outputs are generated')
+            # Run phase 2 in ACCURATE mode
+            try:
+                self.launch_accurate(fast_points)
+            except KeyboardInterrupt:
+                pass
 
         # Backup logs
         if os.path.exists(self.log_dir):

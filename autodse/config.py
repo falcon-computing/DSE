@@ -20,9 +20,9 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
         'default': 'NO_BACKUP',
         'options': ['NO_BACKUP', 'BACKUP_ERROR', 'BACKUP_ALL']
     },
-    'project.output-num': {
+    'project.fast-output-num': {
         'require': False,
-        'default': 1
+        'default': 3
     },
     'design-space.definition': {
         'require': True
@@ -34,10 +34,6 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
     'evaluate.worker-per-part': {
         'require': False,
         'default': 2
-    },
-    'evaluate.estimate-mode': {
-        'require': True,
-        'options': ['FAST', 'ACCURATE']
     },
     'evaluate.command.transform': {
         'require': True,
