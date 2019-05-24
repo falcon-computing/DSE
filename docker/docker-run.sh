@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ ! $MERLIN_COMPILER_HOME ]; then
-    echo "MERLIN_COMPILER_HOME is not set!"
-    exit 0
-fi
-
 script_dir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 
 docker run -it \
