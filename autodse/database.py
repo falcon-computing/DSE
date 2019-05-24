@@ -30,12 +30,30 @@ class Database():
         # Current best result set (min heap)
         # Note: the element type in this PriorityQueue is (quality, timestamp, result).
         # The purpose of using timestamp is to deal with points with same qualities,
-        # since PriorityQueue tries to compare the second tuple value if the first one is the same.
-        # We define the first point among the same quality points is the one we want.
+        # since PriorityQueue tries to compare the second tuple value if the first one
+        # is the same. We define the first point among the same quality points is
+        # the one we want.
         # FIXME: we now rely on the main flow to control the size in order to
         # avoid race condition.
         self.best_cache_size = cache_size
         self.best_cache: PriorityQueue = PriorityQueue()
+
+    def init_best_cache(self) -> None:
+        """Initialize the best cache using the loaded data"""
+
+        if self.count() == 0:
+            return
+
+        best_cache = self.query('meta-best-cache')
+        if not best_cache:
+            self.log.warning('Key "meta-best-cache" is missing in the DB. '
+                             'Re-building it from loaded data')
+            for result in [r for r in self.query_all() if isinstance(r, Result) if r.valid]:
+                self.best_cache.put((result.quality, time(), result), timeout=0.1)
+        else:
+            for quality, _, result in best_cache:
+                if result and result.valid:
+                    self.best_cache.put((quality, time(), result), timeout=0.1)
 
     def update_best(self, result: Result) -> None:
         """Check if the new result has the best QoR and update it if so.
@@ -96,7 +114,8 @@ class Database():
 
         # Update the best result
         for _, result in pairs:
-            self.update_best(result)
+            if isinstance(result, Result):
+                self.update_best(result)
 
     def count_ret_code(self, ret_code: Result.RetCode) -> int:
         """Count the number of results with the given return code
@@ -247,16 +266,7 @@ class RedisDatabase(Database):
             self.log.info('Load %d data from an existing database', len(data))
             self.database.hmset(self.db_id, data)
 
-        # Update the best cache
-        if self.count() > 0:
-            best_cache = self.query('meta-best-cache')
-            if not best_cache:
-                self.log.warning('Key "meta-best-cache" is missing in the DB. '
-                                 'The best result may not be real.')
-            else:
-                for quality, _, result in best_cache:
-                    if result and result.valid:
-                        self.best_cache.put((quality, time(), result), timeout=0.1)
+        self.init_best_cache()
 
     def __del__(self):
         """Delete the data we generated in Redis database"""
@@ -364,16 +374,7 @@ class PickleDatabase(Database):
             self.log.error('Failed to load the data from the database: %s', str(err))
             raise RuntimeError()
 
-        # Update the best cache
-        if self.count() > 0:
-            best_cache = self.query('meta-best-cache')
-            if not best_cache:
-                self.log.warning('Key "meta-best-cache" is missing in the DB. '
-                                 'The best result may not be real.')
-            else:
-                for quality, _, result in best_cache:
-                    if result and result.valid:
-                        self.best_cache.put((quality, time(), result), timeout=0.1)
+        self.init_best_cache()
 
     def query(self, key: str) -> Optional[Any]:
         #pylint:disable=missing-docstring

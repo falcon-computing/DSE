@@ -9,7 +9,7 @@ import pytest
 
 from autodse import database, logger
 from autodse.evaluator import analyzer, scheduler
-from autodse.evaluator.evaluator import BackupMode, EvalMode, Evaluator, MerlinEvaluator
+from autodse.evaluator.evaluator import BackupMode, Evaluator, MerlinEvaluator
 from autodse.result import BitgenResult, HLSResult, MerlinResult, Result
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
@@ -43,14 +43,13 @@ def test_evaluator_phase1(required_args, test_dir, mocker):
     # Initialization failure due to no auto pragmas
     with pytest.raises(RuntimeError):
         eval_ins = Evaluator('{0}/temp_fixture/eval_src0'.format(test_dir),
-                             '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST,
-                             required_args['db'], required_args['scheduler'],
-                             required_args['analyzer_cls'], BackupMode.NO_BACKUP,
-                             required_args['dse_config'])
+                             '{0}/temp_eval_work'.format(test_dir), required_args['db'],
+                             required_args['scheduler'], required_args['analyzer_cls'],
+                             BackupMode.NO_BACKUP, required_args['dse_config'])
 
     # Create and initialize evaluator
     eval_ins = Evaluator('{0}/temp_fixture/eval_src1'.format(test_dir),
-                         '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST, required_args['db'],
+                         '{0}/temp_eval_work'.format(test_dir), required_args['db'],
                          required_args['scheduler'], required_args['analyzer_cls'],
                          BackupMode.NO_BACKUP, required_args['dse_config'])
     assert len(eval_ins.src_files) == 1 and eval_ins.src_files[0] == 'src/kernel1.cpp'
@@ -97,10 +96,9 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
 
     # Create and initialize evaluator and a job
     eval_ins = MerlinEvaluator('{0}/temp_fixture/eval_src1'.format(test_dir),
-                               '{0}/temp_eval_work'.format(test_dir), EvalMode.FAST,
-                               required_args['db'], required_args['scheduler'],
-                               required_args['analyzer_cls'], BackupMode.NO_BACKUP,
-                               required_args['dse_config'])
+                               '{0}/temp_eval_work'.format(test_dir), required_args['db'],
+                               required_args['scheduler'], required_args['analyzer_cls'],
+                               BackupMode.NO_BACKUP, required_args['dse_config'])
 
     # Test timeout setup, although we will not use it in this test
     eval_ins.set_timeout({'transform': 3, 'hls': 30, 'bitgen': 480})
@@ -124,7 +122,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             job0 = eval_ins.create_job()
             point = {'PE': 3, 'R': ''}
             eval_ins.apply_design_point(job0, point)
-            results = eval_ins.submit([job0])
+            results = eval_ins.submit([job0], 1)
             assert results[0][1].ret_code == Result.RetCode.UNAVAILABLE
             assert not eval_ins.build_scope_map()
 
@@ -136,15 +134,17 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
                 'bitgen': 'make mcc_bitgne'
             })
             job1 = eval_ins.create_job()
-            point = {'PE': 4, 'R': ''}
+            point = {'PE': 3, 'R': ''}
             eval_ins.apply_design_point(job1, point)
-            results = eval_ins.submit([job1])
+            results = eval_ins.submit([job1], 1)
             assert results[0][1].ret_code == Result.RetCode.PASS
+            assert eval_ins.db.count() == 1
 
         with mocker.patch('autodse.evaluator.analyzer.MerlinAnalyzer.analyze_scope',
                           return_value={}):
             # Test build scope
             assert eval_ins.build_scope_map()
+            assert eval_ins.db.count() == 2
 
         def mock_analyze_fail1(job, mode, config):
             #pylint:disable=unused-argument
@@ -156,8 +156,9 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             job2 = eval_ins.create_job()
             point = {'PE': 5, 'R': ''}
             eval_ins.apply_design_point(job2, point)
-            results = eval_ins.submit([job2])
+            results = eval_ins.submit([job2], 1)
             assert results[0][1].ret_code == Result.RetCode.ANALYZE_ERROR
+            assert eval_ins.db.count() == 3
 
             # No backup so the job directory should be gone
             assert not os.path.exists(job2.path)
@@ -178,9 +179,10 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             job3 = eval_ins.create_job()
             point = {'PE': 6, 'R': ''}
             eval_ins.apply_design_point(job3, point)
-            results = eval_ins.submit([job3])
+            results = eval_ins.submit([job3], 2)
             assert results[0][1].ret_code == Result.RetCode.ANALYZE_ERROR
             assert os.path.exists(job3.path)
+            assert eval_ins.db.count() == 4
 
         def mock_analyze_fail3(job, mode, config):
             #pylint:disable=unused-argument
@@ -198,9 +200,10 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             job4 = eval_ins.create_job()
             point = {'PE': 7, 'R': ''}
             eval_ins.apply_design_point(job4, point)
-            results = eval_ins.submit([job4])
+            results = eval_ins.submit([job4], 1)
             assert results[0][1].ret_code == Result.RetCode.EARLY_REJECT
             assert not os.path.exists(job4.path)
+            assert eval_ins.db.count() == 5
 
         def mock_analyze_fail4(job, mode, config):
             #pylint:disable=unused-argument
@@ -218,8 +221,9 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             job5 = eval_ins.create_job()
             point = {'PE': 7, 'R': ''}
             eval_ins.apply_design_point(job5, point)
-            results = eval_ins.submit([job5])
+            results = eval_ins.submit([job5], 2)
             assert results[0][1].ret_code == Result.RetCode.PASS
             assert not results[0][1].valid
+            assert eval_ins.db.count() == 6
 
     LOG.debug('=== Testing evaluator phase 2 end')

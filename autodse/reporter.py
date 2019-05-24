@@ -200,16 +200,18 @@ class Reporter():
 
         return rpt, detail_rpt
 
-    def print_status(self, timer: float) -> None:
+    def print_status(self, timer: float, count: int) -> None:
         """Pretty print the current exploration status
 
         Parameters
         ----------
         timer:
             The elapsed time for exploration.
+
+        count:
+            The number of explored points.
         """
 
-        count = self.db.count()
         if timer < float(self.config['timeout']['exploration']):
             print('[{0:4.0f}m] Explored {1} points, still working...{2}'.format(
                 timer, count, self.ANIME[self.anime_ptr]),

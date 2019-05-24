@@ -17,12 +17,6 @@ from .analyzer import Analyzer, MerlinAnalyzer
 from .scheduler import Scheduler
 
 
-class EvalMode(Enum):
-    FAST = 0
-    ACCURATE = 1
-    PROFILE = 2
-
-
 class BackupMode(Enum):
     NO_BACKUP = 0
     BACKUP_ERROR = 1
@@ -35,7 +29,6 @@ class Evaluator():
     def __init__(self,
                  src_path: str,
                  work_path: str,
-                 mode: EvalMode,
                  db: Database,
                  scheduler: Scheduler,
                  analyzer_cls: Type[Analyzer],
@@ -43,7 +36,6 @@ class Evaluator():
                  dse_config: Dict[str, Any],
                  temp_prefix: str = 'eval'):
         self.log = get_eval_logger('Evaluator')
-        self.mode = mode
         self.db = db
         self.src_path = src_path
         self.work_path = work_path
@@ -185,7 +177,7 @@ class Evaluator():
         job.status = Job.Status.APPLIED
         return error == 0
 
-    def submit(self, jobs: List[Job]) -> List[Tuple[str, Result]]:
+    def submit(self, jobs: List[Job], eval_lv: int) -> List[Tuple[str, Result]]:
         """Submit a list of jobs for evaluation and get desired result files.
            1) When this method returns, the wanted result files should be available locally
            except for duplicated jobs. 2) All results will be committed to the database.
@@ -195,8 +187,8 @@ class Evaluator():
         job:
             The job object to be submitted.
 
-        timeout:
-            The timeout of the evaluation. Set to 0 to indicate no timeout.
+        eval_lv:
+            The evaluation level (1-3).
 
         Returns
         -------
@@ -207,22 +199,25 @@ class Evaluator():
         assert all([job.status == Job.Status.APPLIED for job in jobs])
         self.log.info('Submit %d jobs for evaluation', len(jobs))
 
-        # Determine the submission flow
-        if self.mode == EvalMode.FAST:
-            submitter = self.submit_fast
-        elif self.mode == EvalMode.ACCURATE:
-            submitter = self.submit_accurate
+        result_prefix = 'lv{}'.format(eval_lv)
+        if eval_lv == 1:
+            submitter = self.submit_lv1
+        elif eval_lv == 2:
+            submitter = self.submit_lv2
+        elif eval_lv == 3:
+            submitter = self.submit_lv3
         else:
-            self.log.error('Evaluation mode %s does not yet supported', self.mode)
+            self.log.error('Incorrect evaluation %d. Expect 1-3', eval_lv)
             raise RuntimeError()
 
-        # Submit un-evaluated jobs and commit results to the database
+        # Submit and commit results to the database
         job_n_results = submitter(jobs)
         for job, result in job_n_results:
             result.point = job.point
 
         self.log.debug('Committing %d results', len(job_n_results))
-        self.db.batch_commit([(job.key, result) for job, result in job_n_results])
+        self.db.batch_commit([('{0}:{1}'.format(result_prefix, job.key), result)
+                              for job, result in job_n_results])
         self.log.info('Results are committed to the database')
 
         # Backup jobs if needed
@@ -241,16 +236,13 @@ class Evaluator():
                     result.path = job.path
         return [(job.key, result) for job, result in job_n_results]
 
-    def submit_fast(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
-        """The job submission flow for fast mode.
+    def submit_lv1(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
+        """The level 1 job evaluation flow.
 
         Parameters
         ----------
         job:
             The job object to be submitted.
-
-        timeout:
-            The timeout of the evaluation. Set to 0 to indicate no timeout.
 
         Returns
         -------
@@ -260,8 +252,24 @@ class Evaluator():
         """
         raise NotImplementedError()
 
-    def submit_accurate(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
-        """The job submission flow for accurate mode.
+    def submit_lv2(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
+        """The level 2 job evaluation flow.
+
+        Parameters
+        ----------
+        job:
+            The job object to be submitted.
+
+        Returns
+        -------
+        List[Tuple[Job, Result]]:
+            Result to each job. The ret_code in each result should be PASS if the evaluation
+            was done successfully.
+        """
+        raise NotImplementedError()
+
+    def submit_lv3(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
+        """The level 3 job evaluation flow.
 
         Parameters
         ----------
@@ -280,11 +288,11 @@ class Evaluator():
 class MerlinEvaluator(Evaluator):
     """Evaluate Merlin compiler projects"""
 
-    def __init__(self, src_path: str, work_path: str, mode: EvalMode, db: Database,
-                 scheduler: Scheduler, analyzer_cls: Type[MerlinAnalyzer], backup_mode: BackupMode,
+    def __init__(self, src_path: str, work_path: str, db: Database, scheduler: Scheduler,
+                 analyzer_cls: Type[MerlinAnalyzer], backup_mode: BackupMode,
                  dse_config: Dict[str, Any]):
-        super(MerlinEvaluator, self).__init__(src_path, work_path, mode, db, scheduler,
-                                              analyzer_cls, backup_mode, dse_config, 'merlin')
+        super(MerlinEvaluator, self).__init__(src_path, work_path, db, scheduler, analyzer_cls,
+                                              backup_mode, dse_config, 'merlin')
 
         self.scope_map: Optional[Dict[str, str]] = None
 
@@ -321,14 +329,13 @@ class MerlinEvaluator(Evaluator):
             scope_map = self.analyzer.analyze_scope(job, self.auto_map)  # type: ignore
             if scope_map is not None:
                 self.scope_map = scope_map
-                if self.db.query('scope-map') is None:
-                    self.db.commit('scope-map', scope_map)
+                self.db.commit('scope-map', scope_map)
                 return True
 
         self.log.error('Failed to build the scope map')
         return False
 
-    def submit_fast(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
+    def submit_lv1(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         #pylint:disable=missing-docstring
 
         results: Dict[str, Result] = {job.key: Result('UNAVAILABLE') for job in jobs}
@@ -338,12 +345,8 @@ class MerlinEvaluator(Evaluator):
         if 'transform' not in self.commands:
             self.log.error('Command for transform is not properly set up.')
             return [(job, Result('UNAVAILABLE')) for job in jobs]
-        if 'hls' not in self.commands:
-            self.log.error('Command for HLS is not properly set up.')
-            return [(job, Result('UNAVAILABLE')) for job in jobs]
 
         # Run Merlin transformations and make sure it works as expected
-        pending_hls: List[Job] = []
         sche_rets = self.scheduler.run(jobs, self.analyzer.desire('transform'),
                                        self.commands['transform'], self.timeouts['transform'])
         for job_key, ret_code in sche_rets:
@@ -355,24 +358,28 @@ class MerlinEvaluator(Evaluator):
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
                 assert isinstance(result, MerlinResult)
-                if result.valid:
-                    # No critical problems, keep running HLS
-                    pending_hls.append(job_map[job_key])
-                else:
-                    # Merlin failed to perform certain transformations, stop here
-                    # but still consider as a success evaluation
+                if not result.valid:  # Merlin failed to perform certain transformations
                     result.ret_code = Result.RetCode.EARLY_REJECT
-                    results[job_key] = result
+                results[job_key] = result
             else:
                 results[job_key].ret_code = ret_code
 
-        if not pending_hls:
-            self.log.info('All jobs are stopped at the Merlin transform stage.')
-            return [(job, results[job.key]) for job in jobs]
+        return [(job, results[job.key]) for job in jobs]
+
+    def submit_lv2(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
+        #pylint:disable=missing-docstring
+
+        results: Dict[str, Result] = {job.key: Result('UNAVAILABLE') for job in jobs}
+        job_map: Dict[str, Job] = {job.key: job for job in jobs}
+
+        # Check commands
+        if 'hls' not in self.commands:
+            self.log.error('Command for HLS is not properly set up.')
+            return [(job, Result('UNAVAILABLE')) for job in jobs]
 
         # Run HLS and analyze the Merlin report
-        sche_rets = self.scheduler.run(pending_hls, self.analyzer.desire('hls'),
-                                       self.commands['hls'], self.timeouts['hls'])
+        sche_rets = self.scheduler.run(jobs, self.analyzer.desire('hls'), self.commands['hls'],
+                                       self.timeouts['hls'])
         for job_key, ret_code in sche_rets:
             if ret_code == Result.RetCode.PASS:
                 result = self.analyzer.analyze(job_map[job_key], 'hls', self.config)
@@ -387,7 +394,7 @@ class MerlinEvaluator(Evaluator):
 
         return [(job, results[job.key]) for job in jobs]
 
-    def submit_accurate(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
+    def submit_lv3(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         #pylint:disable=missing-docstring
 
         results: Dict[str, Result] = {job.key: Result('UNAVAILABLE') for job in jobs}

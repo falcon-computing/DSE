@@ -2,31 +2,25 @@
 The main module of explorer.
 """
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from .algorithmfactory import AlgorithmFactory
 from ..evaluator.evaluator import Evaluator
 from ..logger import get_algo_logger
 from ..database import Database
-from ..parameter import DesignSpace, gen_key_from_design_point
-from ..result import Result
+from ..parameter import DesignPoint, DesignSpace, gen_key_from_design_point
+from ..result import Job, Result
 
 
 class Explorer():
     """Main explorer class"""
 
-    def __init__(self,
-                 ds: DesignSpace,
-                 db: Database,
-                 evaluator: Evaluator,
-                 timeout: int,
-                 tag: str = ''):
-        self.ds = ds
+    def __init__(self, db: Database, evaluator: Evaluator, tag):
         self.db = db
         self.evaluator = evaluator
-        self.timeout = timeout * 60.0
-        self.algo_log_file_name = '{0}_algo.log'.format(tag) if tag else 'algo.log'
-        self.log = get_algo_logger('Explorer', '{0}_expr.log'.format(tag) if tag else 'expr.log')
+        self.tag = tag
+        self.algo_log_file_name = '{0}_algo.log'.format(self.tag)
+        self.log = get_algo_logger('Explorer', '{0}_expr.log'.format(self.tag))
 
         # Status checking
         self.best_result: Result = Result()
@@ -57,6 +51,20 @@ class Explorer():
         algo_config:
             The configurable values for the algorithm.
         """
+        raise NotImplementedError()
+
+
+class FastExplorer(Explorer):
+    """"Fast explorer class"""
+
+    def __init__(self, db: Database, evaluator: Evaluator, timeout: int, tag: str,
+                 ds: DesignSpace):
+        super(FastExplorer, self).__init__(db, evaluator, tag)
+        self.timeout = timeout * 60.0
+        self.ds = ds
+
+    def run(self, algo_config: Dict[str, Any]) -> None:
+        #pylint:disable=missing-docstring
 
         # Create a search algorithm generator
         algo = AlgorithmFactory.make(algo_config, self.ds, self.algo_log_file_name)
@@ -70,16 +78,17 @@ class Explorer():
                 # Generate the next set of design points
                 next_points = gen_next.send(results)
                 self.log.debug('The algorithm generates %d design points', len(next_points))
-                self.explored_point += len(next_points)
             except StopIteration:
                 break
 
             results = {}
 
             # Create jobs and check duplications
-            jobs = []
-            keys = [gen_key_from_design_point(point) for point in next_points]
+            jobs: List[Job] = []
+            job_map: Dict[str, Job] = {}
+            keys: List[str] = [gen_key_from_design_point(point) for point in next_points]
             for point, result in zip(next_points, self.db.batch_query(keys)):
+                key = gen_key_from_design_point(point)
                 if result is None:
                     job = self.evaluator.create_job()
                     if job:
@@ -89,9 +98,10 @@ class Explorer():
                     else:
                         self.log.error('Fail to create a new job (disk space?)')
                         return
+                    job_map[key] = job
                 else:
                     self.update_best(result)
-                    results[gen_key_from_design_point(point)] = result
+                    results[key] = result
             if not jobs:
                 duplicated_iters += 1
                 self.log.debug('All design points are already evaluated (%d iterations)',
@@ -99,11 +109,34 @@ class Explorer():
                 continue
 
             duplicated_iters = 0
+            self.explored_point += len(jobs)
+            self.db.commit('meta-expr-cnt-{0}'.format(self.tag), self.explored_point)
 
-            # Evaluate design points and get results
-            self.log.debug('Evaluating %d new design points', len(jobs))
-            for key, result in self.evaluator.submit(jobs):
+            # Evaluate design points using level 1 to fast check if it is suitable for HLS
+            self.log.debug('Evaluating %d design points: Level 1', len(jobs))
+            pending: List[Job] = []
+            for key, result in self.evaluator.submit(jobs, 1):
+                if result.ret_code == Result.RetCode.PASS:
+                    pending.append(job_map[key])
+                else:
+                    results[key] = result
+
+            # Evaluate design points using level 2 that runs HLS
+            self.log.debug('Evaluating %d design points: Level 2', len(pending))
+            for key, result in self.evaluator.submit(pending, 2):
                 self.update_best(result)
                 results[key] = result
 
         self.log.info('Explored %d points', self.explored_point)
+
+
+class AccurateExplorer(Explorer):
+    """The accurate explorer class"""
+
+    def __init__(self, db: Database, evaluator: Evaluator, tag: str, points: List[DesignPoint]):
+        super(AccurateExplorer, self).__init__(db, evaluator, tag)
+        self.points = points
+
+    def run(self, algo_config: Dict[str, Any]) -> None:
+        #pylint:disable=missing-docstring
+        pass
