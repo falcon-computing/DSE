@@ -6,6 +6,7 @@ import glob
 import json
 import os
 import shutil
+import sys
 import tempfile
 import time
 import traceback
@@ -67,8 +68,8 @@ class Main():
         # Validate check mode
         self.args.mode = self.args.mode.lower()
         if self.args.mode not in ['fast-check', 'complete-check', 'fast-dse', 'accurate-dse']:
-            print('Error: Invalid mode: %s', self.args.mode)
-            raise RuntimeError()
+            print('Error: Invalid mode:', self.args.mode)
+            sys.exit(1)
 
         # Processing path and directory
         self.src_dir = os.path.abspath(self.args.src_dir)
@@ -87,10 +88,10 @@ class Main():
         dir_prefix = os.path.commonprefix([self.src_dir, self.work_dir])
         if dir_prefix in [self.src_dir, self.work_dir]:
             print('Error: Merlin project and workspace cannot be subdirectories!')
-            raise RuntimeError()
+            sys.exit(1)
         if not os.path.exists(self.src_dir):
-            print('Error: Project folder not found: %s', self.src_dir)
-            raise RuntimeError()
+            print('Error: Project folder not found:', self.src_dir)
+            sys.exit(1)
 
         # Initialize workspace
         # Note that the log file must be created after workspace initialization
@@ -151,7 +152,7 @@ class Main():
             self.evaluator.build_scope_map()
 
             # Display important configs
-            self.reporter.log_config()
+            self.reporter.log_config(self.args.mode)
 
     def init_workspace(self) -> Optional[str]:
         """Initialize the workspace
@@ -176,6 +177,8 @@ class Main():
                     full_path = os.path.join(self.work_dir, old_file)
                     if full_path not in [self.cfg_path, self.db_path]:
                         shutil.move(full_path, bak_dir)
+                    else:
+                        shutil.copy(full_path, bak_dir)
         except FileNotFoundError:
             os.makedirs(self.work_dir)
 
@@ -184,22 +187,25 @@ class Main():
     def load_config(self) -> Dict[str, Any]:
         """Load the DSE config"""
 
-        if not os.path.exists(self.args.config):
-            self.log.error('Config JSON file not found: %s', self.args.config)
-            raise RuntimeError()
+        try:
+            if not os.path.exists(self.args.config):
+                self.log.error('Config JSON file not found: %s', self.args.config)
+                raise RuntimeError()
 
-        self.log.info('Loading configurations')
-        with open(self.args.config, 'r', errors='replace') as filep:
-            try:
-                user_config = json.load(filep)
-            except ValueError as err:
-                self.log.error('Failed to load config: %s', str(err))
-                raise
+            self.log.info('Loading configurations')
+            with open(self.args.config, 'r', errors='replace') as filep:
+                try:
+                    user_config = json.load(filep)
+                except ValueError as err:
+                    self.log.error('Failed to load config: %s', str(err))
+                    raise RuntimeError()
 
-        config = build_config(user_config)
-        if config is None:
-            self.log.error('Config %s is invalid', self.args.config)
-            raise RuntimeError()
+            config = build_config(user_config)
+            if config is None:
+                self.log.error('Config %s is invalid', self.args.config)
+                raise RuntimeError()
+        except RuntimeError:
+            sys.exit(1)
 
         return config
 
@@ -238,7 +244,7 @@ class Main():
             _, _, result = best_cache.get()
             job = self.evaluator.create_job()
             if not job:
-                raise RuntimeError()
+                continue
 
             assert result.point is not None
             self.evaluator.apply_design_point(job, result.point)
@@ -290,6 +296,9 @@ class Main():
                             pass
                 self.reporter.print_status(timer, count)
                 timer += 0.0167
+
+        if self.args.mode == 'complete-check':
+            return []
 
         # Backup database
         self.db.commit_best()

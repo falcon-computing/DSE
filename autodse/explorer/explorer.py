@@ -63,6 +63,29 @@ class FastExplorer(Explorer):
         self.timeout = timeout * 60.0
         self.ds = ds
 
+    def create_job_and_apply_point(self, point) -> Optional[Job]:
+        """Create a new job and apply the given design point
+
+        Parameters
+        ----------
+        point:
+            The point to be applied.
+
+        Returns
+        -------
+        Optional[Job]:
+            The created job, or None if failed.
+        """
+
+        job = self.evaluator.create_job()
+        if job:
+            if not self.evaluator.apply_design_point(job, point):
+                return None
+        else:
+            self.log.error('Fail to create a new job (disk space?)')
+            return None
+        return job
+
     def run(self, algo_config: Dict[str, Any]) -> None:
         #pylint:disable=missing-docstring
 
@@ -85,20 +108,15 @@ class FastExplorer(Explorer):
 
             # Create jobs and check duplications
             jobs: List[Job] = []
-            job_map: Dict[str, Job] = {}
             keys: List[str] = [gen_key_from_design_point(point) for point in next_points]
             for point, result in zip(next_points, self.db.batch_query(keys)):
                 key = gen_key_from_design_point(point)
                 if result is None:
-                    job = self.evaluator.create_job()
+                    job = self.create_job_and_apply_point(point)
                     if job:
-                        if not self.evaluator.apply_design_point(job, point):
-                            return
                         jobs.append(job)
                     else:
-                        self.log.error('Fail to create a new job (disk space?)')
                         return
-                    job_map[key] = job
                 else:
                     self.update_best(result)
                     results[key] = result
@@ -109,15 +127,17 @@ class FastExplorer(Explorer):
                 continue
 
             duplicated_iters = 0
-            self.explored_point += len(jobs)
-            self.db.commit('meta-expr-cnt-{0}'.format(self.tag), self.explored_point)
 
             # Evaluate design points using level 1 to fast check if it is suitable for HLS
             self.log.debug('Evaluating %d design points: Level 1', len(jobs))
             pending: List[Job] = []
             for key, result in self.evaluator.submit(jobs, 1):
                 if result.ret_code == Result.RetCode.PASS:
-                    pending.append(job_map[key])
+                    job = self.create_job_and_apply_point(result.point)
+                    if job:
+                        pending.append(job)
+                    else:
+                        return
                 else:
                     results[key] = result
 
@@ -126,6 +146,9 @@ class FastExplorer(Explorer):
             for key, result in self.evaluator.submit(pending, 2):
                 self.update_best(result)
                 results[key] = result
+
+            self.explored_point += len(jobs)
+            self.db.commit('meta-expr-cnt-{0}'.format(self.tag), self.explored_point)
 
         self.log.info('Explored %d points', self.explored_point)
 

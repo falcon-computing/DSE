@@ -6,7 +6,7 @@ import texttable as tt
 
 from .database import Database
 from .logger import get_default_logger
-from .result import Result
+from .result import BitgenResult, Result
 
 
 class Reporter():
@@ -15,7 +15,7 @@ class Reporter():
     ANIME = ['-', '\\', '|', '/']
     RetCodeMap = {
         Result.RetCode.PASS: 'Finished',
-        Result.RetCode.UNAVAILABLE: 'Unknown',
+        Result.RetCode.UNAVAILABLE: 'Unavailable',
         Result.RetCode.ANALYZE_ERROR: 'Error',
         Result.RetCode.TIMEOUT: 'Timeout',
         Result.RetCode.EARLY_REJECT: 'Early Reject'
@@ -32,7 +32,7 @@ class Reporter():
         self.is_first_best = True
         self.best_quality = -float('inf')
 
-    def log_config(self) -> None:
+    def log_config(self, mode: str) -> None:
         """Log important configs"""
 
         self.log.info('DSE Configure')
@@ -40,16 +40,17 @@ class Reporter():
         tbl.header(['Config', 'Value'])
         tbl.add_row(['Project', self.config['project']['name']])
         tbl.add_row(['Backup mode', self.config['project']['backup']])
-        tbl.add_row(['Expected output', str(self.config['project']['output-num'])])
-        tbl.add_row(['Evaluate mode', self.config['evaluate']['estimate-mode']])
+        tbl.add_row(['Fast mode output #', str(self.config['project']['fast-output-num'])])
+        tbl.add_row(['Execution mode', mode])
         tbl.add_row(['Search approach', self.config['search']['algorithm']['name']])
         tbl.add_row(['DSE time', str(self.config['timeout']['exploration'])])
         tbl.add_row(['HLS time', str(self.config['timeout']['hls'])])
-        tbl.add_row(['P&R time', str(self.config['timeout']['bitgen'])])
+        if mode == 'accurate-dse':
+            tbl.add_row(['P&R time', str(self.config['timeout']['bitgen'])])
         for line in tbl.draw().split('\n'):
             self.log.info(line)
-        self.log.info('The actual elapsed time may be over the set up exploration time because '
-                      'we do not abandon the effort of running cases')
+        self.log.info('The actual elapsed time may be over the set up exploration time')
+        self.log.info('because we do not abandon the effort of running cases')
 
     def log_best(self) -> None:
         """Log the new best result if available"""
@@ -119,23 +120,78 @@ class Reporter():
             The summary report.
         """
 
-        total = max(self.db.count() - 1, 0)  # Exclude the metadata
+        keys = self.db.query_keys()
 
+        # Query total explored points
+        cnt_keys = [k for k in keys if k.startswith('meta-expr-cnt')]
+        total = sum([cnt for cnt in self.db.batch_query(cnt_keys) if isinstance(cnt, int)])
         rpt = 'DSE Summary\n'
         tbl = tt.Texttable()
         tbl.add_row(['Total Explored', str(total)])
-        tbl.add_row(['Timeout', str(self.db.count_ret_code(Result.RetCode.TIMEOUT))])
-        tbl.add_row(['Analysis Error', str(self.db.count_ret_code(Result.RetCode.ANALYZE_ERROR))])
-        tbl.add_row(['Early Reject', str(self.db.count_ret_code(Result.RetCode.EARLY_REJECT))])
+
+        lv_keys = []
+        lv_data = []
+
+        # Query level 1 results
+        lv_keys.append([k for k in keys if k.startswith('lv1')])
+        lv_data.append([r for r in self.db.batch_query(lv_keys[0]) if r is not None])
+
+        tbl.add_row([
+            'Level 1 Timeout',
+            str(sum([1 for r in lv_data[0] if r.ret_code == Result.RetCode.TIMEOUT]))
+        ])
+        tbl.add_row([
+            'Level 1 Analysis Error',
+            str(sum([1 for r in lv_data[0] if r.ret_code == Result.RetCode.ANALYZE_ERROR]))
+        ])
+        tbl.add_row([
+            'Level 1 Early Reject',
+            str(sum([1 for r in lv_data[0] if r.ret_code == Result.RetCode.EARLY_REJECT]))
+        ])
+        tbl.add_row([
+            'Level 1 Result Unavailable',
+            str(sum([1 for r in lv_data[0] if r.ret_code == Result.RetCode.UNAVAILABLE]))
+        ])
+
+        # Query level 2 results
+        lv_keys.append([k for k in keys if k.startswith('lv2')])
+        lv_data.append([r for r in self.db.batch_query(lv_keys[1]) if r is not None])
+        tbl.add_row([
+            'Level 2 Timeout',
+            str(sum([1 for r in lv_data[1] if r.ret_code == Result.RetCode.TIMEOUT]))
+        ])
+        tbl.add_row([
+            'Level 2 Analysis Error',
+            str(sum([1 for r in lv_data[1] if r.ret_code == Result.RetCode.ANALYZE_ERROR]))
+        ])
+        tbl.add_row([
+            'Level 2 Result Unavailable',
+            str(sum([1 for r in lv_data[1] if r.ret_code == Result.RetCode.UNAVAILABLE]))
+        ])
+
+        # Query level 3 results
+        lv_keys.append([k for k in keys if k.startswith('lv3')])
+        lv_data.append([r for r in self.db.batch_query(lv_keys[2]) if r is not None])
+        tbl.add_row([
+            'Level 3 Timeout',
+            str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.TIMEOUT]))
+        ])
+        tbl.add_row([
+            'Level 3 Analysis Error',
+            str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.ANALYZE_ERROR]))
+        ])
+        tbl.add_row([
+            'Level 3 Result Unavailable',
+            str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.UNAVAILABLE]))
+        ])
+
         tbl.add_row(['Output Points', str(self.db.best_cache.qsize())])
 
         try:
             _, _, best_result = max(self.db.best_cache.queue, key=lambda r: r[0])  # type: ignore
-            if self.config['evaluate']['estimate-mode'] == 'FAST':
-                tbl.add_row(['Best Cycle', str(best_result.perf)])
-            #else:
-            #    tbl.add_row(['Best Freq.', str(best_result.perf)])
-            #    tbl.add_row(['Best Runtime', str(best_result.freq)])
+            tbl.add_row(['Best Performance (cycle)', str(best_result.perf)])
+            if isinstance(best_result, BitgenResult):
+                tbl.add_row(['Best Freq.', str(best_result.freq)])
         except ValueError:
             pass
 
@@ -143,60 +199,62 @@ class Reporter():
         if not total:
             return rpt, ''
 
-        data = [r for r in self.db.query_all() if isinstance(r, Result)]
-        assert data[0].point is not None
-        param_names = list(data[0].point.keys())
+        assert lv_data[0][0].point is not None
+        param_names = list(lv_data[0][0].point.keys())
 
-        detail_rpt = 'Result Details\n'
-        detail_tbl = tt.Texttable(max_width=100)
-        detail_tbl.set_cols_align(['c'] * 6)
-        detail_tbl.set_cols_dtype([
-            't',  # ID
-            't',  # Performance
-            't',  # Resource
-            't',  # Status
-            't',  # Valid
-            'f'  # Time
-        ])
-        detail_tbl.set_precision(1)
-        detail_tbl.header([
-            'ID', 'Perf.',
-            ', '.join([k[5:] for k in data[0].res_util.keys() if k.startswith('util')]), 'Status',
-            'Valid', 'Time'
-        ])
-        for idx, result in enumerate(data):
-            row = [str(idx)]
-
-            # Attach result
-            row.append('{:.2e}'.format(result.perf) if result.perf else '----')
-            if all([v == 0 for k, v in result.res_util.items() if k.startswith('util')]):
-                row.append('----')
-            else:
-                row.append(', '.join([
-                    '{:.1f}%'.format(v * 100.0) for k, v in result.res_util.items()
-                    if k.startswith('util')
-                ]))
-            row.append(self.RetCodeMap[result.ret_code])
-            row.append('Yes' if result.valid else 'No')
-            row.append(str(result.eval_time / 60.0))
-            detail_tbl.add_row(row)
-        detail_rpt += detail_tbl.draw()
-        detail_rpt += '\n\n'
-
-        detail_rpt += 'Explored Points\n'
-        for start in range(0, len(param_names), 8):
-            names = param_names[start:min(start + 8, len(param_names))]
-            point_tbl = tt.Texttable(max_width=100)
-            point_tbl.set_cols_align(['c'] * (len(names) + 1))
-            point_tbl.set_cols_dtype(['t'] * (len(names) + 1))
-            point_tbl.header(['ID'] + names)
+        for lv_idx, data in enumerate(lv_data):
+            if not data:
+                continue
+            detail_rpt = 'Level {0} Result Details\n'.format(lv_idx + 1)
+            detail_tbl = tt.Texttable(max_width=100)
+            detail_tbl.set_cols_align(['c'] * 6)
+            detail_tbl.set_cols_dtype([
+                't',  # ID
+                't',  # Performance
+                't',  # Resource
+                't',  # Status
+                't',  # Valid
+                'f'  # Time
+            ])
+            detail_tbl.set_precision(1)
+            detail_tbl.header([
+                'ID', 'Perf.',
+                ', '.join([k[5:] for k in data[0].res_util.keys() if k.startswith('util')]),
+                'Status', 'Valid', 'Time'
+            ])
             for idx, result in enumerate(data):
-                if result.point is not None:
-                    point_tbl.add_row([str(idx)] + [str(result.point[p]) for p in names])
+                row = [str(idx)]
+
+                # Attach result
+                row.append('{:.2e}'.format(result.perf) if result.perf else '----')
+                if all([v == 0 for k, v in result.res_util.items() if k.startswith('util')]):
+                    row.append('----')
                 else:
-                    point_tbl.add_row([str(idx)] + ['?'] * len(names))
-            detail_rpt += point_tbl.draw()
-            detail_rpt += '\n'
+                    row.append(', '.join([
+                        '{:.1f}%'.format(v * 100.0) for k, v in result.res_util.items()
+                        if k.startswith('util')
+                    ]))
+                row.append(self.RetCodeMap[result.ret_code])
+                row.append('Yes' if result.valid else 'No')
+                row.append(str(result.eval_time / 60.0))
+                detail_tbl.add_row(row)
+            detail_rpt += detail_tbl.draw()
+            detail_rpt += '\n\n'
+
+            detail_rpt += 'Explored Points\n'
+            for start in range(0, len(param_names), 8):
+                names = param_names[start:min(start + 8, len(param_names))]
+                point_tbl = tt.Texttable(max_width=100)
+                point_tbl.set_cols_align(['c'] * (len(names) + 1))
+                point_tbl.set_cols_dtype(['t'] * (len(names) + 1))
+                point_tbl.header(['ID'] + names)
+                for idx, result in enumerate(data):
+                    if result.point is not None:
+                        point_tbl.add_row([str(idx)] + [str(result.point[p]) for p in names])
+                    else:
+                        point_tbl.add_row([str(idx)] + ['?'] * len(names))
+                detail_rpt += point_tbl.draw()
+                detail_rpt += '\n'
 
         return rpt, detail_rpt
 

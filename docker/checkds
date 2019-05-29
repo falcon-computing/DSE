@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" -eq 3 ]; then
-    python3.6 -m autodse --src-dir $1 --work-dir /tmp/checkds_tmp --config $2 --check-mode $3
+    python3.6 -m autodse --src-dir $1 --work-dir /tmp/checkds_tmp --config $2 --mode ${3}-check
     rm -rf /tmp/checkds_tmp
 else
     echo "Usage: autodse <project dir> <config file> <fast|complete>"
