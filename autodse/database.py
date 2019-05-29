@@ -252,7 +252,6 @@ class RedisDatabase(Database):
         try:
             self.database.client_list()
         except redis.ConnectionError:
-            self.log.error('Failed to connect to Redis database')
             raise RuntimeError()
 
     def load(self) -> None:

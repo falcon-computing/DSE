@@ -67,7 +67,7 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
     },
     'search.algorithm.exhaustive.batch-size': {
         'require': False,
-        'default': 8
+        'default': 2
     },
     'search.algorithm.gradient.latency-threshold': {
         'require': False,

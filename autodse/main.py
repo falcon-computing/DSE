@@ -24,6 +24,7 @@ from .explorer.explorer import AccurateExplorer, FastExplorer
 from .logger import get_default_logger
 from .parameter import DesignPoint, DesignSpace
 from .reporter import Reporter
+from .util import copy_dir
 
 
 def arg_parser() -> argparse.Namespace:
@@ -77,7 +78,7 @@ class Main():
         self.out_dir = os.path.join(self.work_dir, 'output')
         self.eval_dir = os.path.join(self.work_dir, 'evaluate')
         self.log_dir = os.path.join(self.work_dir, 'logs')
-        if self.args.mode == 'check-complete':
+        if self.args.mode == 'complete-check':
             self.db_path = os.path.join(self.work_dir, 'check.db')
         elif self.args.db:
             self.db_path = os.path.abspath(self.args.db)
@@ -119,7 +120,7 @@ class Main():
             self.log.warning('1. Check design space syntax and type')
             self.log.warning('2. Evaluate one default point (may take up to 30 mins)')
             self.config['search']['algorithm']['name'] = 'gradient'
-            self.config['timeout']['exploration'] = 0.01
+            self.config['timeout']['exploration'] = 10e-8
 
             # We leverage this log to check the evaluation result so it has to be up-to-date
             if os.path.exists('eval.log'):
@@ -127,8 +128,12 @@ class Main():
 
         # Initialize database
         self.log.info('Initializing the database')
-        self.db = RedisDatabase(self.config['project']['name'],
-                                int(self.config['project']['fast-output-num']), self.db_path)
+        try:
+            self.db = RedisDatabase(self.config['project']['name'],
+                                    int(self.config['project']['fast-output-num']), self.db_path)
+        except RuntimeError:
+            self.log.error('Failed to connect to the database')
+            sys.exit(1)
         self.db.load()
 
         # Initialize evaluator with FAST mode
@@ -167,7 +172,7 @@ class Main():
         try:
             old_files = os.listdir(self.work_dir)
             if old_files:
-                bak_dir = tempfile.mkdtemp(prefix='bak_', dir='.')
+                bak_dir = tempfile.mkdtemp(prefix='bak_', dir=self.work_dir)
 
                 # Move all files except for config and database files to the backup directory
                 for old_file in old_files:
@@ -224,7 +229,9 @@ class Main():
                             log_msgs.add(msg)
 
     def gen_fast_outputs(self) -> List[DesignPoint]:
-        """Generate final outputs"""
+        """Generate outputs after fast mode.
+        Note that the best cache in the DB will be cleaned up by this function.
+        """
 
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
@@ -336,8 +343,51 @@ class Main():
             log.error('Encounter error during the fast exploration: %s', str(err))
             log.error(traceback.format_exc())
 
+    def gen_accurate_outputs(self) -> None:
+        """Generate final outputs"""
+
+        if not os.path.exists(self.out_dir):
+            os.makedirs(self.out_dir)
+        out_accurate_dir = os.path.join(self.out_dir, 'accurate')
+
+        # Clean output directory
+        if os.path.exists(out_accurate_dir):
+            shutil.rmtree(out_accurate_dir)
+        os.makedirs(out_accurate_dir)
+
+        # Fetch database cache for the results
+        best_path = ''
+        best_quality = -float('inf')
+        output = []
+        idx = 0
+        best_cache: PriorityQueue = self.db.best_cache
+        while not best_cache.empty():
+            _, _, result = best_cache.get()
+            assert result.point is not None
+            output_path = os.path.join(out_accurate_dir, str(idx))
+            copy_dir(result.path, output_path)
+            result.path = str(idx)
+            output.append(result)
+            if result.quality > best_quality:
+                best_quality = result.quality
+                best_path = output_path
+            idx += 1
+
+        rpt = self.reporter.report_output(output)
+        if rpt:
+            with open(os.path.join(out_accurate_dir, 'output.rpt'), 'w') as filep:
+                filep.write(rpt)
+
+        # Make a symbolic link for the best one
+        os.symlink(best_path, os.path.join(self.out_dir, 'best'))
+
     def launch_accurate(self, points: List[DesignPoint]) -> None:
         """Launch accurate exploration"""
+
+        # Enforce backup all since this process is very time-consuming
+        if self.evaluator.backup_mode != BackupMode.BACKUP_ALL:
+            self.log.info('Backup mode is set to ALL to keep all P&R results')
+            self.evaluator.backup_mode = BackupMode.BACKUP_ALL
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             proc = executor.submit(self.accurate_runner,
@@ -360,7 +410,7 @@ class Main():
         self.db.persist()
 
         # Create outputs
-        # TODO
+        self.gen_accurate_outputs()
         self.log.info('The outputs of accurate exploration is generated')
 
     @staticmethod
@@ -371,7 +421,7 @@ class Main():
         explorer = AccurateExplorer(points=points, db=db, evaluator=evaluator, tag='accurate')
 
         try:
-            explorer.run(config['search']['algorithm'])  # FIXME
+            explorer.run(config['search']['algorithm'])
         except Exception as err:  # pylint:disable=broad-except
             log = get_default_logger('DSE')
             log.error('Encounter error during the accurate exploration: %s', str(err))

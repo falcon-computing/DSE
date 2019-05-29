@@ -132,4 +132,13 @@ def test_merlin_analyzer(test_dir):
     assert 'auto-in-top3' in scope_map and scope_map['auto-in-top3'] == 'L_0_0_0_2_2_0_2'
     assert 'auto-not-for-loop' in scope_map and scope_map['auto-not-for-loop'] == 'UNKNOWN'
 
+    # Test bitgen log analysis
+    bitgen_log_path = os.path.join(test_dir, 'temp_fixture/anal_rpts1')
+    shutil.copy(os.path.join(bitgen_log_path, 'merlin.log'), job.path)
+    result = MerlinAnalyzer.analyze(job, 'bitgen', config)
+    assert result is not None
+    assert result.valid
+    assert result.freq > 0
+    assert any([v > 0 for k, v in result.res_util.items() if k.startswith('util')])
+
     LOG.debug('=== Testing MerlinAnalyzer end')

@@ -59,7 +59,7 @@ class Evaluator():
         # in the design point, then the Merlin compiler will error out so we could let user know.
         self.src_files: List[str] = []
         self.auto_map: Dict[str, List[str]] = {}
-        for root, _, files in os.walk(src_path):
+        for root, _, files in os.walk(src_path, followlinks=True):
             for file_name in files:
                 file_abs_path = os.path.join(root, file_name)
                 has_auto = False
@@ -415,6 +415,17 @@ class MerlinEvaluator(Evaluator):
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
                 assert isinstance(result, BitgenResult)
+
+                # FIXME: Since we do not run onboard or emulation to get the actual runtime
+                # or cycle, we borrow the cycle number from HLS result for now.
+                hls_result = self.db.query('lv2:{0}'.format(job_key))
+                if hls_result and hls_result.valid:
+                    result.perf = hls_result.perf
+                    result.quality = 1.0 / (result.perf / result.freq)
+                else:
+                    self.log.warning(
+                        'Failed to borrow cycle from HLS result because it is either '
+                        'missing (lv2:%s) or invalid', job_key)
                 results[job_key] = result
             else:
                 results[job_key].ret_code = ret_code

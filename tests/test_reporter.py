@@ -44,8 +44,8 @@ def test_reporter(test_dir, capsys):
 
     # Test summary
     rpt = reporter.report_summary()
-    assert rpt[0].find('Total Explored') != -1
-    assert rpt[1].find('Result Details') != -1
+    assert rpt[0].find('Total Explored') != -1, rpt
+    assert rpt[1].find('Result Details') != -1, rpt
 
     # Test output
     output = []

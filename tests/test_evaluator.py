@@ -227,3 +227,58 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             assert eval_ins.db.count() == 6
 
     LOG.debug('=== Testing evaluator phase 2 end')
+
+
+def test_evaluator_phase3(required_args, test_dir, mocker):
+    #pylint:disable=redefined-outer-name
+    """Test evaluator of bitgen"""
+
+    LOG.debug('=== Testing evaluator phase 3 start')
+
+    # Create and initialize evaluator and a job
+    eval_ins = MerlinEvaluator('{0}/temp_fixture/eval_src1'.format(test_dir),
+                               '{0}/temp_eval_work'.format(test_dir), required_args['db'],
+                               required_args['scheduler'], required_args['analyzer_cls'],
+                               BackupMode.NO_BACKUP, required_args['dse_config'])
+
+    # Test timeout setup and command, although we will not use them in this test
+    eval_ins.set_timeout({'transform': 3, 'hls': 30, 'bitgen': 480})
+    eval_ins.set_command({'bitgen': 'make mcc_bitgne'})
+
+    # Submit for evaluation (ACCURATE)
+    with mocker.patch.object(eval_ins.analyzer, 'desire', return_value=[]):
+
+        def mock_analyze_ok(job, mode, config):
+            #pylint:disable=unused-argument
+            result = BitgenResult()
+            result.freq = 300.0
+            result.valid = True
+            return result
+
+        with mocker.patch.object(eval_ins.analyzer, 'analyze', side_effect=mock_analyze_ok):
+            job0 = eval_ins.create_job()
+            point = {'PE': 3, 'R': ''}
+            eval_ins.apply_design_point(job0, point)
+
+            # No quality due to the miss of HLS result
+            results = eval_ins.submit([job0], 3)
+            assert results[0][1].ret_code == Result.RetCode.PASS
+            assert results[0][1].freq == 300.0
+            assert results[0][1].quality == -float('inf')
+            assert eval_ins.db.count() == 1
+
+            # Fake a HLS result and commit to DB
+            fake_hls_result = HLSResult()
+            fake_hls_result.valid = True
+            fake_hls_result.perf = 10e6
+            eval_ins.db.commit('lv2:PE-3.R-NA', fake_hls_result)
+
+            # With quality by borrowing the HLS cycle
+            job1 = eval_ins.create_job()
+            eval_ins.apply_design_point(job1, point)
+            results = eval_ins.submit([job1], 3)
+            assert results[0][1].ret_code == Result.RetCode.PASS
+            assert results[0][1].quality != -float('inf')
+            assert eval_ins.db.count() == 2
+
+    LOG.debug('=== Testing evaluator phase 3 end')

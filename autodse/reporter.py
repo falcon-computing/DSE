@@ -98,17 +98,25 @@ class Reporter():
             return ''
 
         tbl = tt.Texttable()
-        tbl.header(['Directory', 'Quality', 'Perf.', 'Resource'])
+        if isinstance(outputs[0], BitgenResult):
+            tbl.header(['Directory', 'Quality', 'Perf.', 'Resource', 'Frequency'])
+            tbl.set_cols_dtype(['t'] * 5)
+        else:
+            tbl.header(['Directory', 'Quality', 'Perf.', 'Resource'])
+            tbl.set_cols_dtype(['t'] * 4)
 
         for result in outputs:
             assert result.path is not None
-            tbl.add_row([
-                result.path, result.quality, result.perf, ', '.join([
+            row = [
+                result.path, '{0:.2e}'.format(result.quality), '{0:.0f}'.format(result.perf),
+                ', '.join([
                     '{0}:{1:.1f}%'.format(k[5:], v * 100.0) for k, v in result.res_util.items()
                     if k.startswith('util')
                 ])
-            ])
-
+            ]
+            if isinstance(result, BitgenResult):
+                row.append('{0:.2f}'.format(result.freq))
+            tbl.add_row(row)
         return tbl.draw()
 
     def report_summary(self) -> Tuple[str, str]:
