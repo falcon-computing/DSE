@@ -28,7 +28,6 @@ def test_build_config():
                 "default": 'off'
             }
         },
-        'evaluate.estimate-mode': 'FAST',
         'evaluate.command.transform': 'make mcc_acc',
         'evaluate.command.hls': 'make mcc_estimate',
         'evaluate.command.bitgen': 'make mcc_bitgen',

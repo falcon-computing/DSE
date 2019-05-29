@@ -15,8 +15,6 @@ def test_reporter(test_dir, capsys):
     LOG.info('=== Testing reporter start')
 
     config = {}
-    config['evaluate'] = {}
-    config['evaluate']['estimate-mode'] = 'FAST'
     config['timeout'] = {}
     config['timeout']['exploration'] = '2'
     db = PickleDatabase('test', 2, '{0}/temp_fixture/db/0.db'.format(test_dir))

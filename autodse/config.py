@@ -131,6 +131,11 @@ def build_config(user_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 log.debug('Use default value for %s: %s', key, str(attr['default']))
                 user_config[key] = attr['default']
 
+    for key in user_config.keys():
+        if key not in CONFIG_SETTING:
+            log.error('Unrecognized config key: %s', key)
+            error += 1
+
     if error > 0:
         return None
 

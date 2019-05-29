@@ -68,7 +68,7 @@ class Database():
             The new result to be checked.
         """
 
-        if result.valid:
+        if result.valid and result.quality != -float('inf'):
             try:
                 self.best_cache.put((result.quality, time(), result))
             except Exception as err:
@@ -116,6 +116,16 @@ class Database():
         for _, result in pairs:
             if isinstance(result, Result):
                 self.update_best(result)
+
+    def query_all(self) -> List[Any]:
+        """Query all values in the database
+
+        Returns
+        -------
+        List[Any]:
+            All data in the database
+        """
+        return [v for v in self.batch_query(self.query_keys()) if v is not None]
 
     def count_ret_code(self, ret_code: Result.RetCode) -> int:
         """Count the number of results with the given return code
@@ -168,14 +178,8 @@ class Database():
         """
         raise NotImplementedError()
 
-    def query_all(self) -> List[Any]:
-        """Query all values in the database
-
-        Returns
-        -------
-        List[Any]:
-            All data in the database
-        """
+    def query_keys(self) -> List[str]:
+        """Return all keys"""
         raise NotImplementedError()
 
     def commit_impl(self, key: str, result: Any) -> bool:
@@ -290,7 +294,11 @@ class RedisDatabase(Database):
     def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
         #pylint:disable=missing=docstring
 
+        if not keys:
+            return []
+
         data = []
+
         for key, pickled_obj in zip(keys, self.database.hmget(self.db_id, keys)):
             if pickled_obj:
                 try:
@@ -302,9 +310,9 @@ class RedisDatabase(Database):
                 data.append(None)
         return data
 
-    def query_all(self) -> List[Any]:
+    def query_keys(self) -> List[str]:
         #pylint:disable=missing-docstring
-        return [v for v in self.batch_query(self.database.hkeys(self.db_id)) if v is not None]
+        return [k.decode(encoding='UTF-8') for k in self.database.hkeys(self.db_id)]
 
     def commit_impl(self, key: str, result: Any) -> bool:
         #pylint:disable=missing-docstring
@@ -387,6 +395,9 @@ class PickleDatabase(Database):
     def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
         #pylint:disable=missing=docstring
 
+        if not keys:
+            return []
+
         self.lock.acquire()
         values: List[Optional[Any]] = []
         for key in keys:
@@ -395,9 +406,9 @@ class PickleDatabase(Database):
         self.lock.release()
         return values
 
-    def query_all(self) -> List[Any]:
+    def query_keys(self) -> List[str]:
         #pylint:disable=missing-docstring
-        return [v for v in self.batch_query(self.database.getall()) if v is not None]
+        return self.database.getall()
 
     def commit_impl(self, key: str, result: Result) -> bool:
         #pylint:disable=missing-docstring

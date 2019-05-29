@@ -1,7 +1,7 @@
 {
     "project.name": "gemm-blocked",
     "project.backup": "BACKUP_ERROR",
-    "project.output-num": 3,
+    "project.fast-output-num": 3,
     "timeout.exploration": 240,
     "timeout.transform": 5,
     "timeout.hls": 20,
@@ -9,7 +9,6 @@
     "evaluate.command.transform": "make mcc_acc",
     "evaluate.command.hls": "make mcc_estimate",
     "evaluate.command.bitgen": "make mcc_bitgen",
-    "evaluate.estimate-mode": "FAST",
     "evaluate.worker-per-part": 2,
     "evaluate.max-util.BRAM": 0.8,
     "evaluate.max-util.DSP": 0.8,
@@ -19,6 +18,7 @@
     "search.algorithm.exhaustive.batch-size": 2,
     "search.algorithm.gradient.latency-threshold": 64,
     "search.algorithm.gradient.fine-grained-first": true,
+    "search.algorithm.gradient.quality-type": "performance",
     "design-space.max-part-num": 4,
     "design-space.definition": {
         "B": {
