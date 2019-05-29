@@ -2,7 +2,7 @@
 The main module of explorer.
 """
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Generator, List, Optional
 
 from .algorithmfactory import AlgorithmFactory
 from ..evaluator.evaluator import Evaluator
@@ -25,6 +25,29 @@ class Explorer():
         # Status checking
         self.best_result: Result = Result()
         self.explored_point = 0
+
+    def create_job_and_apply_point(self, point) -> Optional[Job]:
+        """Create a new job and apply the given design point
+
+        Parameters
+        ----------
+        point:
+            The point to be applied.
+
+        Returns
+        -------
+        Optional[Job]:
+            The created job, or None if failed.
+        """
+
+        job = self.evaluator.create_job()
+        if job:
+            if not self.evaluator.apply_design_point(job, point):
+                return None
+        else:
+            self.log.error('Fail to create a new job (disk space?)')
+            return None
+        return job
 
     def update_best(self, result: Result) -> None:
         """Keep tracking the best result found in this explorer.
@@ -63,29 +86,6 @@ class FastExplorer(Explorer):
         self.timeout = timeout * 60.0
         self.ds = ds
 
-    def create_job_and_apply_point(self, point) -> Optional[Job]:
-        """Create a new job and apply the given design point
-
-        Parameters
-        ----------
-        point:
-            The point to be applied.
-
-        Returns
-        -------
-        Optional[Job]:
-            The created job, or None if failed.
-        """
-
-        job = self.evaluator.create_job()
-        if job:
-            if not self.evaluator.apply_design_point(job, point):
-                return None
-        else:
-            self.log.error('Fail to create a new job (disk space?)')
-            return None
-        return job
-
     def run(self, algo_config: Dict[str, Any]) -> None:
         #pylint:disable=missing-docstring
 
@@ -108,18 +108,34 @@ class FastExplorer(Explorer):
 
             # Create jobs and check duplications
             jobs: List[Job] = []
-            keys: List[str] = [gen_key_from_design_point(point) for point in next_points]
-            for point, result in zip(next_points, self.db.batch_query(keys)):
+            keys: List[str] = []
+            lv2_keys = [
+                'lv2:{0}'.format(gen_key_from_design_point(point)) for point in next_points
+            ]
+            for point, result in zip(next_points, self.db.batch_query(lv2_keys)):
                 key = gen_key_from_design_point(point)
-                if result is None:
+                if result is not None:
+                    # Already has HLS result, skip
+                    self.update_best(result)
+                    results[key] = result
+                else:
+                    # Miss HLS result, further check level 1
+                    keys.append(key)
+
+            lv1_keys = ['lv1:{0}'.format(key) for key in keys]
+            for point, result in zip(next_points, self.db.batch_query(lv1_keys)):
+                key = gen_key_from_design_point(point)
+                if result is not None:
+                    # Already has Merlin result, skip
+                    self.update_best(result)
+                    results[key] = result
+                else:
+                    # No result in the DB, generate
                     job = self.create_job_and_apply_point(point)
                     if job:
                         jobs.append(job)
                     else:
                         return
-                else:
-                    self.update_best(result)
-                    results[key] = result
             if not jobs:
                 duplicated_iters += 1
                 self.log.debug('All design points are already evaluated (%d iterations)',
@@ -154,7 +170,10 @@ class FastExplorer(Explorer):
 
 
 class AccurateExplorer(Explorer):
-    """The accurate explorer class"""
+    """The accurate explorer class.
+    Currently we simply evaluate all given points and mark the best one. The future opportunities
+    here could be an algorithm for tuning design tool parameters.
+    """
 
     def __init__(self, db: Database, evaluator: Evaluator, tag: str, points: List[DesignPoint]):
         super(AccurateExplorer, self).__init__(db, evaluator, tag)
@@ -162,4 +181,46 @@ class AccurateExplorer(Explorer):
 
     def run(self, algo_config: Dict[str, Any]) -> None:
         #pylint:disable=missing-docstring
-        pass
+
+        def chunk(points: List[DesignPoint], size: int) -> Generator[List[DesignPoint], None, None]:
+            """Chunk design point list to the given size
+
+            Parameters
+            ----------
+            points:
+                A full list of design points.
+
+            size:
+                The maximum size of each chunk.
+
+            Returns
+            -------
+            Generator[List[DesignPoint], None, None]:
+                A generator to chunk the list.
+            """
+
+            for i in range(0, len(points), size):
+                yield points[i:i + size]
+
+        batch_size = int(algo_config['exhaustive']['batch-size'])
+        self.log.info('Batch size is set to %d', batch_size)
+
+        for points in list(chunk(self.points, batch_size)):
+            # Create jobs
+            jobs: List[Job] = []
+            for point in points:
+                job = self.create_job_and_apply_point(point)
+                if job:
+                    jobs.append(job)
+                else:
+                    return
+
+            # Evaluate design points
+            self.log.info('Evaluating %d design points: Level 3', len(jobs))
+            for _, result in self.evaluator.submit(jobs, 3):
+                self.update_best(result)
+
+            self.explored_point += len(jobs)
+            self.db.commit('meta-expr-cnt-accurate', self.explored_point)
+
+        self.log.info('Explored %d points', self.explored_point)

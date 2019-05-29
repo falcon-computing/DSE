@@ -2,7 +2,7 @@
     "project.name": "gemm-blocked",
     "project.backup": "BACKUP_ERROR",
     "project.fast-output-num": 3,
-    "timeout.exploration": 240,
+    "timeout.exploration": 30,
     "timeout.transform": 5,
     "timeout.hls": 20,
     "timeout.bitgen": 480,

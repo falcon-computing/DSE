@@ -60,7 +60,7 @@ def test_fast_explorer(mocker):
             # Fail to apply design point
             with mocker.patch('autodse.evaluator.evaluator.Evaluator.apply_design_point',
                               return_value=False):
-                explr = FastExplorer(db, evaluator, 0.02, 'expr', {})
+                explr = FastExplorer(db, evaluator, 0.02, 'fast', {})
                 explr.run(config)
                 assert explr.explored_point == 0, 'Should not successfully explore any point'
 
@@ -68,6 +68,40 @@ def test_fast_explorer(mocker):
             # Note that we mock the batch_query to pretend the fake points are not duplicated
             with mocker.patch('autodse.evaluator.evaluator.Evaluator.apply_design_point',
                               return_value=True):
-                explr = FastExplorer(db, evaluator, 0.02, 'expr', {})
+                explr = FastExplorer(db, evaluator, 0.02, 'fast', {})
                 explr.run(config)
                 assert explr.explored_point > 100, 'Should explore many points'
+
+
+def test_accurate_explorer(mocker):
+    #pylint:disable=missing-docstring
+
+    with mocker.patch.object(Database, '__init__', return_value=None), \
+         mocker.patch.object(Evaluator, '__init__', return_value=None):
+
+        # Algorithm config, although we will not use it in this test
+        config = {'name': 'exhaustive', 'exhaustive': {'batch-size': 8}}
+
+        db = Database('test')
+
+        # Make up design points
+        points = []
+        for i in range(1, 9):
+            points.append({'A': i})
+
+        def mock_submit(jobs, eval_lv):
+            #pylint:disable=missing-docstring, unused-argument
+            return [('unused_key', Result())] * len(jobs)
+
+        # Test point submission
+        with mocker.patch.object(db, 'commit', return_value=None), \
+             mocker.patch.object(Evaluator, 'create_job', return_value=Job('')), \
+             mocker.patch('autodse.evaluator.evaluator.Evaluator.apply_design_point',
+                          return_value=True):
+            evaluator = Evaluator('', '', db, scheduler.Scheduler(), analyzer.MerlinAnalyzer,
+                                  BackupMode.NO_BACKUP, {})
+
+            with mocker.patch.object(evaluator, 'submit', side_effect=mock_submit):
+                explr = AccurateExplorer(db, evaluator, 'accurate', points)
+                explr.run(config)
+                assert explr.explored_point == 8
