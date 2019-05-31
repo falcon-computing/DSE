@@ -93,6 +93,9 @@ class Reporter():
             The output report.
         """
 
+        # Reset the best quality
+        self.best_quality = -float('inf')
+
         if not outputs:
             self.log.warning('No design point is outputed')
             return ''
@@ -180,18 +183,19 @@ class Reporter():
         # Query level 3 results
         lv_keys.append([k for k in keys if k.startswith('lv3')])
         lv_data.append([r for r in self.db.batch_query(lv_keys[2]) if r is not None])
-        tbl.add_row([
-            'Level 3 Timeout',
-            str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.TIMEOUT]))
-        ])
-        tbl.add_row([
-            'Level 3 Analysis Error',
-            str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.ANALYZE_ERROR]))
-        ])
-        tbl.add_row([
-            'Level 3 Result Unavailable',
-            str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.UNAVAILABLE]))
-        ])
+        if lv_data[0]:
+            tbl.add_row([
+                'Level 3 Timeout',
+                str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.TIMEOUT]))
+            ])
+            tbl.add_row([
+                'Level 3 Analysis Error',
+                str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.ANALYZE_ERROR]))
+            ])
+            tbl.add_row([
+                'Level 3 Result Unavailable',
+                str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.UNAVAILABLE]))
+            ])
 
         tbl.add_row(['Output Points', str(self.db.best_cache.qsize())])
 

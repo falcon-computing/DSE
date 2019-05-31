@@ -52,7 +52,7 @@ class PythonSubprocessScheduler(Scheduler):
     """The scheduler implementation using Python subprocess."""
 
     @staticmethod
-    def backup_files_and_rmtree(src_path: str, dst_path: str, file_list: List[str]) -> None:
+    def backup_files_and_rmtree(src_path: str, dst_path: str, file_list: Optional[List[str]] = None) -> None:
         """Backup files from working directory to the job directory and remove working directory
 
         Paramteters
@@ -64,7 +64,7 @@ class PythonSubprocessScheduler(Scheduler):
             The job directory.
 
         file_list:
-            A list of files we want to keep.
+            A list of files we want to keep. None means keep all.
 
         Returns
         -------
@@ -73,18 +73,21 @@ class PythonSubprocessScheduler(Scheduler):
         """
 
         log = get_eval_logger('Scheduler')
-        for file_name in file_list:
-            try:
-                dst_file = os.path.join(dst_path, file_name)
-                dst_full_path = os.path.dirname(dst_file)
-                if not os.path.exists(dst_full_path):
-                    os.makedirs(dst_full_path)
-                shutil.move(os.path.join(src_path, file_name), dst_file)
-            except FileNotFoundError as err:
-                log.debug('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
-                          dst_path, str(err))
-
-        shutil.rmtree(src_path)
+        if not file_list:
+            shutil.rmtree(dst_path)
+            shutil.move(src_path, dst_path)
+        else:
+            for file_name in file_list:
+                try:
+                    dst_file = os.path.join(dst_path, file_name)
+                    dst_full_path = os.path.dirname(dst_file)
+                    if not os.path.exists(dst_full_path):
+                        os.makedirs(dst_full_path)
+                    shutil.move(os.path.join(src_path, file_name), dst_file)
+                except FileNotFoundError as err:
+                    log.debug('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
+                              dst_path, str(err))
+            shutil.rmtree(src_path)
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
             timeout: Optional[int] = None) -> List[Tuple[str, Result.RetCode]]:
@@ -129,10 +132,12 @@ class PythonSubprocessScheduler(Scheduler):
                     procs = []
                     for idx, proc in old_procs:
                         ret = proc.poll()
+                        # Finished, check if success, remove from list, and backup wanted files
                         if ret is not None and ret != 0:
                             self.log.error('Command "%s" has non-zero exit code: %d', cmd, ret)
+                            self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),
+                                                         jobs[idx].path)
                         elif ret is not None:
-                            # Finished, check if success, remove from list, and backup wanted files
                             rets[jobs[idx].key] = Result.RetCode.PASS
                             self.backup_files_and_rmtree('{0}_work'.format(jobs[idx].path),
                                                          jobs[idx].path, keep_files)

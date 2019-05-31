@@ -8,6 +8,7 @@ from autodse import logger
 from autodse.util import copy_dir
 from autodse.evaluator.analyzer import MerlinAnalyzer
 from autodse.evaluator.evaluator import Job
+from autodse.result import Result
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -31,7 +32,7 @@ def test_merlin_analyzer(test_dir):
     copy_dir(ref_path, job_path)
     job = Job(job_path)
     job.key = 'testing'
-    job.status = Job.Status.EVALUATED
+    job.status = Job.Status.APPLIED
 
     # Merlin transform failure (no merlin.log was generated)
     result = MerlinAnalyzer.analyze(job, 'transform', config)
@@ -134,11 +135,17 @@ def test_merlin_analyzer(test_dir):
 
     # Test bitgen log analysis
     bitgen_log_path = os.path.join(test_dir, 'temp_fixture/anal_rpts1')
-    shutil.copy(os.path.join(bitgen_log_path, 'merlin.log'), job.path)
+    shutil.copy(os.path.join(bitgen_log_path, 'success.log'), os.path.join(job.path, 'merlin.log'))
     result = MerlinAnalyzer.analyze(job, 'bitgen', config)
     assert result is not None
     assert result.valid
     assert result.freq > 0
     assert any([v > 0 for k, v in result.res_util.items() if k.startswith('util')])
+
+    shutil.copy(os.path.join(bitgen_log_path, 'fail.log'), os.path.join(job.path, 'merlin.log'))
+    result = MerlinAnalyzer.analyze(job, 'bitgen', config)
+    assert result is not None
+    assert not result.valid
+    assert result.ret_code == Result.RetCode.UNAVAILABLE
 
     LOG.debug('=== Testing MerlinAnalyzer end')
