@@ -49,12 +49,38 @@ def test_merlin_analyzer(test_dir):
     with open(os.path.join(job_path, 'merlin.log'), 'w') as filep:
         filep.write('INFO: [MERCC-1040] Compilation finished successfully\n')
         filep.write('Total time: 65.50 seconds\n')
-
+    lc_path = os.path.join(job_path, '.merlin_prj/run/implement/export/lc')
+    os.makedirs(lc_path, exist_ok=True)
+    with open(os.path.join(lc_path, '__merlinkerneltest.cpp'), 'w') as filep:
+        filep.write('#include<string>\n')
+        filep.write('    //Original: #pragma ACCEL pipeline flatten\n')
+        filep.write('for (int i = 0; i < 256; ++i) {\n')
+        filep.write('    #pragma HLS unroll\n')
+        filep.write('    a[i] = b[i];\n')
+        filep.write('}\n')
     result = MerlinAnalyzer.analyze(job, 'transform', config)
     assert result is not None
     assert not result.criticals
+    assert result.code_hash
+    old_code_hash = result.code_hash
     assert result.valid
     assert result.eval_time == 65.50
+
+    # Merlin transform with duplications
+    with open(os.path.join(job_path, 'merlin.log'), 'w') as filep:
+        filep.write('INFO: [MERCC-1040] Compilation finished successfully\n')
+        filep.write('Total time: 78.40 seconds\n')
+    with open(os.path.join(lc_path, '__merlinkerneltest.cpp'), 'w') as filep:
+        filep.write('#include<string>\n')
+        filep.write('  //Original: #pragma ACCEL parallel factor=256\n')
+        filep.write('for (int i = 0; i < 256; ++i) {\n')
+        filep.write('  #pragma HLS unroll\n')
+        filep.write('  a[i] = b[i];\n')
+        filep.write('}\n')
+    result = MerlinAnalyzer.analyze(job, 'transform', config)
+    assert result is not None
+    assert result.valid
+    assert result.code_hash and result.code_hash == old_code_hash
 
     # Merlin transform with critical messages
     with open(os.path.join(job_path, 'merlin.log'), 'w') as filep:

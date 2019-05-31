@@ -308,7 +308,6 @@ class Main():
             return []
 
         # Backup database
-        self.db.commit_best()
         self.db.persist()
 
         # Report and summary

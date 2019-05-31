@@ -110,6 +110,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             #pylint:disable=unused-argument
             if mode == 'transform':
                 result = MerlinResult()
+                result.code_hash = job.point['PE'] # Pretend this is a code hash
             elif mode == 'hls':
                 result = HLSResult()
             else:
@@ -133,18 +134,25 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
                 'hls': 'make mcc_estimate',
                 'bitgen': 'make mcc_bitgne'
             })
-            job1 = eval_ins.create_job()
+            job0 = eval_ins.create_job()
             point = {'PE': 3, 'R': ''}
-            eval_ins.apply_design_point(job1, point)
-            results = eval_ins.submit([job1], 1)
+            eval_ins.apply_design_point(job0, point)
+            results = eval_ins.submit([job0], 1)
             assert results[0][1].ret_code == Result.RetCode.PASS
             assert eval_ins.db.count() == 1
+
+            job1 = eval_ins.create_job()
+            point = {'PE': 3, 'R': 'reduction=a'}
+            eval_ins.apply_design_point(job1, point)
+            results = eval_ins.submit([job1], 1)
+            assert results[0][1].ret_code == Result.RetCode.DUPLICATED
+            assert eval_ins.db.count() == 2
 
         with mocker.patch('autodse.evaluator.analyzer.MerlinAnalyzer.analyze_scope',
                           return_value={}):
             # Test build scope
             assert eval_ins.build_scope_map()
-            assert eval_ins.db.count() == 2
+            assert eval_ins.db.count() == 3
 
         def mock_analyze_fail1(job, mode, config):
             #pylint:disable=unused-argument
@@ -158,7 +166,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             eval_ins.apply_design_point(job2, point)
             results = eval_ins.submit([job2], 1)
             assert results[0][1].ret_code == Result.RetCode.ANALYZE_ERROR
-            assert eval_ins.db.count() == 3
+            assert eval_ins.db.count() == 4
 
             # No backup so the job directory should be gone
             assert not os.path.exists(job2.path)
@@ -182,7 +190,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             results = eval_ins.submit([job3], 2)
             assert results[0][1].ret_code == Result.RetCode.ANALYZE_ERROR
             assert os.path.exists(job3.path)
-            assert eval_ins.db.count() == 4
+            assert eval_ins.db.count() == 5
 
         def mock_analyze_fail3(job, mode, config):
             #pylint:disable=unused-argument
@@ -203,7 +211,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             results = eval_ins.submit([job4], 1)
             assert results[0][1].ret_code == Result.RetCode.EARLY_REJECT
             assert not os.path.exists(job4.path)
-            assert eval_ins.db.count() == 5
+            assert eval_ins.db.count() == 6
 
         def mock_analyze_fail4(job, mode, config):
             #pylint:disable=unused-argument
@@ -224,7 +232,7 @@ def test_evaluator_phase2(required_args, test_dir, mocker):
             results = eval_ins.submit([job5], 2)
             assert results[0][1].ret_code == Result.RetCode.PASS
             assert not results[0][1].valid
-            assert eval_ins.db.count() == 6
+            assert eval_ins.db.count() == 7
 
     LOG.debug('=== Testing evaluator phase 2 end')
 

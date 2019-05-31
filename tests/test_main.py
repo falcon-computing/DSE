@@ -92,7 +92,7 @@ def test_main(test_dir, mocker):
                 '{0}/result.db'.format(mock_args.work_dir))
     Main().main()
     assert os.path.exists('{0}/temp_main_work/logs'.format(test_dir))
-    assert os.path.exists('{0}/temp_main_work/summary.rpt'.format(test_dir))
+    assert os.path.exists('{0}/temp_main_work/summary_fast.rpt'.format(test_dir))
     assert os.path.exists('{0}/temp_main_work/result.db'.format(test_dir))
     assert os.path.exists('{0}/temp_main_work/output/fast'.format(test_dir))
 
@@ -115,9 +115,14 @@ def test_main(test_dir, mocker):
                       side_effect=mock_submitter):
         # Test accurate DSE
         mock_args.mode = 'accurate-dse'
+        shutil.rmtree(mock_args.work_dir)
+        os.makedirs(mock_args.work_dir)
+        shutil.copy('{0}/temp_fixture/main_src/result.db'.format(test_dir),
+                    '{0}/result.db'.format(mock_args.work_dir))
         Main().main()
         assert os.path.exists('{0}/temp_main_work/logs'.format(test_dir))
-        assert os.path.exists('{0}/temp_main_work/summary.rpt'.format(test_dir))
+        assert os.path.exists('{0}/temp_main_work/summary_fast.rpt'.format(test_dir))
+        assert os.path.exists('{0}/temp_main_work/summary_accurate.rpt'.format(test_dir))
         assert os.path.exists('{0}/temp_main_work/output/fast'.format(test_dir))
         assert os.path.exists('{0}/temp_main_work/output/fast/output.rpt'.format(test_dir))
         assert os.path.exists('{0}/temp_main_work/output/fast/2'.format(test_dir))
