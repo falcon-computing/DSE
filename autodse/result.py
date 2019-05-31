@@ -31,6 +31,7 @@ class Result(object):
         ANALYZE_ERROR = -2
         EARLY_REJECT = -3
         TIMEOUT = -4
+        DUPLICATED = -5
 
     def __init__(self, ret_code_str: str = 'PASS'):
 
@@ -77,6 +78,9 @@ class MerlinResult(Result):
 
         # Critical messages from the Merlin transformations
         self.criticals: List[str] = []
+
+        # The kernel code hash for recognizing duplications
+        self.code_hash: Optional[str] = None
 
 
 class HierPathNode(NamedTuple):

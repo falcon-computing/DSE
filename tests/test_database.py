@@ -88,10 +88,6 @@ def database_tester(db_cls):
     data = db.query_all()
     assert len(data) == 4
 
-    # Commit best cache
-    db.commit_best()
-    assert db.count() == 5
-
     # Persist
     db.persist()
     del db
@@ -101,9 +97,9 @@ def database_tester(db_cls):
     # elsewhere.
     db2 = db_cls('DB_test', 1, './DB_test.db')
     db2.load()
-    assert db2.count() == 5
-    assert db2.best_cache.qsize() == 4
-    assert db2.best_cache.queue[0][0] == 5
+    assert db2.count() == 4
+    assert db2.best_cache.qsize() == 3
+    assert db2.best_cache.queue[0][0] == 10
     del db2
 
     # Clean up

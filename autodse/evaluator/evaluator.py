@@ -357,9 +357,16 @@ class MerlinEvaluator(Evaluator):
                                      job_map[job_key].key)
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
-                assert isinstance(result, MerlinResult)
-                if not result.valid:  # Merlin failed to perform certain transformations
+
+                if not result.valid:
+                    # Merlin failed to perform certain transformations
                     result.ret_code = Result.RetCode.EARLY_REJECT
+                else:
+                    # Check hash code
+                    assert isinstance(result, MerlinResult)
+                    if result.code_hash and not self.db.add_code_hash(result.code_hash):
+                        # The code hash is duplicated, reject it
+                        result.ret_code = Result.RetCode.DUPLICATED
                 results[job_key] = result
             else:
                 results[job_key].ret_code = ret_code

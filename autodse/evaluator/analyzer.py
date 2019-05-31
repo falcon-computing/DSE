@@ -1,6 +1,7 @@
 """
 The main module of analyzer.
 """
+import glob
 import json
 import os
 import re
@@ -227,8 +228,26 @@ class MerlinAnalyzer(Analyzer):
                 if any(line.find(msg) != -1 for msg in MerlinAnalyzer.critical_msgs):
                     result.criticals.append(line.replace('\n', ''))
 
-        # Result validation: valid if no critical messages
-        result.valid = not bool(result.criticals)
+        # Result is invalid if it has critical messages
+        if result.criticals:
+            result.valid = False
+            return result
+
+        # Parse transformed kernel code and generate hash code
+        code_hash = ''
+        merlin_lc_path = os.path.join(job.path,
+                                      '.merlin_prj/run/implement/export/lc/__merlinkernel*')
+        for src_file in glob.glob(merlin_lc_path):
+            with open(src_file, 'r') as filep:
+                for _line in filep:
+                    line = _line.replace(' ', '').replace('\n', '')
+                    if line.startswith('//'):
+                        # Skip comments
+                        continue
+                    code_hash += line
+        if code_hash:
+            result.code_hash = code_hash
+
         return result
 
     @staticmethod
@@ -577,7 +596,7 @@ class MerlinAnalyzer(Analyzer):
 
         log = Analyzer.get_analyzer_logger()
         if mode == 'transform':
-            return ['merlin.log']
+            return ['merlin.log', '.merlin_prj/run/implement/export/lc']
         if mode == 'hls':
             return [
                 'merlin.log', '.merlin_prj/run/implement/exec/hls/report_merlin/final_info.json',
