@@ -251,9 +251,9 @@ class MerlinAnalyzer(Analyzer):
 
         log = Analyzer.get_analyzer_logger()
         success, eval_time = MerlinAnalyzer.analyze_merlin_log(
-            job, 'Hardware configuration file generated successfully')
+            job, 'Generating hardware configuration file')
         if not success:
-            log.debug('Merlin P&R failure, no analysis result')
+            log.debug('Merlin P&R did not start. No analysis result')
             return None
 
         result = BitgenResult()
@@ -295,6 +295,10 @@ class MerlinAnalyzer(Analyzer):
                 if freq_line and freq_line.lastindex == 1:
                     result.freq = float(freq_line.group(1))
                     continue
+
+                # Try to match ERROR
+                if line.find('ERROR') != -1:
+                    result.ret_code = Result.RetCode.UNAVAILABLE
 
         result.valid = bool(result.freq != 0)
         return result

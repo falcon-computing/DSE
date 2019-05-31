@@ -14,7 +14,6 @@ class Job(object):
     class Status(Enum):
         INIT = 0
         APPLIED = 1
-        EVALUATED = 2
 
     def __init__(self, path: str):
         self.path: str = path

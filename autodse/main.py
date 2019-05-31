@@ -316,7 +316,7 @@ class Main():
         for line in summary.split('\n'):
             if line:
                 self.log.info(line)
-        with open(os.path.join(self.work_dir, 'summary.rpt'), 'w') as filep:
+        with open(os.path.join(self.work_dir, 'summary_fast.rpt'), 'w') as filep:
             filep.write(summary)
             filep.write('\n\n')
             filep.write(detail)
@@ -378,8 +378,8 @@ class Main():
             with open(os.path.join(out_accurate_dir, 'output.rpt'), 'w') as filep:
                 filep.write(rpt)
 
-        # Make a symbolic link for the best one
-        os.symlink(best_path, os.path.join(self.out_dir, 'best'))
+            # Make a symbolic link for the best one
+            os.symlink(best_path, os.path.join(self.out_dir, 'best'))
 
     def launch_accurate(self, points: List[DesignPoint]) -> None:
         """Launch accurate exploration"""
@@ -406,8 +406,17 @@ class Main():
                     self.reporter.print_status(timer, 0)
                 timer += 0.0167
 
-        # Backup database again
+        # Backup database again but do not commit best cache
         self.db.persist()
+
+        summary, detail = self.reporter.report_summary()
+        for line in summary.split('\n'):
+            if line:
+                self.log.info(line)
+        with open(os.path.join(self.work_dir, 'summary_accurate.rpt'), 'w') as filep:
+            filep.write(summary)
+            filep.write('\n\n')
+            filep.write(detail)
 
         # Create outputs
         self.gen_accurate_outputs()
@@ -476,8 +485,9 @@ class Main():
         if self.args.mode == 'fast-dse':
             self.log.info('Finish the exploration')
         else:
-            self.log.info('Finish the exploration phase 1 with %d candidates',
-                          self.db.best_cache.qsize())
+            self.log.info('Finish the phase 1 exploration with %d candidates',
+                          len(fast_points))
+            self.log.info('Start the phase 2 exploration')
 
             # Run phase 2 in ACCURATE mode
             try:

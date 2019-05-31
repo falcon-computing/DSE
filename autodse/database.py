@@ -68,12 +68,11 @@ class Database():
             The new result to be checked.
         """
 
-        if result.valid and result.quality != -float('inf'):
-            try:
-                self.best_cache.put((result.quality, time(), result))
-            except Exception as err:
-                self.log.error('Failed to update best cache: %s', str(err))
-                raise RuntimeError()
+        try:
+            self.best_cache.put((result.quality, time(), result))
+        except Exception as err:
+            self.log.error('Failed to update best cache: %s', str(err))
+            raise RuntimeError()
 
     def commit_best(self) -> None:
         """Commit the best cache for persisting"""

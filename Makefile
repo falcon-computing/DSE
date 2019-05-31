@@ -12,7 +12,7 @@ tox:
 	tox
 
 unit_test:
-	pytest
+	pytest --lf
 
 example:
 	rm -f *.log
