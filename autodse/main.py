@@ -484,8 +484,7 @@ class Main():
         if self.args.mode == 'fast-dse':
             self.log.info('Finish the exploration')
         else:
-            self.log.info('Finish the phase 1 exploration with %d candidates',
-                          len(fast_points))
+            self.log.info('Finish the phase 1 exploration with %d candidates', len(fast_points))
             self.log.info('Start the phase 2 exploration')
 
             # Run phase 2 in ACCURATE mode

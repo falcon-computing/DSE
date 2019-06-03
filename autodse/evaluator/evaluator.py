@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import tempfile
+from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Type, Tuple
 
@@ -218,6 +219,8 @@ class Evaluator():
         self.log.debug('Committing %d results', len(job_n_results))
         self.db.batch_commit([('{0}:{1}'.format(result_prefix, job.key), result)
                               for job, result in job_n_results])
+        for job, _ in job_n_results:
+            self.log.debug('Committed %s:%s', result_prefix, job.key)
         self.log.info('Results are committed to the database')
 
         # Backup jobs if needed
@@ -335,6 +338,24 @@ class MerlinEvaluator(Evaluator):
         self.log.error('Failed to build the scope map')
         return False
 
+    def dup_hls_result(self, result: HLSResult) -> HLSResult:
+        """Clone the given HLS result and mark as duplicated
+
+        Parameters
+        ----------
+        result:
+            The HLS result to be duplicated
+
+        Returns
+        -------
+        HLSResult:
+            The duplicated result.
+        """
+        dup_result = deepcopy(result)
+        dup_result.ret_code = Result.RetCode.DUPLICATED
+        dup_result.eval_time = 0
+        return dup_result
+
     def submit_lv1(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         #pylint:disable=missing-docstring
 
@@ -357,16 +378,9 @@ class MerlinEvaluator(Evaluator):
                                      job_map[job_key].key)
                     results[job_key].ret_code = Result.RetCode.ANALYZE_ERROR
                     continue
-
                 if not result.valid:
                     # Merlin failed to perform certain transformations
                     result.ret_code = Result.RetCode.EARLY_REJECT
-                else:
-                    # Check hash code
-                    assert isinstance(result, MerlinResult)
-                    if result.code_hash and not self.db.add_code_hash(result.code_hash):
-                        # The code hash is duplicated, reject it
-                        result.ret_code = Result.RetCode.DUPLICATED
                 results[job_key] = result
             else:
                 results[job_key].ret_code = ret_code
@@ -384,9 +398,38 @@ class MerlinEvaluator(Evaluator):
             self.log.error('Command for HLS is not properly set up.')
             return [(job, Result('UNAVAILABLE')) for job in jobs]
 
+        # Check duplications using code hash
+        pending_hls: List[Job] = []
+        dup_list: List[Job] = []
+        lv1_results = self.db.batch_query(['lv1:{0}'.format(k) for k in job_map.keys()])
+        for job, lv1_result in zip(job_map.values(), lv1_results):
+            if lv1_result is not None and lv1_result.valid:
+                # Check if code hash is already exist when lv1 result is available
+                assert isinstance(lv1_result, MerlinResult)
+                if lv1_result.code_hash:
+                    dup_key = self.db.add_code_hash(lv1_result.code_hash, job.key)
+                    if dup_key is not None:
+                        # The code hash is duplicated, borrow the HLS result if available
+                        dup_lv2_key = 'lv2:{}'.format(dup_key)
+                        self.log.debug('%s duplicates Lv2 result of code hash with %s', job.key,
+                                       dup_key)
+                        dup_result = self.db.query(dup_lv2_key)
+                        if dup_result:
+                            results[job.key] = self.dup_hls_result(dup_result)
+                        else:
+                            # Result may not be available at this moment so we just make
+                            # a duplicated run to simplify the flow.
+                            self.log.debug('Add %s to duplicate list', job.key)
+                            dup_list.append(job)
+                    else:
+                        self.log.debug('Add code hash of %s to DB code hash map', job.key)
+            if results[job.key].ret_code == Result.RetCode.UNAVAILABLE:
+                # Did not find the duplicated result, pending to run HLS
+                pending_hls.append(job)
+
         # Run HLS and analyze the Merlin report
-        sche_rets = self.scheduler.run(jobs, self.analyzer.desire('hls'), self.commands['hls'],
-                                       self.timeouts['hls'])
+        sche_rets = self.scheduler.run(pending_hls, self.analyzer.desire('hls'),
+                                       self.commands['hls'], self.timeouts['hls'])
         for job_key, ret_code in sche_rets:
             if ret_code == Result.RetCode.PASS:
                 result = self.analyzer.analyze(job_map[job_key], 'hls', self.config)
@@ -398,6 +441,10 @@ class MerlinEvaluator(Evaluator):
                 assert isinstance(result, HLSResult)
             else:
                 results[job_key].ret_code = ret_code
+
+        # Mark duplicated jobs so that it will not be added to the best cache
+        for job in dup_list:
+            results[job.key].ret_code = Result.RetCode.DUPLICATED
 
         return [(job, results[job.key]) for job in jobs]
 
