@@ -157,11 +157,14 @@ class FastExplorer(Explorer):
                 else:
                     results[key] = result
 
-            # Evaluate design points using level 2 that runs HLS
-            self.log.debug('Evaluating %d design points: Level 2', len(pending))
-            for key, result in self.evaluator.submit(pending, 2):
-                self.update_best(result)
-                results[key] = result
+            if pending:
+                # Evaluate design points using level 2 that runs HLS
+                self.log.debug('Evaluating %d design points: Level 2', len(pending))
+                for key, result in self.evaluator.submit(pending, 2):
+                    self.update_best(result)
+                    results[key] = result
+            else:
+                self.log.info('All points are stopped at level 1')
 
             self.explored_point += len(jobs)
             self.db.commit('meta-expr-cnt-{0}'.format(self.tag), self.explored_point)
@@ -182,7 +185,8 @@ class AccurateExplorer(Explorer):
     def run(self, algo_config: Dict[str, Any]) -> None:
         #pylint:disable=missing-docstring
 
-        def chunk(points: List[DesignPoint], size: int) -> Generator[List[DesignPoint], None, None]:
+        def chunk(points: List[DesignPoint],
+                  size: int) -> Generator[List[DesignPoint], None, None]:
             """Chunk design point list to the given size
 
             Parameters

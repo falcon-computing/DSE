@@ -52,7 +52,9 @@ class PythonSubprocessScheduler(Scheduler):
     """The scheduler implementation using Python subprocess."""
 
     @staticmethod
-    def backup_files_and_rmtree(src_path: str, dst_path: str, file_list: Optional[List[str]] = None) -> None:
+    def backup_files_and_rmtree(src_path: str,
+                                dst_path: str,
+                                file_list: Optional[List[str]] = None) -> None:
         """Backup files from working directory to the job directory and remove working directory
 
         Paramteters
