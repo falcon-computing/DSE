@@ -89,7 +89,6 @@ class PythonSubprocessScheduler(Scheduler):
                 # Walk through all match files under the folder
                 for file_path in glob.glob(os.path.join(src_path, file_expr)):
                     file_name = os.path.basename(file_path)
-                    log.info('move %s to %s', file_path, dst_full_path)
                     try:
                         dst_file = os.path.join(dst_full_path, file_name)
                         shutil.move(file_path, dst_file)
