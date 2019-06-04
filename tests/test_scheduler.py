@@ -39,10 +39,11 @@ def test_python_scheduler(test_dir):
     sche.run(jobs[:4], ['bin/test'], 'make run; mkdir bin; mv test bin/')
     assert all([os.path.exists(os.path.join(job.path, 'bin/test')) for job in jobs[:4]])
 
-    # Scheduler with dividable workers
+    # Scheduler with dividable workers and keep files with a wildcard
     sche = PythonSubprocessScheduler(4)
-    sche.run(jobs[4:], ['test'], 'make run')
-    assert all([os.path.exists(os.path.join(job.path, 'test')) for job in jobs[4:]])
+    sche.run(jobs[4:], ['bin/test*'], 'make run; mkdir bin; cp test bin/test; cp test bin/test2')
+    assert all([os.path.exists(os.path.join(job.path, 'bin/test')) for job in jobs[4:]])
+    assert all([os.path.exists(os.path.join(job.path, 'bin/test2')) for job in jobs[4:]])
 
     # Create another set of jobs which never finish
     jobs = []
