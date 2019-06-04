@@ -5,6 +5,7 @@ The unit test module of config.
 from autodse.database import PickleDatabase
 from autodse.logger import get_default_logger
 from autodse.reporter import Reporter
+from autodse.result import BitgenResult, Result
 
 LOG = get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -47,7 +48,7 @@ def test_reporter(test_dir, capsys):
     assert rpt[0].find('Total Explored') != -1, rpt
     assert rpt[1].find('Result Details') != -1, rpt
 
-    # Test output
+    # Test fast output
     output = []
     idx = 0
     best_cache = db.best_cache
@@ -57,5 +58,28 @@ def test_reporter(test_dir, capsys):
         output.append(result)
         idx += 1
     assert reporter.report_output(output)
+
+    # Test accurate output
+    output = []
+    result = Result()
+    result.path = '0'
+    result.res_util = {'util-BRAM': 0, 'util-LUT': 0, 'util-DSP': 0, 'util-FF': 0}
+    output.append(result)
+    result = BitgenResult()
+    result.perf = 5e6
+    result.freq = 275
+    result.path = '1'
+    result.quality = 1 / result.perf / result.quality
+    result.res_util = {'util-BRAM': 0.3, 'util-LUT': 0.2, 'util-DSP': 0, 'util-FF': 0.1}
+    output.append(result)
+    result = BitgenResult()
+    result.perf = 10e5
+    result.freq = 120
+    result.path = '2'
+    result.quality = 1 / result.perf / result.quality
+    result.res_util = {'util-BRAM': 0.6, 'util-LUT': 0.7, 'util-DSP': 0, 'util-FF': 0.4}
+    output.append(result)
+    #assert reporter.report_output(output)
+    LOG.info(reporter.report_output(output))
 
     LOG.info('=== Testing reporter end')
