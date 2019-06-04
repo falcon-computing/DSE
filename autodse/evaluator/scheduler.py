@@ -1,6 +1,7 @@
 """
 The main module of job schedulers.
 """
+import glob
 import os
 import shutil
 import signal
@@ -79,16 +80,21 @@ class PythonSubprocessScheduler(Scheduler):
             shutil.rmtree(dst_path)
             shutil.move(src_path, dst_path)
         else:
-            for file_name in file_list:
-                try:
-                    dst_file = os.path.join(dst_path, file_name)
-                    dst_full_path = os.path.dirname(dst_file)
-                    if not os.path.exists(dst_full_path):
-                        os.makedirs(dst_full_path)
-                    shutil.move(os.path.join(src_path, file_name), dst_file)
-                except FileNotFoundError as err:
-                    log.debug('Failed to copy %s to %s: %s', os.path.join(src_path, file_name),
-                              dst_path, str(err))
+            for file_expr in file_list:
+                # Prepare destination folder
+                dst_full_path = os.path.dirname(os.path.join(dst_path, file_expr))
+                if not os.path.exists(dst_full_path):
+                    os.makedirs(dst_full_path)
+
+                # Walk through all match files under the folder
+                for file_path in glob.glob(os.path.join(src_path, file_expr)):
+                    file_name = os.path.basename(file_path)
+                    log.info('move %s to %s', file_path, dst_full_path)
+                    try:
+                        dst_file = os.path.join(dst_full_path, file_name)
+                        shutil.move(file_path, dst_file)
+                    except FileNotFoundError as err:
+                        log.info('Failed to move %s to %s: %s', file_path, dst_path, str(err))
             shutil.rmtree(src_path)
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
