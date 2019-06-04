@@ -18,7 +18,8 @@ class Reporter():
         Result.RetCode.UNAVAILABLE: 'Unavailable',
         Result.RetCode.ANALYZE_ERROR: 'Error',
         Result.RetCode.TIMEOUT: 'Timeout',
-        Result.RetCode.EARLY_REJECT: 'Early Reject'
+        Result.RetCode.EARLY_REJECT: 'Early Reject',
+        Result.RetCode.DUPLICATED: 'Duplicate'
     }
     BestHistFormat = '|{0:7s}|{1:7s}|{2:43s}|'
 
@@ -101,12 +102,8 @@ class Reporter():
             return ''
 
         tbl = tt.Texttable()
-        if isinstance(outputs[0], BitgenResult):
-            tbl.header(['Directory', 'Quality', 'Perf.', 'Resource', 'Frequency'])
-            tbl.set_cols_dtype(['t'] * 5)
-        else:
-            tbl.header(['Directory', 'Quality', 'Perf.', 'Resource'])
-            tbl.set_cols_dtype(['t'] * 4)
+        tbl.header(['Directory', 'Quality', 'Perf.', 'Resource', 'Frequency'])
+        tbl.set_cols_dtype(['t'] * 5)
 
         for result in outputs:
             assert result.path is not None
@@ -119,6 +116,8 @@ class Reporter():
             ]
             if isinstance(result, BitgenResult):
                 row.append('{0:.2f}'.format(result.freq))
+            else:
+                row.append('----')
             tbl.add_row(row)
         return tbl.draw()
 
@@ -176,6 +175,10 @@ class Reporter():
             str(sum([1 for r in lv_data[1] if r.ret_code == Result.RetCode.ANALYZE_ERROR]))
         ])
         tbl.add_row([
+            'Level 2 Duplicate',
+            str(sum([1 for r in lv_data[1] if r.ret_code == Result.RetCode.DUPLICATED]))
+        ])
+        tbl.add_row([
             'Level 2 Result Unavailable',
             str(sum([1 for r in lv_data[1] if r.ret_code == Result.RetCode.UNAVAILABLE]))
         ])
@@ -183,7 +186,7 @@ class Reporter():
         # Query level 3 results
         lv_keys.append([k for k in keys if k.startswith('lv3')])
         lv_data.append([r for r in self.db.batch_query(lv_keys[2]) if r is not None])
-        if lv_data[0]:
+        if lv_data[2]:
             tbl.add_row([
                 'Level 3 Timeout',
                 str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.TIMEOUT]))
