@@ -1,6 +1,10 @@
 Merlin Design Space Exploration Infrastructure
 ==============================================
 
+How To Use
+----------
+See [How To Use](http://confluence.falcon-computing.com/display/DSE/How+to+Use) for usages (login required).
+
 Execution
 ---------
 Since the user execution flow has not yet been created, currently we could use Python REPL to test each module.
@@ -11,13 +15,10 @@ Virtual Python Environment (optional)
 -------------------------------------
 `make env`
 
-Python Environment Compatibility Test
--------------------------------------
-`make tox`
-
-Code Linting
-------------
+Code Linting / Type Checking
+----------------------------
 `make lint`
+`make type`
 
 Unit Tests
 ----------
@@ -36,6 +37,12 @@ System Requirements
 * Python 3.6+
 
 * Redis database
+
+Docker Environment
+------------------
+* Docker file: docker/Dockerfile
+* The script of building image: docker/docker-build.sh
+* The script of creating a container: docker/docker-run.sh
 
 Development Requirements
 ------------------------
