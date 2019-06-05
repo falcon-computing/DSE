@@ -604,7 +604,7 @@ class MerlinAnalyzer(Analyzer):
                 '.merlin_prj/run/implement/exec/hls/report_merlin/hierarchy.json'
             ]
         if mode == 'bitgen':
-            return ['merlin.log', '*.mco', '*.aocx']
+            return ['merlin.log', '*.mco', '*.aocx', '*.h', '*.so']
 
         log.error('Unrecognized analysis target %s', mode)
         return []
