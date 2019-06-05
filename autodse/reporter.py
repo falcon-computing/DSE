@@ -273,19 +273,27 @@ class Reporter():
 
         return rpt, detail_rpt
 
-    def print_status(self, timer: float, count: int) -> None:
+    def print_status(self, timer: float, count: int, phase: int = 1) -> None:
         """Pretty print the current exploration status
 
         Parameters
         ----------
         timer:
-            The elapsed time for exploration.
+            The elapsed time for exploration. If timer is a negative number than
+            we are at phase 2 which has no exploration time limitation.
 
         count:
             The number of explored points.
+
+        phase:
+            The phase we are working on. Must be either 1 or 2.
         """
 
-        if timer < float(self.config['timeout']['exploration']):
+        if phase == 2:
+            print('[{0:4.0f}m] Generated FPGA design for {1} points, still working...{2}'.format(
+                timer, count, self.ANIME[self.anime_ptr]),
+                  end='\r')
+        elif timer < float(self.config['timeout']['exploration']):
             print('[{0:4.0f}m] Explored {1} points, still working...{2}'.format(
                 timer, count, self.ANIME[self.anime_ptr]),
                   end='\r')

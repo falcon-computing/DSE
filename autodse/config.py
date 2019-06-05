@@ -22,7 +22,7 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
     },
     'project.fast-output-num': {
         'require': False,
-        'default': 3
+        'default': 4
     },
     'design-space.definition': {
         'require': True
