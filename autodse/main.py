@@ -114,11 +114,13 @@ class Main():
         # Hack the config for check mode:
         # 1) Use gradient algorithm that always evaluates the default point first
         # 2) Set the exploration time to <1 second so it will only explore the default point
+        # 3) Use backup error mode in case the checking was failed
         # TODO: Check the bitgen execution
         if self.args.mode == 'complete-check':
             self.log.warning('Check mode "COMPLETE":')
             self.log.warning('1. Check design space syntax and type')
             self.log.warning('2. Evaluate one default point (may take up to 30 mins)')
+            self.config['project']['backup'] = 'BACKUP_ERROR'
             self.config['search']['algorithm']['name'] = 'gradient'
             self.config['timeout']['exploration'] = 10e-8
 
@@ -214,10 +216,11 @@ class Main():
 
         return config
 
-    def check_eval_log(self):
+    def check_eval_log(self) -> None:
         """Parse eval.log and display its errors"""
+        error = 0
         if not os.path.exists('eval.log'):
-            self.log.error('Evaluation failure')
+            self.log.error('Evaluation failure: eval.log not found')
         else:
             log_msgs: Set[str] = set()
             with open('eval.log', 'r', errors='replace') as filep:
@@ -227,6 +230,11 @@ class Main():
                         if msg not in log_msgs:
                             self.log.error(msg)
                             log_msgs.add(msg)
+                            error += 1
+            if error > 0:
+                self.log.error(
+                    'The default point encounters %d errors. See %s/evaluate for details', error,
+                    self.args.work_dir)
 
     def gen_fast_outputs(self) -> List[DesignPoint]:
         """Generate outputs after fast mode.

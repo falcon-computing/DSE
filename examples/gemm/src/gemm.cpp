@@ -19,7 +19,7 @@ void bbgemm_kernel(TYPE m1[N], TYPE m2[N], TYPE prod[N]){
     for(int n=0; n<1000; n++) {
     for (jj = 0; jj < row_size; jj += block_size){
         for (kk = 0; kk < row_size; kk += block_size){
-#pragma ACCEL pipeline flatten auto{PIPI}
+#pragma ACCEL pipeline auto{PIPI}
 #pragma ACCEL parallel factor=auto{PARI}
             for ( i = 0; i < row_size; ++i){
 #pragma ACCEL pipeline auto{PIPK}
