@@ -400,18 +400,15 @@ class Main():
                 time.sleep(1)
                 count = self.db.query('meta-expr-cnt-accurate')
                 try:
-                    self.reporter.print_status(timer, int(count))
+                    self.reporter.print_status(timer, int(count), 2)
                 except (TypeError, ValueError):
-                    self.reporter.print_status(timer, 0)
+                    self.reporter.print_status(timer, 0, 2)
                 timer += 0.0167
 
-        # Backup database again but do not commit best cache
+        # Backup database again
         self.db.persist()
 
         summary, detail = self.reporter.report_summary()
-        for line in summary.split('\n'):
-            if line:
-                self.log.info(line)
         with open(os.path.join(self.work_dir, 'summary_accurate.rpt'), 'w') as filep:
             filep.write(summary)
             filep.write('\n\n')
@@ -419,7 +416,7 @@ class Main():
 
         # Create outputs
         self.gen_accurate_outputs()
-        self.log.info('The outputs of accurate exploration is generated')
+        self.log.info('The outputs is generated. See output/accuurate/output.rpt for details')
 
     @staticmethod
     def accurate_runner(points: List[DesignPoint], db: Database, evaluator: Evaluator,
