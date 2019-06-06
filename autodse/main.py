@@ -50,6 +50,11 @@ def arg_parser() -> argparse.Namespace:
                         action='store',
                         default='',
                         help='path to the result database')
+    parser.add_argument('--disable-animation',
+                        required=False,
+                        action='store_true',
+                        default=False,
+                        help='disable the animation during the exploration process')
     parser.add_argument(
         '--mode',
         required=False,
@@ -309,17 +314,24 @@ class Main():
                 # Only keep the best result
                 while self.db.best_cache.qsize() > 1:
                     self.db.best_cache.get()
-                self.reporter.log_best()
 
-                count = 0
-                for idx in range(len(ds_list)):
-                    part_cnt = self.db.query('meta-expr-cnt-{0}'.format('part{0}'.format(idx)))
-                    if part_cnt:
-                        try:
-                            count += int(part_cnt)
-                        except ValueError:
-                            pass
-                self.reporter.print_status(timer, count)
+                # Print animation to let user know we are still working, or print dots every
+                # 5 mins if user disables the animation.
+                if self.args.disable_animation:
+                    if int(timer) % 5 == 0:
+                        print('.')
+                else:
+                    self.reporter.log_best()
+
+                    count = 0
+                    for idx in range(len(ds_list)):
+                        part_cnt = self.db.query('meta-expr-cnt-{0}'.format('part{0}'.format(idx)))
+                        if part_cnt:
+                            try:
+                                count += int(part_cnt)
+                            except ValueError:
+                                pass
+                    self.reporter.print_status(timer, count)
                 timer += 0.0167
 
         if self.args.mode == 'complete-check':

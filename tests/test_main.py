@@ -18,6 +18,7 @@ def test_main(test_dir, mocker):
     #pylint:disable=missing-docstring, redefined-outer-name
 
     mock_args = mocker.patch('autodse.main.arg_parser').return_value
+    mock_args.disable_animation = False
     mock_args.src_dir = '{0}/temp_fixture/main_src'.format(test_dir)
     mock_args.work_dir = '{0}/temp_main_work'.format(test_dir)
     mock_args.config = '{0}/temp_fixture/main_src/config.json'.format(test_dir)
