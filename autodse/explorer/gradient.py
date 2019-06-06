@@ -67,9 +67,10 @@ class GradientAlgorithm(SearchAlgorithm):
         # Build scope map
         self.scope2param: Dict[str, List[DesignParameter]] = {}
         for param in ds.values():
-            if param.scope not in self.scope2param:
-                self.scope2param[param.scope] = []
-            self.scope2param[param.scope].append(param)
+            for scope in param.scope:
+                if scope not in self.scope2param:
+                    self.scope2param[scope] = []
+                self.scope2param[scope].append(param)
 
     def get_hotspot_params(self, result: Result, tuned: Set[str]) -> List[DesignParameter]:
         """Identify the hotspot and tunable parameters using ordered_hotspot in result.

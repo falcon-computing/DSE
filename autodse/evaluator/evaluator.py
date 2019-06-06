@@ -297,7 +297,7 @@ class MerlinEvaluator(Evaluator):
         super(MerlinEvaluator, self).__init__(src_path, work_path, db, scheduler, analyzer_cls,
                                               backup_mode, dse_config, 'merlin')
 
-        self.scope_map: Optional[Dict[str, str]] = None
+        self.scope_map: Optional[Dict[str, List[str]]] = None
 
     def build_scope_map(self) -> bool:
         """Build the scope map that maps auto positions to the scope in source code.

@@ -18,7 +18,7 @@ def test_compile_design_space(mocker):
     ds_config = {'X': {}}
     param = DesignParameter()
     param.name = 'X'
-    scope_map = {'X': 'L_0_0_3'}
+    scope_map = {'X': ['L_0_0_3']}
     mocker.patch('autodse.dsproc.dsproc.create_design_parameter', return_value=param)
     mock1 = mocker.patch('autodse.dsproc.dsproc.check_design_space', return_value=0)
     ret = dsproc.compile_design_space(ds_config, scope_map)

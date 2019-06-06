@@ -154,10 +154,10 @@ def test_merlin_analyzer(test_dir):
     scope_map = MerlinAnalyzer.analyze_scope(job, auto_map)
     assert len(scope_map) == 4
     LOG.info(scope_map)
-    assert 'auto-in-top1' in scope_map and scope_map['auto-in-top1'] == 'L_0_0_0_2_2_0_2'
-    assert 'auto-in-top2' in scope_map and scope_map['auto-in-top2'] == 'L_0_0_0_2_2_0_2'
-    assert 'auto-in-top3' in scope_map and scope_map['auto-in-top3'] == 'L_0_0_0_2_2_0_2'
-    assert 'auto-not-for-loop' in scope_map and scope_map['auto-not-for-loop'] == 'UNKNOWN'
+    assert 'auto-in-top1' in scope_map and 'L_0_0_0_2_2_0_2' in scope_map['auto-in-top1']
+    assert 'auto-in-top2' in scope_map and 'L_0_0_0_2_2_0_2' in scope_map['auto-in-top2']
+    assert 'auto-in-top3' in scope_map and 'L_0_0_0_2_2_0_2' in scope_map['auto-in-top3']
+    assert 'auto-not-for-loop' in scope_map and 'UNKNOWN' in scope_map['auto-not-for-loop']
 
     # Test bitgen log analysis
     bitgen_log_path = os.path.join(test_dir, 'temp_fixture/anal_rpts1')

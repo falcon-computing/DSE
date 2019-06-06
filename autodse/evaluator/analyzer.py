@@ -72,7 +72,7 @@ class MerlinAnalyzer(Analyzer):
 
     @staticmethod
     def build_scope_map(hier: Union[Dict[str, Any], List[Any]], auto_map: Dict[str, List[str]],
-                        scope_map: Dict[str, str]) -> None:
+                        scope_map: Dict[str, List[str]]) -> None:
         """Buil a map that maps each auto keyword to the scope in the source code.
 
         Parameters
@@ -95,10 +95,12 @@ class MerlinAnalyzer(Analyzer):
                 pending: List[str] = []
                 for stmt in val:
                     if 'src_topo_id' in stmt and stmt['src_topo_id'].startswith('L'):
+                        # Map the pending design parameters to the current scope
                         for auto in pending:
-                            scope_map[auto] = stmt['src_topo_id']
+                            scope_map[auto].append(stmt['src_topo_id'])
                         pending = []
                     elif 'src_filename' in stmt and 'src_line' in stmt:
+                        # Collect the design parameters for the current scope
                         pos_key = '{0}:{1}'.format(stmt['src_filename'], stmt['src_line'])
                         if pos_key in auto_map:
                             pending += auto_map[pos_key]
@@ -109,7 +111,7 @@ class MerlinAnalyzer(Analyzer):
                     MerlinAnalyzer.build_scope_map(elt, auto_map, scope_map)
 
     @staticmethod
-    def analyze_scope(job: Job, auto_map: Dict[str, List[str]]) -> Optional[Dict[str, str]]:
+    def analyze_scope(job: Job, auto_map: Dict[str, List[str]]) -> Optional[Dict[str, List[str]]]:
         """Analyze the corresponding scope to each design parameter.
 
         Parameters
@@ -142,17 +144,20 @@ class MerlinAnalyzer(Analyzer):
                 return None
 
         # Build a map of auto to scope
-        scope_map: Dict[str, str] = {}
+        scope_map: Dict[str, List[str]] = {}
+        for auto_list in auto_map.values():
+            for auto in auto_list:
+                scope_map[auto] = []
+
         for kernel in hier_info:
             MerlinAnalyzer.build_scope_map(kernel, auto_map, scope_map)
 
         # Check results
         for autos in auto_map.values():
             for auto in autos:
-                if auto not in scope_map:
+                if not scope_map[auto]:
                     log.warning('Failed to identify the scope of %s', auto)
-                    scope_map[auto] = 'UNKNOWN'
-
+                    scope_map[auto].append('UNKNOWN')
         return scope_map
 
     @staticmethod

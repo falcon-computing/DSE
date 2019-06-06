@@ -17,7 +17,7 @@ def get_dsproc_logger() -> Logger:
 
 
 def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]],
-                         scope_map: Optional[Dict[str, str]]) -> Optional[DesignSpace]:
+                         scope_map: Optional[Dict[str, List[str]]]) -> Optional[DesignSpace]:
     """Compile the design space from the config JSON file
 
     Parameters
@@ -44,7 +44,7 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]],
             if not isinstance(param, MerlinParameter) or param.ds_type not in [
                     'PARALLEL', 'PIPELINE', 'TILING', 'TILE'
             ]:
-                param.scope = 'GLOBAL'
+                param.scope.append('GLOBAL')
             else:
                 if scope_map and param_id in scope_map:
                     param.scope = scope_map[param_id]
