@@ -4,6 +4,7 @@ The main DSE flow that integrates all modules
 import argparse
 import glob
 import json
+import math
 import os
 import shutil
 import sys
@@ -11,7 +12,6 @@ import tempfile
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from queue import PriorityQueue
 from typing import Any, Dict, List, Optional, Set
 
 from .config import build_config
@@ -24,6 +24,7 @@ from .explorer.explorer import AccurateExplorer, FastExplorer
 from .logger import get_default_logger
 from .parameter import DesignPoint, DesignSpace
 from .reporter import Reporter
+from .result import HLSResult, Result
 from .util import copy_dir
 
 
@@ -131,8 +132,7 @@ class Main():
         # Initialize database
         self.log.info('Initializing the database')
         try:
-            self.db = RedisDatabase(self.config['project']['name'],
-                                    int(self.config['project']['fast-output-num']), self.db_path)
+            self.db = RedisDatabase(self.config['project']['name'], self.db_path)
         except RuntimeError:
             self.log.error('Failed to connect to the database')
             sys.exit(1)
@@ -241,6 +241,10 @@ class Main():
         Note that the best cache in the DB will be cleaned up by this function.
         """
 
+        def geomean(seq):
+            """A simple function to compute geometric mean of a list"""
+            return math.exp(math.fsum(math.log(x) if x > 0 else 0 for x in seq) / len(seq))
+
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
         out_fast_dir = os.path.join(self.out_dir, 'fast')
@@ -250,13 +254,19 @@ class Main():
             shutil.rmtree(out_fast_dir)
         os.makedirs(out_fast_dir)
 
-        # Fetch database cache for the best results
         points = []
         output = []
         idx = 0
-        best_cache: PriorityQueue = self.db.best_cache
-        while not best_cache.empty():
-            _, _, result = best_cache.get()
+
+        # Sort the results by 1) quality and 2) geomean of resource util and take the first N
+        results: List[Result] = [
+            r for r in self.db.query_all() if isinstance(r, HLSResult) and r.valid
+        ]
+        results.sort(key=lambda r: (r.quality, 1.0 / geomean(
+            [v for k, v in r.res_util.items() if k.startswith('util')])),
+                     reverse=True)
+        results = results[:int(self.config['project']['fast-output-num'])]
+        for result in results:
             job = self.evaluator.create_job()
             if not job:
                 continue
@@ -296,8 +306,8 @@ class Main():
             timer: float = (time.time() - self.start_time) / 60.0  # in minutes
             while any([not exe.done() for exe in pool]):
                 time.sleep(1)
-                # Keep the best cache size
-                while self.db.best_cache.qsize() > self.db.best_cache_size:
+                # Only keep the best result
+                while self.db.best_cache.qsize() > 1:
                     self.db.best_cache.get()
                 self.reporter.log_best()
 
@@ -362,15 +372,17 @@ class Main():
             shutil.rmtree(out_accurate_dir)
         os.makedirs(out_accurate_dir)
 
-        # Fetch database cache for the results
         best_path = ''
         best_quality = -float('inf')
         output = []
         idx = 0
-        best_cache: PriorityQueue = self.db.best_cache
-        while not best_cache.empty():
-            _, _, result = best_cache.get()
+
+        # Fetch accurate results and sort by quality
+        keys: List[str] = [k for k in self.db.query_keys() if k.startswith('lv3:')]
+        results: List[Result] = [r for r in self.db.batch_query(keys) if r.valid]
+        for result in results:
             assert result.point is not None
+            assert result.path is not None
             output_path = os.path.join(out_accurate_dir, str(idx))
             copy_dir(result.path, output_path)
             result.path = str(idx)

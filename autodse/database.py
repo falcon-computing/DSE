@@ -16,7 +16,7 @@ from .result import HLSResult, MerlinResult, Result
 class Database():
     """The base class of result database with API definitions"""
 
-    def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
+    def __init__(self, name: str, db_file_path: Optional[str] = None):
         self.db_id = '{0}-{1}'.format(name, int(time()))
         self.log = get_default_logger('Database')
 
@@ -36,7 +36,6 @@ class Database():
         # the one we want.
         # FIXME: we now rely on the main flow to control the size in order to
         # avoid race condition.
-        self.best_cache_size = cache_size
         self.best_cache: PriorityQueue = PriorityQueue()
 
         # Code hash set
@@ -267,8 +266,8 @@ class Database():
 class RedisDatabase(Database):
     """The database implementation using Redis"""
 
-    def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
-        super(RedisDatabase, self).__init__(name, cache_size, db_file_path)
+    def __init__(self, name: str, db_file_path: Optional[str] = None):
+        super(RedisDatabase, self).__init__(name, db_file_path)
 
         import redis
 
@@ -381,8 +380,8 @@ class PickleDatabase(Database):
     and the lack of multi-node support.
     """
 
-    def __init__(self, name: str, cache_size: int = 1, db_file_path: Optional[str] = None):
-        super(PickleDatabase, self).__init__(name, cache_size, db_file_path)
+    def __init__(self, name: str, db_file_path: Optional[str] = None):
+        super(PickleDatabase, self).__init__(name, db_file_path)
 
         import pickledb
         self.lock = Lock()

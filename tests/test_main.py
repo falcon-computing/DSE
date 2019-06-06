@@ -95,6 +95,15 @@ def test_main(test_dir, mocker):
     assert os.path.exists('{0}/temp_main_work/summary_fast.rpt'.format(test_dir))
     assert os.path.exists('{0}/temp_main_work/result.db'.format(test_dir))
     assert os.path.exists('{0}/temp_main_work/output/fast'.format(test_dir))
+    assert os.path.exists('{0}/temp_main_work/output/fast/output.rpt'.format(test_dir))
+    with open('{0}/temp_main_work/output/fast/output.rpt'.format(test_dir), 'r') as filep:
+        for line in filep:
+            if line.startswith('|0'): # The best result has lower resource utilization
+                assert line.find('45064192') != -1
+                assert line.find('BRAM:11.0%') != -1
+            elif line.startswith('|1'):
+                assert line.find('45064192') != -1
+                assert line.find('BRAM:21.0%') != -1
 
     def mock_submitter(jobs):
         #pylint:disable=missing-docstring
@@ -103,6 +112,7 @@ def test_main(test_dir, mocker):
         for job in jobs:
             result = BitgenResult()
             result.ret_code = Result.RetCode.PASS
+            result.path = job.path
             result.valid = True
             result.freq = 300.0
             result.perf = 45064192

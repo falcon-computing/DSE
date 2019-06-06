@@ -21,7 +21,7 @@ def database_tester(db_cls):
 
     # A new database
     try:
-        db = db_cls('DB_test', 2)
+        db = db_cls('DB_test')
     except RuntimeError:
         LOG.warning('The unit test of this database is skipped due to not installed.')
         return
@@ -95,7 +95,7 @@ def database_tester(db_cls):
     # Load the database with data
     # Note that the cache size has no affect when loading and it should be maintained
     # elsewhere.
-    db2 = db_cls('DB_test', 1, './DB_test.db')
+    db2 = db_cls('DB_test', './DB_test.db')
     db2.load()
     assert db2.count() == 4
     assert db2.best_cache.qsize() == 3

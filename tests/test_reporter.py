@@ -5,7 +5,7 @@ The unit test module of config.
 from autodse.database import PickleDatabase
 from autodse.logger import get_default_logger
 from autodse.reporter import Reporter
-from autodse.result import BitgenResult, Result
+from autodse.result import BitgenResult, HLSResult, Result
 
 LOG = get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -18,10 +18,10 @@ def test_reporter(test_dir, capsys):
     config = {}
     config['timeout'] = {}
     config['timeout']['exploration'] = '2'
-    db = PickleDatabase('test', 2, '{0}/temp_fixture/db/0.db'.format(test_dir))
+    db = PickleDatabase('test', '{0}/temp_fixture/db/0.db'.format(test_dir))
     db.load()
 
-    while db.best_cache.qsize() > 2:
+    while db.best_cache.qsize() > 1:
         db.best_cache.get()
 
     reporter = Reporter(config, db)
@@ -51,9 +51,8 @@ def test_reporter(test_dir, capsys):
     # Test fast output
     output = []
     idx = 0
-    best_cache = db.best_cache
-    while not best_cache.empty():
-        _, _, result = best_cache.get()
+    results = [r for r in db.query_all() if isinstance(r, HLSResult)]
+    for result in results:
         result.path = str(idx)
         output.append(result)
         idx += 1

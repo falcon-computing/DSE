@@ -68,7 +68,7 @@ def test_gradient(test_dir):
         'CGPIP2': 'L_0_0_0_47_2_0_3_3_3'
     }
 
-    db = PickleDatabase('test', 3, '{0}/temp_fixture/db/1.db'.format(test_dir))
+    db = PickleDatabase('test', '{0}/temp_fixture/db/1.db'.format(test_dir))
     db.load()
     ds = compile_design_space(config['design-space']['definition'], scope_map)
     algo = GradientAlgorithm(ds)

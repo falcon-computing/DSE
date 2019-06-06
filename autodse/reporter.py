@@ -200,16 +200,6 @@ class Reporter():
                 str(sum([1 for r in lv_data[2] if r.ret_code == Result.RetCode.UNAVAILABLE]))
             ])
 
-        tbl.add_row(['Output Points', str(self.db.best_cache.qsize())])
-
-        try:
-            _, _, best_result = max(self.db.best_cache.queue, key=lambda r: r[0])  # type: ignore
-            tbl.add_row(['Best Performance (cycle)', str(best_result.perf)])
-            if isinstance(best_result, BitgenResult):
-                tbl.add_row(['Best Freq.', str(best_result.freq)])
-        except ValueError:
-            pass
-
         rpt += tbl.draw()
         if not total:
             return rpt, ''
