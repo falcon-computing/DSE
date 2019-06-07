@@ -14,9 +14,24 @@ from .result import HLSResult, MerlinResult, Result
 
 
 class Database():
-    """The base class of result database with API definitions"""
+    """Base class of result database
+
+    Attributes:
+        db_id: A unique ID of this database.
+        log: Logger
+        db_file_path: Path to persist the database.
+        best_cache: A priority queue for best results.
+        code_hash_map: A dictionary to map code hash to the corresponding HLS result.
+    """
 
     def __init__(self, name: str, db_file_path: Optional[str] = None):
+        """Constructor
+
+        Args:
+            name: Database name.
+            db_file_path: Path to persist the database.
+        """
+
         self.db_id = '{0}-{1}'.format(name, int(time()))
         self.log = get_default_logger('Database')
 
@@ -44,7 +59,7 @@ class Database():
         self.code_hash_map: Dict[str, str] = {}
 
     def init_best_cache(self) -> None:
-        """Initialize the best cache using the loaded data"""
+        """Initialize the best cache using the loaded data."""
 
         if self.count() == 0:
             return
@@ -54,7 +69,7 @@ class Database():
                 self.best_cache.put((result.quality, time(), result), timeout=0.1)
 
     def init_code_hash_map(self) -> None:
-        """Initialize the code hash set using the loaded data"""
+        """Initialize the code hash set using the loaded data."""
 
         if self.count() == 0:
             return
@@ -67,17 +82,11 @@ class Database():
     def add_code_hash(self, code_hash: str, key: str) -> Optional[str]:
         """Add a new code hash to the map and check if it already exists.
 
-        Parameters
-        ----------
-        code_hash:
-            The code hash to be added.
+        Args:
+            code_hash: The code hash to be added.
+            key: The key of the design point.
 
-        key:
-            The key of the design point.
-
-        Returns
-        -------
-        Optional[str]:
+        Returns:
             None if the code hash is new; otherwise the key with the same code hash.
         """
 
@@ -88,15 +97,14 @@ class Database():
 
     def update_best(self, result: Result) -> None:
         """Check if the new result has the best QoR and update it if so.
-           Note that we allow value overwritten in the database for the
-           performance issue, although it should not happen during the
-           search. However, the best cache may keep the overrided result
-           so this could be a potential issue.
 
-        Parameters
-        ----------
-        result:
-            The new result to be checked.
+        Note:
+            We allow value overwritten in the database for the performance issue,
+            although it should not happen during the search. However, the best cache
+            may keep the overrided result so this could be a potential issue.
+
+        Args:
+            result: The new result to be checked.
         """
 
         if result.ret_code != Result.RetCode.DUPLICATED:
@@ -107,15 +115,11 @@ class Database():
                 raise RuntimeError()
 
     def commit(self, key: str, result: Any) -> None:
-        """Commit a new result to the database
+        """Commit a new result to the database.
 
-        Parameters
-        ----------
-        key:
-            The key of a design point.
-
-        result:
-            The result to be committed.
+        Args:
+            key: The key of a design point.
+            result: The result to be committed.
         """
 
         if not self.commit_impl(key, result):
@@ -128,10 +132,8 @@ class Database():
     def batch_commit(self, pairs: List[Tuple[str, Any]]) -> None:
         """Commit a set of new results to the database.
 
-        Parameters
-        ----------
-        pairs:
-            A list of key-result pairs
+        Args:
+            pairs: A list of key-result pairs.
         """
 
         if self.batch_commit_impl(pairs) != len(pairs):
@@ -144,62 +146,35 @@ class Database():
                 self.update_best(result)
 
     def query_all(self) -> List[Any]:
-        """Query all values in the database
+        """Query all values in the database.
 
-        Returns
-        -------
-        List[Any]:
+        Returns:
             All data in the database
         """
         return [v for v in self.batch_query(self.query_keys()) if v is not None]
 
-    def count_ret_code(self, ret_code: Result.RetCode) -> int:
-        """Count the number of results with the given return code
-
-        Parameters
-        ----------
-        ret_code:
-            The return code to be counted.
-
-        Returns
-        -------
-        int:
-            The number of results with the return code.
-        """
-
-        return len(
-            [r for r in self.query_all() if isinstance(r, Result) and r.ret_code == ret_code])
-
     def load(self) -> None:
-        """Load existing data from the given database and update the best cahce (if available)"""
+        """Load existing data from the given database and update the best cahce (if available)."""
         raise NotImplementedError()
 
     def query(self, key: str) -> Optional[Any]:
-        """Query for the value by the given key
+        """Query for the value by the given key.
 
-        Parameters
-        ----------
-        key:
-            The key of a design point.
+        Args:
+            key: The key of a design point.
 
-        Returns
-        -------
-        Optional[Any]:
+        Returns:
             The result object of the corresponding key, or None if the key is unavailable.
         """
         raise NotImplementedError()
 
     def batch_query(self, keys: List[str]) -> List[Optional[Any]]:
-        """Query for a list of the values by the given key list
+        """Query for a list of the values by the given key list.
 
-        Parameters
-        ----------
-        key:
-            The key of a design point.
+        Args:
+            key: The key of a design point.
 
-        Returns
-        -------
-        Optional[Any]:
+        Returns:
             The result object of the corresponding key, or None if the key is unavailable.
         """
         raise NotImplementedError()
@@ -211,17 +186,11 @@ class Database():
     def commit_impl(self, key: str, result: Any) -> bool:
         """Commit function implementation.
 
-        Parameters
-        ----------
-        key:
-            The key of a design point.
+        Args:
+            key: The key of a design point.
+            result: The result to be committed.
 
-        result:
-            The result to be committed.
-
-        Returns
-        -------
-        bool:
+        Returns:
             True if the commit was success; otherwise False.
         """
         raise NotImplementedError()
@@ -229,34 +198,26 @@ class Database():
     def batch_commit_impl(self, pairs: List[Tuple[str, Any]]) -> int:
         """Batch commit function implementation.
 
-        Parameters
-        ----------
-        pairs:
-            A list of key-result pairs.
+        Args:
+            pairs: A list of key-result pairs.
 
-        Returns
-        -------
-        int:
+        Returns:
             Indicate the number of committed data.
         """
         raise NotImplementedError()
 
     def count(self) -> int:
-        """Count total number of data points in the database
+        """Count total number of data points in the database.
 
-        Returns
-        -------
-        int:
+        Returns:
             Total number of data points
         """
         raise NotImplementedError()
 
     def persist(self) -> bool:
-        """Persist the DB by dumping it to a pickle file and close the DB
+        """Persist the DB by dumping it to a pickle file and close the DB.
 
-        Returns
-        -------
-        bool:
+        Returns:
             True if the dumping and close was success; otherwise False.
 
         """
@@ -264,9 +225,19 @@ class Database():
 
 
 class RedisDatabase(Database):
-    """The database implementation using Redis"""
+    """The database implementation using Redis database.
+
+    Attributes:
+        database: The Redis database.
+    """
 
     def __init__(self, name: str, db_file_path: Optional[str] = None):
+        """Constructor
+
+        Args:
+            name: The database name.
+            db_file_path: Path to persist the database.
+        """
         super(RedisDatabase, self).__init__(name, db_file_path)
 
         import redis
@@ -373,11 +344,15 @@ class RedisDatabase(Database):
 
 class PickleDatabase(Database):
     """
-    The database implementation using PickleDB
+    The database implementation using PickleDB.
 
     This is an alternative when other databases are unavailable in the system.
     Note that it is discouraged to use this database for DSE due to poor performance
     and the lack of multi-node support.
+
+    Attributes:
+        lock: The thread lock to achieve thread-safe.
+        database: The Pickle database.
     """
 
     def __init__(self, name: str, db_file_path: Optional[str] = None):

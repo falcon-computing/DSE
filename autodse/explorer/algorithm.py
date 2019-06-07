@@ -10,18 +10,24 @@ from ..util import safe_eval
 
 
 class SearchAlgorithm():
-    """Main serach algorithm class"""
+    """Base class of search algorithms.
+
+    The base serach algorithm includes a set of functions to manipulate design points and another
+    set of function propotypes for search algorithms to implement.
+
+    Attributes:
+        ds: Design space.
+        log: The logger.
+    """
 
     def __init__(self, ds: DesignSpace, log_file_name: str = 'algo.log'):
         self.ds = ds
         self.log = get_algo_logger('Search', log_file_name)
 
     def get_default_point(self) -> DesignPoint:
-        """Generate a design point with all default values
+        """Generate a design point with all default values.
 
-        Returns
-        -------
-        DesignPoint:
+        Returns:
             The design point with all default value applied.
         """
 
@@ -32,19 +38,13 @@ class SearchAlgorithm():
         return point
 
     def gen_options(self, point: DesignPoint, pid: str) -> List[Union[int, str]]:
-        """Evaluate available options of the target design parameter
+        """Evaluate available options of the target design parameter.
 
-        Parameters
-        ----------
-        point:
-            The current design point.
+        Args:
+            point: The current design point.
+            pid: The target design parameter ID.
 
-        pid:
-            The target design parameter ID.
-
-        Returns
-        -------
-        List[Union[int, str]]:
+        Returns:
             A list of available options.
         """
         dep_values = {dep: point[dep] for dep in self.ds[pid].deps}
@@ -59,17 +59,11 @@ class SearchAlgorithm():
     def get_order(self, point: DesignPoint, pid: str) -> int:
         """Evaluate the order of the current value.
 
-        Parameters
-        ----------
-        point:
-            The current design point.
+        Args:
+            point: The current design point.
+            pid: The target design parameter ID.
 
-        pid:
-            The target design parameter ID.
-
-        Returns
-        -------
-        int:
+        Returns:
             The order.
         """
 
@@ -85,15 +79,11 @@ class SearchAlgorithm():
         return order
 
     def update_child(self, point: DesignPoint, pid: str) -> None:
-        """Check values of affect parameters and update them in place if it is invalid
+        """Check values of affect parameters and update them in place if it is invalid.
 
-        Parameters
-        ----------
-        point:
-            The current design point.
-
-        pid:
-            The design parameter ID that just be changed.
+        Args:
+            point: The current design point.
+            pid: The design parameter ID that just be changed.
         """
 
         pendings = [child for child in self.ds[pid].child if self.validate_value(point, child)]
@@ -101,18 +91,13 @@ class SearchAlgorithm():
             self.update_child(point, child)
 
     def validate_value(self, point: DesignPoint, pid: str) -> bool:
-        """Check if the current value is valid and set it to the closest value if not
+        """Check if the current value is valid and set it to the closest value if not.
 
-        Parameters
-        ----------
-        point:
-            The current design point.
+        Args:
+            point: The current design point.
+            pid: The design parameter ID that just be changed.
 
-        pid:
-            The design parameter ID that just be changed.
-
-        Returns
-        -------
+        Returns:
             True if the value is changed.
         """
 
@@ -136,23 +121,15 @@ class SearchAlgorithm():
         return False
 
     def move_by(self, point: DesignPoint, pid: str, step: int = 1) -> int:
-        """Move N steps of pid parameter's value in a design point in place
+        """Move N steps of pid parameter's value in a design point in place.
 
-        Parameters
-        ----------
-        point:
-            The design point to be manipulated.
+        Args:
+            point: The design point to be manipulated.
+            pid: The target design parameter.
+            step: The steps to move. Note that step can be positive or negatie,
+                  but we will not move cirulatory even the step is too large.
 
-        pid:
-            The target design parameter.
-
-        step:
-            The steps to move. Note that step can be positive or negatie,
-            but we will not move cirulatory even the step is too large.
-
-        Returns
-        -------
-        int:
+        Returns:
             The actual move steps.
         """
 
@@ -178,26 +155,20 @@ class SearchAlgorithm():
 
     @staticmethod
     def clone_point(point: DesignPoint) -> DesignPoint:
-        """Clone the given design point
+        """Clone the given design point.
 
-        Parameters
-        ----------
-        point:
-            The design point to be cloned.
+        Args:
+            point: The design point to be cloned.
 
-        Returns
-        -------
-        DesignPoint:
+        Returns:
             A cloned design point with same values.
         """
         return dict(point)
 
     def gen(self) -> Generator[List[DesignPoint], Optional[Dict[str, Result]], None]:
-        """The main generator function of search algorithm
+        """The main generator function of search algorithm.
 
-        Returns
-        -------
-        Generator[List[DesignPoint], Optional[Dict[str, Result]], None]:
+        Returns:
             A generator that keeps producing design points for exploration.
         """
         raise NotImplementedError()

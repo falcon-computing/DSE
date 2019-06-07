@@ -99,7 +99,7 @@ def test_main(test_dir, mocker):
     assert os.path.exists('{0}/temp_main_work/output/fast/output.rpt'.format(test_dir))
     with open('{0}/temp_main_work/output/fast/output.rpt'.format(test_dir), 'r') as filep:
         for line in filep:
-            if line.startswith('|0'): # The best result has lower resource utilization
+            if line.startswith('|0'):  # The best result has lower resource utilization
                 assert line.find('45064192') != -1
                 assert line.find('BRAM:11.0%') != -1
             elif line.startswith('|1'):

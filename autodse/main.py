@@ -66,9 +66,30 @@ def arg_parser() -> argparse.Namespace:
 
 
 class Main():
-    """The main class of DSE flow"""
+    """The main DSE flow.
+
+    Attributes:
+        start_time: Timestamp when launching the flow.
+        args: Flow arguments.
+        src_dir: Path of the user source project.
+        work_dir: Path of the working space.
+        out_dir: Path of the output folder.
+        eval_dir: Path of the evaluation working space.
+        log_dir: Path of logs.
+        db_path: Path of persisted database.
+        cfg_path: Path of the configuration file.
+        log: Logger.
+        config: A dictionary of configurations.
+        db: Database.
+        evaluator: Evaluator.
+        reporter: Reporter.
+    """
 
     def __init__(self):
+        """Constructor.
+
+        Initialize all necessary modules and working space.
+        """
         self.start_time = time.time()
         self.args = arg_parser()
 
@@ -169,11 +190,9 @@ class Main():
             self.reporter.log_config(self.args.mode)
 
     def init_workspace(self) -> Optional[str]:
-        """Initialize the workspace
+        """Initialize the workspace.
 
-        Returns
-        ------
-        Optional[str]:
+        Returns:
             The backup directory if available.
         """
 
@@ -199,7 +218,11 @@ class Main():
         return bak_dir
 
     def load_config(self) -> Dict[str, Any]:
-        """Load the DSE config"""
+        """Load the DSE configurations.
+
+        Returns:
+            A dictionary of configurations.
+        """
 
         try:
             if not os.path.exists(self.args.config):
@@ -224,7 +247,8 @@ class Main():
         return config
 
     def check_eval_log(self) -> None:
-        """Parse eval.log and display its errors"""
+        """Parse eval.log and display its errors."""
+
         error = 0
         if not os.path.exists('eval.log'):
             self.log.error('Evaluation failure: eval.log not found')
@@ -245,7 +269,12 @@ class Main():
 
     def gen_fast_outputs(self) -> List[DesignPoint]:
         """Generate outputs after fast mode.
-        Note that the best cache in the DB will be cleaned up by this function.
+
+        Note:
+            The best cache in the DB will be cleaned up by this function.
+
+        Returns:
+            A list of design points output by fast mode.
         """
 
         def geomean(seq):
@@ -293,7 +322,14 @@ class Main():
         return points
 
     def launch_fast(self, ds_list: List[DesignSpace]) -> List[DesignPoint]:
-        """Launch fast exploration"""
+        """Launch fast exploration.
+
+        Args:
+            ds_list: A list of design space partitions.
+
+        Returns:
+            A list of output design points.
+        """
 
         pool = []
 
@@ -359,8 +395,18 @@ class Main():
 
     @staticmethod
     def fast_runner(tag: str, ds: DesignSpace, db: Database, evaluator: Evaluator,
-                    config: Dict[str, Any]):
-        """Perform fast DSE for a given design space"""
+                    config: Dict[str, Any]) -> None:
+        """Perform fast DSE for a given design space.
+
+        This is a static method that is supposed to be used for forking explorer threads.
+
+        Args:
+            tag: A tag of this run.
+            ds: Design space.
+            db: Database.
+            evaluator: Evaluator.
+            config: Configuration.
+        """
 
         explorer = FastExplorer(ds=ds,
                                 db=db,
@@ -375,7 +421,7 @@ class Main():
             log.error(traceback.format_exc())
 
     def gen_accurate_outputs(self) -> None:
-        """Generate final outputs"""
+        """Generate final outputs."""
 
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
@@ -415,7 +461,11 @@ class Main():
             os.symlink(best_path, os.path.join(self.out_dir, 'best'))
 
     def launch_accurate(self, points: List[DesignPoint]) -> None:
-        """Launch accurate exploration"""
+        """Launch accurate exploration.
+
+        Args:
+            points: A list of target design poitns.
+        """
 
         # Enforce backup all since this process is very time-consuming
         if self.evaluator.backup_mode != BackupMode.BACKUP_ALL:
@@ -455,7 +505,16 @@ class Main():
     @staticmethod
     def accurate_runner(points: List[DesignPoint], db: Database, evaluator: Evaluator,
                         config: Dict[str, Any]):
-        """Perform phase 2 DSE for a given set of points"""
+        """Perform phase 2 DSE for a given set of points.
+
+        This is a static method that is supposed to be used for forking explorer threads.
+
+        Args:
+            points: A list of target design poitns.
+            db: Database.
+            evaluator: Evaluator.
+            config: Configuration.
+        """
 
         explorer = AccurateExplorer(points=points, db=db, evaluator=evaluator, tag='accurate')
 
@@ -467,7 +526,7 @@ class Main():
             log.error(traceback.format_exc())
 
     def main(self) -> None:
-        """The main function of the DSE flow"""
+        """The main function of the DSE flow."""
 
         # Compile design space
         self.log.info('Compiling design space')

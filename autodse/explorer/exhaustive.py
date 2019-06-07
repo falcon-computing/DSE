@@ -10,30 +10,36 @@ from ..result import Result
 
 
 class ExhaustiveAlgorithm(SearchAlgorithm):
-    """Exhaustively explore the design space. The order is based on the topological order
-       of design parameters. Considering the evaluation overhead, we let users configure
-       the batch size for evaluation.
+    """Exhaustively explore the design space.
+
+    The order is based on the topological order of design parameters. Considering the
+    evaluation overhead, we let users configure the batch size for evaluation.
+
+    Attributes:
+        batch_size: The batch size of producing design points.
+        ordered_pids: Design parameters in topological sort with cycle breaking.
     """
 
     def __init__(self, ds: DesignSpace, batch_size: int = 8, log_file_name: str = 'algo.log'):
+        """Constructor.
+
+        Args:
+            ds: Design space.
+            batch_size: The batch size of producing design points.
+            log_file_name: The name of log file.
+        """
         super(ExhaustiveAlgorithm, self).__init__(ds, log_file_name)
         self.batch_size = batch_size
         self.ordered_pids = topo_sort_param_ids(ds)
 
     def traverse(self, point: DesignPoint, idx: int) -> Generator[DesignPoint, None, None]:
-        """DFS traverse the design space and yield leaf points
+        """DFS traverse the design space and yield leaf points.
 
-        Parameters
-        ----------
-        point:
-            The current design point.
+        Args:
+            point: The current design point.
+            idx: The current manipulated parameter index.
 
-        idx:
-            The current manipulated parameter index.
-
-        Returns
-        -------
-        Generator[DesignPoint, None, None]:
+        Returns:
             A resursive generator for traversing.
         """
 

@@ -17,7 +17,15 @@ class AlgorithmFactory():
     @staticmethod
     def make(config: Dict[str, Any], ds: DesignSpace,
              log_file_name: str = 'algo.log') -> SearchAlgorithm:
-        """TBA
+        """Initialize a search algorithm based on the given configuration.
+
+        Args:
+            config: Configuration.
+            ds: Design space.
+            log_file_name: Name of the log file.
+
+        Returns
+            An object of initialized search algorithm.
         """
 
         log = get_default_logger('AlgorithmFactory')

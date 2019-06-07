@@ -4,21 +4,19 @@
    contain the root `toctree` directive.
 
 Merlin AutoDSE Documentation
-===================================
+============================
+
+.. toctree::
+   :maxdepth: 2
+
+   install/index
+
+.. toctree::
+   :maxdepth: 2
+
+   api/index
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
 
-    dsproc
-    database
-    evaluator
-    parameter
-    result
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   genindex

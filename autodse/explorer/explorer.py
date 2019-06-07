@@ -13,9 +13,26 @@ from ..result import Job, Result
 
 
 class Explorer():
-    """Main explorer class"""
+    """Main explorer class.
 
-    def __init__(self, db: Database, evaluator: Evaluator, tag):
+    Attributes:
+        db: The result database.
+        evaluator: The evaluator.
+        tag: The string tag of this explorer.
+        algo_log_file_name: The prefix name of log file.
+        log: Logger object.
+        best_result: So far best result.
+        explored_point: So far explored point.
+    """
+
+    def __init__(self, db: Database, evaluator: Evaluator, tag: str):
+        """Constructor.
+
+        Args:
+            db: Database.
+            evaluator: Evaluator.
+            tag: A unique tag.
+        """
         self.db = db
         self.evaluator = evaluator
         self.tag = tag
@@ -27,16 +44,12 @@ class Explorer():
         self.explored_point = 0
 
     def create_job_and_apply_point(self, point) -> Optional[Job]:
-        """Create a new job and apply the given design point
+        """Create a new job and apply the given design point.
 
-        Parameters
-        ----------
-        point:
-            The point to be applied.
+        Args:
+            point: The point to be applied.
 
-        Returns
-        -------
-        Optional[Job]:
+        Returns:
             The created job, or None if failed.
         """
 
@@ -52,10 +65,8 @@ class Explorer():
     def update_best(self, result: Result) -> None:
         """Keep tracking the best result found in this explorer.
 
-        Parameters
-        ---------
-        result:
-            The new result to be checked.
+        Args:
+            result: The new result to be checked.
 
         """
         if result.valid and result.quality > self.best_result.quality:
@@ -64,24 +75,37 @@ class Explorer():
                           self.explored_point, result.quality, result.perf)
 
     def run(self, algo_config: Dict[str, Any]) -> None:
-        """The main function of the explorer to launch the search algorithm
+        """The main function of the explorer to launch the search algorithm.
 
-        Parameters
-        ----------
-        algo_name:
-            The corresponding algorithm name for running this exploration.
-
-        algo_config:
-            The configurable values for the algorithm.
+        Args:
+            algo_name: The corresponding algorithm name for running this exploration.
+            algo_config: The configurable values for the algorithm.
         """
         raise NotImplementedError()
 
 
 class FastExplorer(Explorer):
-    """"Fast explorer class"""
+    """
+    Fast explorer uses serach algorithm to find the best point in a large design space. For each
+    explored point, it runs level 1 and level 2 evaluation to get an estimated QoR in a relative
+    short time.
+
+    Attributes:
+        timeout: Timeout in seconds for each job evaluation.
+        ds: The given design space.
+    """
 
     def __init__(self, db: Database, evaluator: Evaluator, timeout: int, tag: str,
                  ds: DesignSpace):
+        """Constructor.
+
+        Args:
+            db: Database.
+            evaluator: Evaluator.
+            timeout: Timeout of each job evaluation in minutes.
+            tag: A unique tag.
+            ds: Design space.
+        """
         super(FastExplorer, self).__init__(db, evaluator, tag)
         self.timeout = timeout * 60.0
         self.ds = ds
@@ -173,12 +197,24 @@ class FastExplorer(Explorer):
 
 
 class AccurateExplorer(Explorer):
-    """The accurate explorer class.
+    """
     Currently we simply evaluate all given points and mark the best one. The future opportunities
     here could be an algorithm for tuning design tool parameters.
+
+    Attributes:
+        points: A set of points to be explored.
     """
 
     def __init__(self, db: Database, evaluator: Evaluator, tag: str, points: List[DesignPoint]):
+        """Constructor.
+
+        Args:
+            db: Database.
+            evaluator: Evaluator.
+            timeout: Timeout of each job evaluation in minutes.
+            tag: A unique tag.
+            points: A set of points to be explored.
+        """
         super(AccurateExplorer, self).__init__(db, evaluator, tag)
         self.points = points
 
@@ -187,19 +223,13 @@ class AccurateExplorer(Explorer):
 
         def chunk(points: List[DesignPoint],
                   size: int) -> Generator[List[DesignPoint], None, None]:
-            """Chunk design point list to the given size
+            """Chunk design point list to the given size.
 
-            Parameters
-            ----------
-            points:
-                A full list of design points.
+            Args:
+                points: A full list of design points.
+                size: The maximum size of each chunk.
 
-            size:
-                The maximum size of each chunk.
-
-            Returns
-            -------
-            Generator[List[DesignPoint], None, None]:
+            Returns:
                 A generator to chunk the list.
             """
 

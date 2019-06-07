@@ -15,7 +15,12 @@ from ..util import copy_dir
 
 
 class Scheduler():
-    """The base class of job scheduler with API definitions"""
+    """The base class of job scheduler.
+
+    Attributes:
+        log: The logger.
+        max_worker: The maximum number of allowed workers.
+    """
 
     def __init__(self, max_worker: int = 8):
         self.log = get_eval_logger('Scheduler')
@@ -23,27 +28,17 @@ class Scheduler():
 
     def run(self, jobs: List[Job], keep_files: List[str], cmd: str,
             timeout: Optional[int] = None) -> List[Tuple[str, Result.RetCode]]:
-        """The main API of scheduling and running given jobs
+        """The main API of scheduling and running given jobs.
 
-        Parameters
-        ----------
-        job:
-            A list of job objects to be scheduled.
+        Args:
+            job: A list of job objects to be scheduled.
+            keep_files: A list of file name (support wildcards) to indicate which files
+                        should be kept for result analysis.
+            cmd: A string of command for execution. Note that we may extend this part
+                 to another evaluation function instead of a single string in the future.
+            timeout: The timeout in minutes of the evaluation. None means no timeout.
 
-        keep_files:
-            A list of file name (support wildcards) to indicate which files
-            should be kept for result analysis.
-
-        cmd:
-            A string of command for execution. Note that we may extend this part
-            to another evaluation function instead of a single string in the future.
-
-        timeout:
-            The timeout in minutes of the evaluation. None means no timeout.
-
-        Returns
-        -------
-        List[Tuple[str, Result.RetCode]]:
+        Returns:
             A list of each job key and its corresponding return code.
         """
         raise NotImplementedError()
@@ -56,22 +51,14 @@ class PythonSubprocessScheduler(Scheduler):
     def backup_files_and_rmtree(src_path: str,
                                 dst_path: str,
                                 file_list: Optional[List[str]] = None) -> None:
-        """Backup files from working directory to the job directory and remove working directory
+        """Backup files from working directory to the job directory and remove working directory.
 
-        Paramteters
-        -----------
-        src_path:
-            The working directory.
+        Args:
+            src_path: The working directory.
+            dst_path: The job directory.
+            file_list: A list of files we want to keep. None means keep all.
 
-        dst_path:
-            The job directory.
-
-        file_list:
-            A list of files we want to keep. None means keep all.
-
-        Returns
-        -------
-        None:
+        Returns:
             This function is slient and will not check if the backup was success or not.
         """
 

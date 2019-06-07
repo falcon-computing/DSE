@@ -81,9 +81,6 @@ def database_tester(db_cls):
     db.commit('point3', point)
     assert db.count() == 4
 
-    # Query count
-    assert db.count_ret_code(Result.RetCode.TIMEOUT) == 1
-
     # Query all data
     data = db.query_all()
     assert len(data) == 4

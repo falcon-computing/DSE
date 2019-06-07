@@ -25,7 +25,23 @@ class BackupMode(Enum):
 
 
 class Evaluator():
-    """Main evaluator class"""
+    """Base evaluator class.
+
+    Attributes:
+        log: Logger.
+        db: Database.
+        src_path: The path to the user source project.
+        work_path: The working space.
+        temp_dir_prefix: The prefix for temporary directories.
+        scheduler: Scheduler.
+        backup_mode: Backup mode. It is either NO_BACKUP, BACKUP_ERROR, or BACKUP_ALL.
+        config: Configuration.
+        analyzer: Analyzer.
+        timeouts: Timeout dictionary for each evaluation level (in minutes).
+        commands: Command dictionary for each evaluation level.
+        src_files: The source files that contains design parameters.
+        auto_map: A dictionary to map source file name and line to design parameters.
+    """
 
     def __init__(self,
                  src_path: str,
@@ -36,6 +52,21 @@ class Evaluator():
                  backup_mode: BackupMode,
                  dse_config: Dict[str, Any],
                  temp_prefix: str = 'eval'):
+        """Constructor
+
+        The constructor has mainly 3 tasks. 1) Initialize the workspace, 2) build scope mape, and
+        3) identify the source files that contain design parameters.
+
+        Args:
+            src_path: The path to the user source project.
+            work_path: The working space.
+            db: Database.
+            scheduler: Scheduler.
+            analyzer_cls: Analyzer class.
+            backup_mode: Backup mode. It is either NO_BACKUP, BACKUP_ERROR, or BACKUP_ALL.
+            dse_config: Configuration.
+            temp_prefix: The prefix for temporary directories.
+        """
         self.log = get_eval_logger('Evaluator')
         self.db = db
         self.src_path = src_path
@@ -88,35 +119,29 @@ class Evaluator():
             self.log.info(file_name)
 
     def set_timeout(self, config: Dict[str, int]) -> None:
-        """Set timeout to a specific evaluation mode
+        """Set timeout to a specific evaluation mode.
 
-        Parameters
-        ----------
-        config:
-            A mode-timeout pair to specify the timeout in minutes for each mode.
+        Args:
+            config: A mode-timeout pair to specify the timeout in minutes for each mode.
         """
 
         for mode, timeout in config.items():
             self.timeouts[mode] = timeout
 
     def set_command(self, config: Dict[str, str]) -> None:
-        """Set command to a specific evaluation mode
+        """Set command to a specific evaluation mode.
 
-        Parameters
-        ----------
-        config:
-            A mode-command pair to specify the command to be executed for each mode.
+        Args:
+            config: A mode-command pair to specify the command to be executed for each mode.
         """
 
         for mode, command in config.items():
             self.commands[mode] = command
 
     def create_job(self) -> Optional[Job]:
-        """Create a new folder and copy source code for a design point to be evaluated
+        """Create a new folder and copy source code for a design point to be evaluated.
 
-        Returns
-        -------
-        Job:
+        Returns:
             A created Job object.
         """
 
@@ -127,21 +152,16 @@ class Evaluator():
         return Job(path)
 
     def apply_design_point(self, job: Job, point: DesignPoint) -> bool:
-        """Apply the given design point to the source code in job path. Change job status to
-           'APPLIED' if success.
+        """Apply the given design point to the source code in job path.
 
-        Parameters
-        ----------
-        job:
-            The job object with status INIT to be applied
+        When success, change job status to "APPLIED" and return true.
 
-        point:
-            The design point that indicates specific values to design parameters
+        Args:
+            job: The job object with status INIT to be applied
+            point: The design point that indicates specific values to design parameters
 
-        Returns
-        -------
-        bool:
-            Indicate if the application was success or not
+        Returns:
+            Indicate if the application was success or not.
         """
 
         if job.status != Job.Status.INIT:
@@ -180,20 +200,15 @@ class Evaluator():
 
     def submit(self, jobs: List[Job], eval_lv: int) -> List[Tuple[str, Result]]:
         """Submit a list of jobs for evaluation and get desired result files.
-           1) When this method returns, the wanted result files should be available locally
-           except for duplicated jobs. 2) All results will be committed to the database.
 
-        Parameters
-        ----------
-        job:
-            The job object to be submitted.
+        1) When this method returns, the wanted result files should be available locally
+        except for duplicated jobs. 2) All results will be committed to the database.
 
-        eval_lv:
-            The evaluation level (1-3).
+        Args:
+            job: The job object to be submitted.
+            eval_lv: The evaluation level (1-3).
 
-        Returns
-        -------
-        List[Tuple[str, Result]]:
+        Returns:
             Results of jobs mapped by their keys.
         """
 
@@ -242,14 +257,10 @@ class Evaluator():
     def submit_lv1(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         """The level 1 job evaluation flow.
 
-        Parameters
-        ----------
-        job:
-            The job object to be submitted.
+        Args:
+            job: The job object to be submitted.
 
-        Returns
-        -------
-        List[Tuple[Job, Result]]:
+        Returns:
             Result to each job. The ret_code in each result should be PASS if the evaluation
             was done successfully.
         """
@@ -258,14 +269,10 @@ class Evaluator():
     def submit_lv2(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         """The level 2 job evaluation flow.
 
-        Parameters
-        ----------
-        job:
-            The job object to be submitted.
+        Args:
+            job: The job object to be submitted.
 
-        Returns
-        -------
-        List[Tuple[Job, Result]]:
+        Returns:
             Result to each job. The ret_code in each result should be PASS if the evaluation
             was done successfully.
         """
@@ -274,14 +281,10 @@ class Evaluator():
     def submit_lv3(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:
         """The level 3 job evaluation flow.
 
-        Parameters
-        ----------
-        job:
-            The job object to be submitted.
+        Args:
+            job: The job object to be submitted.
 
-        Returns
-        -------
-        List[Tuple[Job, Result]]:
+        Returns:
             Result to each job. The ret_code in each result should be PASS if the evaluation
             was done successfully.
         """
@@ -302,9 +305,7 @@ class MerlinEvaluator(Evaluator):
     def build_scope_map(self) -> bool:
         """Build the scope map that maps auto positions to the scope in source code.
 
-        Returns
-        -------
-        bool:
+        Returns:
             Indicate if the build was success or not.
         """
 
@@ -339,16 +340,12 @@ class MerlinEvaluator(Evaluator):
         return False
 
     def dup_hls_result(self, result: HLSResult) -> HLSResult:
-        """Clone the given HLS result and mark as duplicated
+        """Clone the given HLS result and mark as duplicated.
 
-        Parameters
-        ----------
-        result:
-            The HLS result to be duplicated
+        Args:
+            result: The HLS result to be duplicated
 
-        Returns
-        -------
-        HLSResult:
+        Returns:
             The duplicated result.
         """
         dup_result = deepcopy(result)

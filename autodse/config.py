@@ -98,17 +98,13 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
 
 
 def build_config(user_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Check user config and apply default value to optional configs
+    """Check user config and apply default value to optional configs.
 
-    Parameters
-    ----------
-    user_config:
-        The user config to be referred.
+    Args:
+        user_config: The user config to be referred.
 
-    Returns
-    -------
-    Dict[str, Any]:
-        A nested dict of configs, or None if there has any errors
+    Returns:
+        A nested dict of configs, or None if there has any errors.
     """
 
     log = get_default_logger('Config')
