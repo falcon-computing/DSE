@@ -161,7 +161,9 @@ class Main():
 
         if self.args.mode.find('check') == -1:
             self.log.info('Building the scope map')
-            self.evaluator.build_scope_map()
+            if not self.evaluator.build_scope_map():
+                self.log.error('Failed to build the scope map. See eval.log for details')
+                sys.exit(1)
 
             # Display important configs
             self.reporter.log_config(self.args.mode)
