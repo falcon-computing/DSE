@@ -4,7 +4,7 @@ LABEL Version "0.1"
 
 RUN python3.6 -m pip install --trusted-host pypi.python.org setuptools future mypy pylint pytest \
     pytest-cov pytest-mock Sphinx sphinx_rtd_theme yapf tox argparse jsonpickle pickledb \
-    redis texttable
+    redis texttable matplotlib
 
 RUN yum install -y redis
 

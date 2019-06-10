@@ -78,7 +78,17 @@ def test_reporter(test_dir, capsys):
     result.quality = 1 / result.perf / result.quality
     result.res_util = {'util-BRAM': 0.6, 'util-LUT': 0.7, 'util-DSP': 0, 'util-FF': 0.4}
     output.append(result)
-    #assert reporter.report_output(output)
     LOG.info(reporter.report_output(output))
+
+    # Test Pareto set finder
+    keys = [k for k in reporter.db.query_keys() if k.startswith('lv2')]
+    data: List[Tuple[float, float, Result]] = [
+        (r.perf, sum([v for k, v in r.res_util.items() if k.startswith('util')]), r)
+        for r in reporter.db.batch_query(keys) if r is not None and r.valid
+    ]
+    assert len(reporter.find_pareto_set(data)) == 5
+
+    # Test draw Pareto
+    reporter.draw_pareto_curve('{0}/pareto.pdf'.format(test_dir))
 
     LOG.info('=== Testing reporter end')

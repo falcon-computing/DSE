@@ -265,6 +265,66 @@ class Reporter():
 
         return rpt, detail_rpt
 
+    def find_pareto_set(self, _data: List[Tuple[float, float, Result]]
+                        ) -> List[Tuple[float, float, Result]]:
+        """Identify the Pareto set in given results.
+
+        Args:
+            _data: All available data with performance and resource as the first two values.
+
+        Returns:
+            A list of Pareto point results.
+        """
+
+        data = sorted(_data, key=lambda r: r[0])
+
+        pareto = []
+        pivot = data[0]
+        for point in data:
+            if pivot[0] == point[0]:  # Same performance
+                if point[1] < pivot[1]:  # Samller area
+                    pivot = point
+            else:  # Worse performance
+                if point[1] < pivot[1]:
+                    pareto.append(pivot)
+                    pivot = point
+        if not pareto or pivot != pareto[-1]:
+            pareto.append(pivot)
+        return pareto
+
+    def draw_pareto_curve(self, out_filename: str) -> None:
+        """Draw level 2 (HLS) result distribution and a Pareto curve.
+
+        Args:
+            out_filename: The output filename.
+        """
+        import matplotlib.pyplot as plt
+
+        keys = [k for k in self.db.query_keys() if k.startswith('lv2')]
+        data: List[Tuple[float, float, Result]] = [
+            (r.perf, sum([v for k, v in r.res_util.items() if k.startswith('util')]), r)
+            for r in self.db.batch_query(keys) if r is not None and r.valid
+        ]
+        if not data:
+            self.log.warning('Skip drawing Pareto curve due to no data')
+            return
+
+        pareto = self.find_pareto_set(data)
+
+        # Draw the figure
+        plt.title('Valid Result Distribution (Ignored Duplications)')
+        plt.xlabel('HLS Cycle')
+        plt.ylabel('Sum of Resource Utilizations')
+        plt.plot([p[0] for p in data], [p[1] for p in data],
+                 'k.',
+                 label='Valid HLS Results ({})'.format(len(data)))
+        plt.plot([p[0] for p in pareto], [p[1] for p in pareto],
+                 'bo-',
+                 label='Pareto Points ({})'.format(len(pareto)))
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(out_filename)
+
     def print_status(self, timer: float, count: int, phase: int = 1) -> None:
         """Pretty print the current exploration status.
 

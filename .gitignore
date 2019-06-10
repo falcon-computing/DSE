@@ -18,6 +18,7 @@ temp*
 *.js
 .coverage
 cov.xml
+*.pdf
 
 # Python type checking
 .mypy_cache/

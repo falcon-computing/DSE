@@ -319,6 +319,10 @@ class Main():
         if rpt:
             with open(os.path.join(out_fast_dir, 'output.rpt'), 'w') as filep:
                 filep.write(rpt)
+
+        # Draw result distribution with Pareto curve
+        self.reporter.draw_pareto_curve(os.path.join(out_fast_dir, 'result_dist.pdf'))
+
         return points
 
     def launch_fast(self, ds_list: List[DesignSpace]) -> List[DesignPoint]:
