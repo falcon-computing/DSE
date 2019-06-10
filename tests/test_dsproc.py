@@ -21,6 +21,7 @@ def test_compile_design_space(mocker):
     scope_map = {'X': ['L_0_0_3']}
     mocker.patch('autodse.dsproc.dsproc.create_design_parameter', return_value=param)
     mock1 = mocker.patch('autodse.dsproc.dsproc.check_design_space', return_value=0)
+    mocker.patch('autodse.dsproc.dsproc.count_design_points', return_value=1)
     ret = dsproc.compile_design_space(ds_config, scope_map)
     assert len(ret) == 1
     mock1.assert_called_once()
@@ -184,7 +185,71 @@ def test_topo_sort_param_ids():
     sorted_ids = dsproc.topo_sort_param_ids(space)
     assert all([a == b for a, b in zip(sorted_ids, ['C', 'B', 'A'])])
 
+    # Parameter B, D have no dependency
+    space['B'].deps = []
+    space['A'].deps = ['C']
+    param = DesignParameter()
+    param.name = 'D'
+    param.deps = []
+    space['D'] = param
+    sorted_ids = dsproc.topo_sort_param_ids(space)
+    assert all([a == b for a, b in zip(sorted_ids, ['C', 'A', 'B', 'D'])])
+
     LOG.debug('=== Testing topo_sort_param_ids end')
+
+
+def test_count_design_points():
+    #pylint:disable=missing-docstring
+
+    LOG.debug('=== Testing count deisgn points start')
+
+    space = {}
+
+    # Parameter A
+    param = DesignParameter()
+    param.name = 'A'
+    param.option_expr = '[1,2,4,8,16,32,64,128]'
+    param.child = ['B', 'C']
+    space['A'] = param
+
+    # Parameter B <- A
+    param = DesignParameter()
+    param.name = 'B'
+    param.option_expr = '[x for x in [1,2,4,8,16,32,64,128] if x==1 or x*A<=128]'
+    param.deps = ['A']
+    param.child = ['C']
+    space['B'] = param
+
+    # Parameter C <- (B, A)
+    param = DesignParameter()
+    param.name = 'C'
+    param.option_expr = '[x for x in [1,2,4,8,16] if x==1 or (A<=4 and B==1)]'
+    param.deps = ['A', 'B']
+    space['C'] = param
+
+    # Parameter D
+    param = DesignParameter()
+    param.name = 'D'
+    param.option_expr = '["off", "", "flatten"]'
+    param.child = ['E']
+    space['D'] = param
+
+    # Parameter E <- D
+    param = DesignParameter()
+    param.name = 'E'
+    param.option_expr = '[x for x in ["off", "", "flatten"] if x=="off" or D!="flatten"]'
+    param.deps = ['D']
+    space['E'] = param
+
+    # Parameter F
+    param = DesignParameter()
+    param.name = 'F'
+    param.option_expr = '["off", "", "flatten"]'
+    space['F'] = param
+
+    assert dsproc.count_design_points(space) == 1008
+
+    LOG.debug('=== Testing count design points end')
 
 
 def test_partition(mocker):

@@ -3,10 +3,10 @@ The exhaustive search algorithm
 """
 from typing import Dict, Generator, List, Optional
 
-from .algorithm import SearchAlgorithm
 from ..dsproc.dsproc import topo_sort_param_ids
-from ..parameter import DesignPoint, DesignSpace
+from ..parameter import DesignPoint, DesignSpace, get_default_point
 from ..result import Result
+from .algorithm import SearchAlgorithm
 
 
 class ExhaustiveAlgorithm(SearchAlgorithm):
@@ -60,7 +60,7 @@ class ExhaustiveAlgorithm(SearchAlgorithm):
 
         self.log.info('Launch exhaustive search algorithm')
 
-        traverser = self.traverse(self.get_default_point(), 0)
+        traverser = self.traverse(get_default_point(self.ds), 0)
         iter_cnt = 0
         while True:
             next_points: List[DesignPoint] = []

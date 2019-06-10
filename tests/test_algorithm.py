@@ -7,7 +7,7 @@ from autodse import logger
 from autodse.explorer.algorithm import SearchAlgorithm
 from autodse.explorer.algorithmfactory import AlgorithmFactory
 from autodse.explorer.exhaustive import ExhaustiveAlgorithm
-from autodse.parameter import MerlinParameter
+from autodse.parameter import MerlinParameter, get_default_point
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
 
@@ -48,10 +48,7 @@ def test_algorithm(fixture_space):
     LOG.debug('=== Testing design point manipulation in search algorithm start ===')
 
     algo = SearchAlgorithm(fixture_space)
-
-    # Test default point generation
-    point = algo.get_default_point()
-    assert point['A'] == 0 and point['B'] == 'off' and point['C'] == 'off'
+    point = get_default_point(fixture_space)
 
     # Test basic option generation
     options = algo.gen_options(point, 'A')

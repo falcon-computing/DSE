@@ -216,3 +216,17 @@ def create_design_parameter(param_id: str, ds_config: Dict[str, Union[str, int]]
     param.default = ds_config['default']
 
     return param
+
+
+def get_default_point(ds: DesignSpace) -> DesignPoint:
+    """Generate a design point with all default values.
+
+    Returns:
+        The design point with all default value applied.
+    """
+
+    point: DesignPoint = {}
+    for pid, param in ds.items():
+        point[pid] = param.default
+
+    return point

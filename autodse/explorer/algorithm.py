@@ -24,19 +24,6 @@ class SearchAlgorithm():
         self.ds = ds
         self.log = get_algo_logger('Search', log_file_name)
 
-    def get_default_point(self) -> DesignPoint:
-        """Generate a design point with all default values.
-
-        Returns:
-            The design point with all default value applied.
-        """
-
-        point: DesignPoint = {}
-        for pid, param in self.ds.items():
-            point[pid] = param.default
-
-        return point
-
     def gen_options(self, point: DesignPoint, pid: str) -> List[Union[int, str]]:
         """Evaluate available options of the target design parameter.
 

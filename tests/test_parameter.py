@@ -3,9 +3,27 @@ The unit test module for parameter.
 """
 from autodse import logger
 from autodse.parameter import (MerlinParameter, check_option_syntax, check_order_syntax,
-                               create_design_parameter)
+                               create_design_parameter, get_default_point)
 
 LOG = logger.get_default_logger('UNIT-TEST', 'DEBUG')
+
+
+def test_default_point():
+    #pylint:disable=missing-docstring
+
+    ds = {}
+    param = MerlinParameter()
+    param.default = 0
+    ds['A'] = param
+    param = MerlinParameter()
+    param.default = 'off'
+    ds['B'] = param
+    param = MerlinParameter()
+    param.default = 'off'
+    ds['C'] = param
+
+    point = get_default_point(ds)
+    assert point['A'] == 0 and point['B'] == 'off' and point['C'] == 'off'
 
 
 def test_check_option_syntax():

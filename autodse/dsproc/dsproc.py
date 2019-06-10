@@ -7,7 +7,8 @@ from logging import Logger
 from typing import Deque, Dict, List, Optional, Set, Union
 
 from ..logger import get_default_logger
-from ..parameter import (DesignParameter, DesignSpace, MerlinParameter, create_design_parameter)
+from ..parameter import (DesignParameter, DesignPoint, DesignSpace, MerlinParameter,
+                         create_design_parameter, get_default_point)
 from ..util import safe_eval
 
 
@@ -18,23 +19,16 @@ def get_dsproc_logger() -> Logger:
 
 def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]],
                          scope_map: Optional[Dict[str, List[str]]]) -> Optional[DesignSpace]:
-    """Compile the design space from the config JSON file
+    """Compile the design space from the config JSON file.
 
-    Parameters
-    ----------
-    user_ds_config:
-        The input design space configure loaded from a JSON file.
-        Note that the duplicated ID checking should be done when loading the JSON file and
-        here we assume no duplications.
+    Args:
+        user_ds_config: The input design space configure loaded from a JSON file.
+                        Note that the duplicated ID checking should be done when
+                        loading the JSON file and here we assume no duplications.
+        scope_map: The scope map that maps design parameter ID to its scope.
 
-    scope_map:
-        The scope map that maps design parameter ID to its scope.
-
-    Returns
-    -------
-    Optional[DesignSpace]:
+    Returns:
         The design space compiled from the kernel code; or None if failed.
-
     """
     log = get_dsproc_logger()
     params: Dict[str, DesignParameter] = {}
@@ -57,22 +51,59 @@ def compile_design_space(user_ds_config: Dict[str, Dict[str, Union[str, int]]],
 
     analyze_child_in_design_space(params)
 
+    log.info('Design space contains %s valid design points', count_design_points(params))
     log.info('Finished design space compilation')
     return params
 
 
+def count_design_points(ds: DesignSpace) -> int:
+    """Count the valid points in a given design space.
+
+    Args:
+        ds: Design space to be counted.
+
+    Returns:
+        Number of valid design points.
+    """
+
+    log = get_dsproc_logger()
+
+    def helper(ds: DesignSpace, sorted_ids: List[str], idx: int, point: DesignPoint) -> int:
+        """Count the deisgn points of parameters by traversing topological sorted parameters."""
+
+        # Reach to the end
+        if idx == len(sorted_ids):
+            return 1
+
+        pid = sorted_ids[idx]
+        param = ds[pid]
+        options = safe_eval(param.option_expr, point)
+
+        counter = 0
+        if param.child:
+            # Sum all points under each option
+            for option in options:
+                point[pid] = option
+                counter += helper(ds, sorted_ids, idx + 1, point)
+        else:
+            # Product the number of options with the rest points
+            counter = len(options) * helper(ds, sorted_ids, idx + 1, point)
+        log.debug('Node %s: %d', pid, counter)
+        return counter
+
+    point = get_default_point(ds)
+    sorted_ids = topo_sort_param_ids(ds)
+    return helper(ds, sorted_ids, 0, point)
+
+
 def check_design_space(params: DesignSpace) -> int:
-    """Check design space for missing dependency and duplication
+    """Check design space for missing dependency and duplication.
 
-    Parameters
-    ----------
-    params:
-        The overall design space
+    Args:
+        params: The overall design space.
 
-    Returns
-    -------
-    int:
-        The number of errors found in the design space
+    Returns:
+        The number of errors found in the design space.
     """
 
     log = get_dsproc_logger()
@@ -120,12 +151,10 @@ def check_design_space(params: DesignSpace) -> int:
 
 
 def analyze_child_in_design_space(params: DesignSpace) -> None:
-    """Traverse design parameter dependency and build child list for each parameter in place
+    """Traverse design parameter dependency and build child list for each parameter in place.
 
-    Parameters
-    ----------
-    params:
-        The overall design space
+    Args:
+        params: The overall design space
     """
 
     # Setup child for each parameter
@@ -139,37 +168,17 @@ def analyze_child_in_design_space(params: DesignSpace) -> None:
 
 
 def topo_sort_param_ids(space: DesignSpace) -> List[str]:
-    """Sort the parameter IDs topologically
+    """Sort the parameter IDs topologically.
 
-    Parameters
-    ----------
-    space:
-        The design space to be sorted
+    Args:
+        space: The design space to be sorted.
 
-    Returns
-    -------
-    List[str]:
-        The sorted IDs
+    Returns:
+        The sorted IDs.
     """
 
     def helper(curr_id: str, visited: Set[str], stack: List[str]) -> None:
-        """The helper function for topological sort
-
-        Parameters
-        ----------
-        curr_id:
-            The current visiting parameter ID
-
-        visited:
-            The set of visited parameter IDs
-
-        stack:
-            The sorted parameter IDs
-
-        Returns
-        -------
-            None
-        """
+        """The helper function for topological sort."""
         visited.add(curr_id)
         for dep in space[curr_id].deps:
             if dep not in visited:
@@ -185,20 +194,14 @@ def topo_sort_param_ids(space: DesignSpace) -> List[str]:
 
 
 def partition(space: DesignSpace, limit: int) -> Optional[List[DesignSpace]]:
-    """Partition the given design space to at most the limit parts
+    """Partition the given design space to at most the limit parts.
 
-    Parameters
-    ----------
-    space:
-        The design space to be partitioned
+    Args:
+        space: The design space to be partitioned.
+        limit: The maximum number of partitions.
 
-    limit:
-        The maximum number of partitions
-
-    Returns
-    -------
-    Optional[List[DesignSpace]]:
-        The list of design space partitions
+    Returns:
+        The list of design space partitions.
     """
     log = get_dsproc_logger()
     sorted_ids = topo_sort_param_ids(space)

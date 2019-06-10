@@ -9,7 +9,7 @@ from typing import Dict, Generator, List, NamedTuple, Optional, Set, Tuple
 from texttable import Texttable
 
 from ..parameter import (DesignParameter, DesignPoint, DesignSpace, MerlinParameter,
-                         gen_key_from_design_point)
+                         gen_key_from_design_point, get_default_point)
 from ..result import HierPathNode, HLSResult, MerlinResult, Result
 from .algorithm import SearchAlgorithm
 
@@ -390,7 +390,7 @@ class GradientAlgorithm(SearchAlgorithm):
         self.log.info('Launch gradient search algorithm')
 
         # Start from the default point
-        curr_point = self.get_default_point()
+        curr_point = get_default_point(self.ds)
         curr_key = gen_key_from_design_point(curr_point)
         key_n_results = yield [curr_point]
         assert key_n_results is not None
