@@ -43,17 +43,13 @@ DesignPoint = Dict[str, Union[int, str]]
 
 
 def gen_key_from_design_point(point: DesignPoint) -> str:
-    """Generate a unique key from the given design point
+    """Generate a unique key from the given design point.
 
-    Parameters
-    ----------
-    point:
-        The given design point
+    Args:
+        point: The given design point.
 
-    Returns
-    -------
-    str:
-        The generated key in the format of "param1-value1.param2-value2"
+    Returns:
+        The generated key in the format of "param1-value1.param2-value2".
     """
 
     return '.'.join([
@@ -63,18 +59,13 @@ def gen_key_from_design_point(point: DesignPoint) -> str:
 
 
 def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
-    """Check the syntax of design options and extract dependent design parameter IDs
+    """Check the syntax of design options and extract dependent design parameter IDs.
 
-        Parameters
-        ----------
-        option_expr:
-            The design space option expression
+        Args:
+            option_expr: The design space option expression.
 
-        Returns
-        -------
-        Tuple[bool, List[str]]:
-            Indicate if the expression is valid or not;
-            A list of dependent design parameter IDs
+        Returns:
+            Indicate if the expression is valid or not; A list of dependent design parameter IDs.
     """
 
     log = get_param_logger()
@@ -121,18 +112,13 @@ def check_option_syntax(option_expr: str) -> Tuple[bool, List[str]]:
 
 
 def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
-    """Check the syntax of the partition rule and extract the variable name
+    """Check the syntax of the partition rule and extract the variable name.
 
-    Parameters
-    ----------
-    order_expr:
-        The design space option expression
+    Args:
+        order_expr: The design space option expression.
 
-    Returns
-    -------
-    Tuple[bool, str]:
-        Indicate if the expression is valid or not;
-        The single variable name in the expression
+    Returns:
+        Indicate if the expression is valid or not; The single variable name in the expression.
     """
 
     log = get_param_logger()
@@ -157,23 +143,15 @@ def check_order_syntax(order_expr: str) -> Tuple[bool, str]:
 
 def create_design_parameter(param_id: str, ds_config: Dict[str, Union[str, int]],
                             param_cls: Type[DesignParameter]) -> Optional[DesignParameter]:
-    """Create DesignParameter from the string
+    """Create DesignParameter from the string.
 
-    Parameters
-    ----------
-    param_id:
-        The unique parameter ID
+    Args:
+        param_id: The unique parameter ID.
+        attr_str: The design space string in the auto pragma.
+        param_cls: The class of parameter we will create.
 
-    attr_str:
-        The design space string in the auto pragma
-
-    param_cls:
-        The class of parameter we will create
-
-    Returns
-    -------
-    Optional[DesignParameter]:
-        The created DesignParameter object
+    Returns:
+        The created DesignParameter object.
     """
 
     log = get_param_logger()

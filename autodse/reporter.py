@@ -10,7 +10,15 @@ from .result import BitgenResult, Result
 
 
 class Reporter():
-    """Main reporter class"""
+    """Main reporter class
+
+    Attributes:
+        config: DSE configurartion.
+        db: Database.
+        anime_ptr: The pointer to the current animation character.
+        is_first_best: Indicate if the best log header has been printed.
+        best_quality: The so far best quality.
+    """
 
     ANIME = ['-', '\\', '|', '/']
     RetCodeMap = {
@@ -83,14 +91,10 @@ class Reporter():
     def report_output(self, outputs: List[Result]) -> str:
         """Report the final output.
 
-        Parameters
-        ----------
-        outputs:
-            A list results to be reported and outputed.
+        Args:
+            outputs: A list results to be reported and outputed.
 
-        Returns
-        -------
-        str:
+        Returns:
             The output report.
         """
 
@@ -122,11 +126,9 @@ class Reporter():
         return tbl.draw()
 
     def report_summary(self) -> Tuple[str, str]:
-        """Summarize the explored points in the DB
+        """Summarize the explored points in the DB.
 
-        Returns
-        -------
-        str:
+        Returns:
             The summary report.
         """
 
@@ -264,19 +266,13 @@ class Reporter():
         return rpt, detail_rpt
 
     def print_status(self, timer: float, count: int, phase: int = 1) -> None:
-        """Pretty print the current exploration status
+        """Pretty print the current exploration status.
 
-        Parameters
-        ----------
-        timer:
-            The elapsed time for exploration. If timer is a negative number than
-            we are at phase 2 which has no exploration time limitation.
-
-        count:
-            The number of explored points.
-
-        phase:
-            The phase we are working on. Must be either 1 or 2.
+        Args:
+            timer: The elapsed time for exploration. If timer is a negative number than
+                   we are at phase 2 which has no exploration time limitation.
+            count: The number of explored points.
+            phase: The phase we are working on. Must be either 1 or 2.
         """
 
         if phase == 2:

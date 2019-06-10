@@ -14,14 +14,10 @@ class LogFormatter(logging.Formatter):
     def format(self, _record: logging.LogRecord) -> str:
         """The customized formatter function
 
-        Parameters
-        ----------
-        record:
-            The original formatted log data
+        Args:
+            record: The original formatted log data
 
-        Returns
-        -------
-        format:
+        Returns:
             The customized formatted log data
         """
         # Display the elapsed time in minutes

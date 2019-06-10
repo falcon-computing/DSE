@@ -25,19 +25,14 @@ SAFE_LIST = list(SAFE_BUILTINS.keys())
 
 
 def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> Any:
-    """A safe wrapper of Python builtin eval
+    """A safe wrapper of Python builtin eval.
 
-        Parameters
-        ----------
-        expr:
-            The expression string for evaluation
-        local:
-            The variable and value pairs for the expression
+        Args:
+            expr: The expression string for evaluation.
+            local: The variable and value pairs for the expression.
 
-        Returns
-        -------
-        Any:
-            The evaluated value
+        Returns:
+            The evaluated value.
     """
     table = dict(SAFE_BUILTINS)
     if local is not None:
@@ -51,20 +46,14 @@ def safe_eval(expr: str, local: Optional[Dict[str, Union[str, int]]] = None) -> 
 
 
 def copy_dir(src: str, dest: str) -> bool:
-    """Recursively copy a directory
+    """Recursively copy a directory.
 
-    Parameters
-    ----------
-    src:
-        The source directory
+    Args:
+        src: The source directory.
+        dest: The destination directory.
 
-    dest:
-        The destination directory
-
-    Returns
-    -------
-    bool:
-        Indicate if the copy was success or not
+    Returns:
+        Indicate if the copy was success or not.
     """
 
     if os.path.exists(dest):
@@ -82,19 +71,13 @@ def copy_dir(src: str, dest: str) -> bool:
 
 
 def command(cmd: str, timeout: Optional[int] = None) -> Tuple[bool, str]:
-    """Run an OS command
+    """Run an OS command.
 
-    Parameters
-    ----------
-    cmd:
-        The string of the given command.
+    Args:
+        cmd: The string of the given command.
+        timeout: The time limit of running this command.
 
-    timeout:
-        The time limit of running this command.
-
-    Returns
-    -------
-    Tuple[bool, str]:
+    Returns:
         Indicate if the command was success and the stdout of the command.
     """
 
@@ -115,17 +98,11 @@ def gen_dict_extract(key: str,
                      var: Union[Dict[str, Any], List[Any]]) -> Generator[Any, None, None]:
     """A generator that extracts all values in a nested dict with the given key.
 
-    Parameters
-    ----------
-    key:
-        The key we are looking for.
+    Args:
+        key: The key we are looking for.
+        var: The target dictionary (maybe a list during the recursion).
 
-    var:
-        The target dictionary (maybe a list during the recursion).
-
-    Returns
-    -------
-    Generator[Any, None, None]:
+    Returns:
         The value of the given key that can be any type.
     """
     if hasattr(var, 'iteritems'):
