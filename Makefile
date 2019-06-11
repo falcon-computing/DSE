@@ -8,9 +8,6 @@ lint:
 type:
 	mypy autodse --ignore-missing-imports
 
-tox:
-	tox
-
 unit_test:
 	pytest --lf
 

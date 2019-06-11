@@ -14,6 +14,16 @@ Merlin AutoDSE Documentation
 .. toctree::
    :maxdepth: 2
 
+   tutorial/index
+
+.. toctree::
+   :maxdepth: 2
+
+   dev/index
+
+.. toctree::
+   :maxdepth: 2
+
    api/index
 
 .. toctree::
