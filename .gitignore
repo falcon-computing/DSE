@@ -1,4 +1,5 @@
 # Temp files
+_build
 *.log
 *.db
 *.tox

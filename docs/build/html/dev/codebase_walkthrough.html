@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Walkthrough Codebase with an Example &mdash; autodse beta documentation</title>
+  <title>Walkthrough Codebase &mdash; autodse beta documentation</title>
   
 
   
@@ -94,7 +94,22 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="code_quality.html">Code Quality Assurance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="system_modules.html">System and Modules</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Walkthrough Codebase with an Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Walkthrough Codebase</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#codebase-structure">Codebase Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fast-mode-dse">Fast Mode DSE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#design-space-compilation">Design Space Compilation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exploration">Exploration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#accurate-mode-dse">Accurate Mode DSE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Exploration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Output</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -150,7 +165,7 @@
         
           <li><a href="index.html">Developer Guide</a> &raquo;</li>
         
-      <li>Walkthrough Codebase with an Example</li>
+      <li>Walkthrough Codebase</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -169,9 +184,140 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="walkthrough-codebase-with-an-example">
-<h1>Walkthrough Codebase with an Example<a class="headerlink" href="#walkthrough-codebase-with-an-example" title="Permalink to this headline">¶</a></h1>
-<p>TBA</p>
+  <div class="section" id="walkthrough-codebase">
+<h1>Walkthrough Codebase<a class="headerlink" href="#walkthrough-codebase" title="Permalink to this headline">¶</a></h1>
+<p>In this guide, we illustrate key modules of Merlin DSE.
+For each important step, we show how the Merlin DSE modules works so that
+the developers can dive into the codebase quickly.</p>
+<div class="section" id="codebase-structure">
+<h2>Codebase Structure<a class="headerlink" href="#codebase-structure" title="Permalink to this headline">¶</a></h2>
+<p>At the root of Merlin DSE repository, we have a directory <code class="docutils literal notranslate"><span class="pre">autodse</span></code> that
+includes all Python codebase.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>: The placeholder to tell Python interpreter the code in this
+directory is a Python module.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__main__.py</span></code>: The entrypoint of this Python package.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">config.py</span></code>: All DSE configurations and their parser.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">database.py</span></code>: Result database implementation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">logger.py</span></code>: Central logging system.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">main.py</span></code>: The actual main function of this package.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parameter.py</span></code>: The definition of design parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reporter.py</span></code>: Display handy process and result messages to users.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result.py</span></code>: The definitions of evaluation results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">util.py</span></code>: Miscellaneous.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dsproc</span></code>: Design space processor implementation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluator</span></code>: The evaluator implementation, including analyzer, evaluator
+and scheduler.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">explorer</span></code>: The explorer implementation, including explorer and algorithms.</p></li>
+</ul>
+</div>
+<div class="section" id="fast-mode-dse">
+<h2>Fast Mode DSE<a class="headerlink" href="#fast-mode-dse" title="Permalink to this headline">¶</a></h2>
+<p>We launch DSE fast mode and explain the execution flow:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m autodse src work src/config.json fast-dse
+</pre></div>
+</div>
+<div class="section" id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Python interpreter finds and execute <code class="docutils literal notranslate"><span class="pre">__main__.py</span></code> under <code class="docutils literal notranslate"><span class="pre">autodse</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__main__.py</span></code> invokes <code class="docutils literal notranslate"><span class="pre">Main</span></code> object defined in <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, which
+implements the main DSE flow.</p></li>
+<li><p>The constructor of <code class="docutils literal notranslate"><span class="pre">Main</span></code> initializes the workspace (<code class="docutils literal notranslate"><span class="pre">work</span></code> in this
+example), <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code>, and <code class="docutils literal notranslate"><span class="pre">Database</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> in <code class="docutils literal notranslate"><span class="pre">evaluator/evaluator.py</span></code> scans user kernel files and
+identifies the ones with <code class="docutils literal notranslate"><span class="pre">auto{}</span></code> keywords. If no keywords were found,
+then it errors out and terminates the process since we do not have design
+space to be explored.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code> in <code class="docutils literal notranslate"><span class="pre">database.py</span></code> creates a new database using the project name
+and timestamp, and then checks if there has an existed materialized database
+file and loads data from it if so.</p></li>
+</ul>
+</div>
+<div class="section" id="design-space-compilation">
+<h3>Design Space Compilation<a class="headerlink" href="#design-space-compilation" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>It first uses <code class="docutils literal notranslate"><span class="pre">compile_design_space</span></code> implemented in <code class="docutils literal notranslate"><span class="pre">dsproc/dsproc.py</span></code>
+to parse the design space in <code class="docutils literal notranslate"><span class="pre">config.json</span></code> and builds their dependencies.</p></li>
+<li><p>Then, it partitions the design space by invoking <code class="docutils literal notranslate"><span class="pre">partition</span></code> in
+<code class="docutils literal notranslate"><span class="pre">dsproc/dsproc.py</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="exploration">
+<h3>Exploration<a class="headerlink" href="#exploration" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>After that, it launches <code class="docutils literal notranslate"><span class="pre">Main.launch_fast</span></code>. This method uses Python thread
+pool executor to fork threads for partitions. Each thread executes
+<code class="docutils literal notranslate"><span class="pre">fast_runner</span></code> that creates a <code class="docutils literal notranslate"><span class="pre">FastExplorer</span></code> in <code class="docutils literal notranslate"><span class="pre">explorer/explorer.py</span></code>
+to perform DSE in fast mode and keep tracking the progress.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">FastExplorer.run()</span></code>, it creates an algorithm using algorithm factory
+in <code class="docutils literal notranslate"><span class="pre">explorer/algorithmfactory.py</span></code> that calls the suitable algorithm
+constructor (defined in <code class="docutils literal notranslate"><span class="pre">config.json</span></code>).</p></li>
+<li><p>Every search algorithm has a method called <code class="docutils literal notranslate"><span class="pre">gen</span></code> that returns
+a generator. <code class="docutils literal notranslate"><span class="pre">Explorer</span></code> uses
+<code class="docutils literal notranslate"><span class="pre">gen_next</span> <span class="pre">=</span> <span class="pre">AlgorithmFactory.make(...).gen()</span></code> to obtain the generator.</p></li>
+<li><p>At the first iteration, the <code class="docutils literal notranslate"><span class="pre">Explorer</span></code> calls <code class="docutils literal notranslate"><span class="pre">gen_next.send(None)</span></code> to ask
+the search algorithm for the first batch design points.</p></li>
+<li><p>For each design point, <code class="docutils literal notranslate"><span class="pre">Explorer</span></code> creates a corresponding job and checks
+if it is duplicated in the database. It then submits non-duplicated points
+to <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> with <cite>level 1</cite> to run Merlin transformation.</p></li>
+<li><p>After the evaluation, <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> calls <code class="docutils literal notranslate"><span class="pre">Analyzer</span></code> in
+<code class="docutils literal notranslate"><span class="pre">evaluator/analyzer.py</span></code> to analyze level 1 results. Specifically, it checks
+if Merlin complains any inserted pragmas are ineffective, and set the return
+code to <cite>EARLY_REJECT</cite>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Explorer</span></code> receives the results from <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code>, filters out
+the points with <cite>EARLY_REJECT</cite>, and submits rest points to <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code>
+again with <cite>level 2</cite> to run HLS.</p></li>
+<li><p>After the evaluation, <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> calls <code class="docutils literal notranslate"><span class="pre">Analyzer</span></code> in
+<code class="docutils literal notranslate"><span class="pre">evaluator/analyzer.py</span></code> to analyze level 2 results. Specifically, it checks
+if HLS was success or not. If it was success, analyzer further parses Merlin
+report to sort performance bottleneck paths.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Explorer</span></code> calls <code class="docutils literal notranslate"><span class="pre">gen_next.send(results)</span></code> again with the received
+results from <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code>.</p></li>
+<li><p>The search algorithm will return the next batch of design points according to
+the results it received.</p></li>
+<li><p>The above process will be performed iteratively until either the time limit
+or the search algorithm terminates.</p></li>
+</ul>
+</div>
+<div class="section" id="output">
+<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>After the exploration and back to <code class="docutils literal notranslate"><span class="pre">Main</span></code>, it persists the database
+to a binary file for future reference.</p></li>
+<li><p>Several <code class="docutils literal notranslate"><span class="pre">Reporter</span></code> methods are invoked to summarize the DSE process.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gen_fast_outputs</span></code> is invoked to dump the outputs of fast mode.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="accurate-mode-dse">
+<h2>Accurate Mode DSE<a class="headerlink" href="#accurate-mode-dse" title="Permalink to this headline">¶</a></h2>
+<p>We then launch DSE accurate mode and explain the execution flow:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m autodse src work src/config.json accurate-dse
+</pre></div>
+</div>
+<p>Since the first part is same as the fast mode, we will start with the
+accurate exploration directly.</p>
+<div class="section" id="id1">
+<h3>Exploration<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Different from <code class="docutils literal notranslate"><span class="pre">FastExplorer</span></code>, <code class="docutils literal notranslate"><span class="pre">AccurateExplorer</span></code> receives a small list
+of design points and explore them exhaustively.</p></li>
+<li><p>For each given design point, <code class="docutils literal notranslate"><span class="pre">AccurateExplorer</span></code> submits it to <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code>
+with <cite>level 3</cite>, which runs physical design flow and generates bit-stream.</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>Output<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>After the exploration, <code class="docutils literal notranslate"><span class="pre">gen_accurate_outputs</span></code> in <code class="docutils literal notranslate"><span class="pre">Main</span></code> copies the
+evaluated Merlin projects to the output directory and generates a report
+to summarize them.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gen_accurate_outputs</span></code> also creates a symbolic link named <cite>best</cite> from
+the evaluated design point project directory to the output directory.</p></li>
+</ul>
+</div>
+</div>
 </div>
 
 
