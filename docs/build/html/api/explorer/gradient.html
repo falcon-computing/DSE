@@ -1,0 +1,625 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>autodse.explorer.gradient &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Index" href="../../genindex.html" />
+    <link rel="prev" title="autodse.explorer.exhaustive" href="exhaustive.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dsproc.html">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Explorer</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="explorer.html">autodse.explorer.explorer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithm.html">autodse.explorer.algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithmfactory.html">autodse.explorer.algorithmfactory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exhaustive.html">autodse.explorer.exhaustive</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">autodse.explorer.gradient</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Explorer</a> &raquo;</li>
+        
+      <li>autodse.explorer.gradient</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api/explorer/gradient.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.explorer.gradient">
+<span id="autodse-explorer-gradient"></span><h1>autodse.explorer.gradient<a class="headerlink" href="#module-autodse.explorer.gradient" title="Permalink to this headline">¶</a></h1>
+<p>The gradient-based search algorithm</p>
+<dl class="class">
+<dt id="autodse.explorer.gradient.ExploreTreeNode">
+<em class="property">class </em><code class="descclassname">autodse.explorer.gradient.</code><code class="descname">ExploreTreeNode</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>A named tuple node in the exploration tree.</p>
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ExploreTreeNode.point_key">
+<code class="descname">point_key</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode.point_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>The string key of the point in this node.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ExploreTreeNode.quality">
+<code class="descname">quality</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode.quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>The quality of the point in this node.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ExploreTreeNode.perf">
+<code class="descname">perf</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode.perf" title="Permalink to this definition">¶</a></dt>
+<dd><p>The performance of this point in this node.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ExploreTreeNode.result">
+<code class="descname">result</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode.result" title="Permalink to this definition">¶</a></dt>
+<dd><p>The result object of the point in this node.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ExploreTreeNode.child">
+<code class="descname">child</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode.child" title="Permalink to this definition">¶</a></dt>
+<dd><p>A stack of point batches to be tuned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ExploreTreeNode.tuned">
+<code class="descname">tuned</code><a class="headerlink" href="#autodse.explorer.gradient.ExploreTreeNode.tuned" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of tuned parameter IDs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">child</code></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">perf</code></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">point_key</code></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">quality</code></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">result</code></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">tuned</code></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.explorer.gradient.GradientAlgorithm">
+<em class="property">class </em><code class="descclassname">autodse.explorer.gradient.</code><code class="descname">GradientAlgorithm</code><span class="sig-paren">(</span><em>ds: Dict[str, autodse.parameter.DesignParameter], latency_thd: float = 64, fg_first: bool = True, quality_type: str = 'resource-efficiency', log_file_name: str = 'algo.log'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Explore the design space according to gradient.</p>
+<p>We leverage hotspot analysis to locate a small set of high impact parameters and prior to
+them in order to deliver high QoR results at the early stage of exploration.</p>
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.latency_thd">
+<code class="descname">latency_thd</code><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.latency_thd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A threshold of the latency we want to improve. Loops with a smaller
+latency will not be optimized during the gradient process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.fg_first">
+<code class="descname">fg_first</code><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.fg_first" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate the order of optimizing a loop. True if we want to optimize
+inner-loops first, and vice versa.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.quality_type">
+<code class="descname">quality_type</code><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.quality_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The quality type user wants to quantify design points. It is either
+'resource-efficiency' (Performance / Resource), 'performance' (Performance), or
+'finite-difference' (Delta Performance / Delta Resource).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.comp_order">
+<code class="descname">comp_order</code><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.comp_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>An order of design parameter type the gradient algorithm should
+adopt when the lop is computation bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.comm_order">
+<code class="descname">comm_order</code><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.comm_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>An order of design parameter type the gradient algorithm should
+adopt when the lop is memory bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.scope2param">
+<code class="descname">scope2param</code><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.scope2param" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary to map each kernel scope
+(e.g., loops, functions, etc) to a list of design parameters that can affect the scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, List[<a class="reference internal" href="../parameter.html#autodse.parameter.DesignParameter" title="autodse.parameter.DesignParameter">DesignParameter</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.compute_quality">
+<code class="descname">compute_quality</code><span class="sig-paren">(</span><em>curr_result: autodse.result.Result</em>, <em>new_result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.compute_quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the quality of the point by referring the base one. Larger the better.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>curr_result</strong> -- The reference result.</p></li>
+<li><p><strong>new_result</strong> -- The new result to be qualified.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The quality value. Larger the better.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.eff_as_quality">
+<code class="descname">eff_as_quality</code><span class="sig-paren">(</span><em>new_result: autodse.result.Result</em>, <em>ref_result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.eff_as_quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the quality of the point by resource efficiency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_result</strong> -- The new result to be qualified.</p></li>
+<li><p><strong>ref_result</strong> -- The reference result.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The quality value (negative finite differnece). Larger the better.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.finte_diff_as_quality">
+<code class="descname">finte_diff_as_quality</code><span class="sig-paren">(</span><em>new_result: autodse.result.Result</em>, <em>ref_result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.finte_diff_as_quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the quality of the point by finite difference method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_result</strong> -- The new result to be qualified.</p></li>
+<li><p><strong>ref_result</strong> -- The reference result.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The quality value (negative finite differnece). Larger the better.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.gen">
+<code class="descname">gen</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Generator[[List[Dict[str, Union[str, int]]], Optional[Dict[str, autodse.result.Result]]], None]<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main generator function of search algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A generator that keeps producing design points for exploration.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.gen_child_points">
+<code class="descname">gen_child_points</code><span class="sig-paren">(</span><em>root_point: Dict[str, Union[str, int]], focus: List[autodse.parameter.DesignParameter]</em><span class="sig-paren">)</span> &#x2192; List[autodse.explorer.gradient.ParamWPointBatch]<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.gen_child_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate points by manipulating the given parameters and sort them based on the order.</p>
+<p>We evaluate the option expression in parameters to get a complete option list and cluster
+them to batches. The order of batches is determined by the &quot;order&quot; attribute in design
+space. In other words, the concept of batches is same as partitions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_point</strong> -- The current design point we manipulated from.</p></li>
+<li><p><strong>focus</strong> -- A list of focus parameters to be manipulated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of parameter-based design point batches.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.gen_flatten_points">
+<code class="descname">gen_flatten_points</code><span class="sig-paren">(</span><em>root_point: Dict[str, Union[str, int]]</em><span class="sig-paren">)</span> &#x2192; Optional[autodse.explorer.gradient.ParamWPointBatch]<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.gen_flatten_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a batch of points that manipulate pipeline flatten positions.</p>
+<p>This is an ad-hoc for the default config since the the benefit of exploring pipeline
+flatten position is obvious and it is worthwhile to try them first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>root_point</strong> -- The current design point we manipulated from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A point batch with each flatten point, or None if no such points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.get_hotspot_params">
+<code class="descname">get_hotspot_params</code><span class="sig-paren">(</span><em>result: autodse.result.Result, tuned: Set[str]</em><span class="sig-paren">)</span> &#x2192; List[autodse.parameter.DesignParameter]<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.get_hotspot_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify the hotspot and tunable parameters using ordered_hotspot in result.</p>
+<p>With the ordered performance bottleneck list that was analyzed by Merlin analyzer,
+we create the ordered hotspot parameter list to determine the search order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> -- The result generated by the analyzer.</p></li>
+<li><p><strong>tuned</strong> -- A set of parameter IDs that have been tuned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of parameters that have impacts to the hotspot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.log_node">
+<code class="descname">log_node</code><span class="sig-paren">(</span><em>node: autodse.explorer.gradient.ExploreTreeNode</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.log_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log information of an explore tree node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> -- The target explore tree node.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.log_result">
+<code class="descname">log_result</code><span class="sig-paren">(</span><em>tag: str</em>, <em>quality: float</em>, <em>result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.log_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log information of the given result</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> -- The tag of the corresponding design point.</p></li>
+<li><p><strong>quality</strong> -- The quantified result quality.</p></li>
+<li><p><strong>result</strong> -- The result to be logged.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.gradient.GradientAlgorithm.perf_as_quality">
+<code class="descname">perf_as_quality</code><span class="sig-paren">(</span><em>new_result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm.perf_as_quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the quality of the point by (1 / latency).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_result</strong> -- The new result to be qualified.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The quality value. Larger the better.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.explorer.gradient.ParamWPointBatch">
+<em class="property">class </em><code class="descclassname">autodse.explorer.gradient.</code><code class="descname">ParamWPointBatch</code><a class="headerlink" href="#autodse.explorer.gradient.ParamWPointBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>The named tuple for a parameter and batches of design points that manipulate the parameter.</p>
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ParamWPointBatch.param">
+<code class="descname">param</code><a class="headerlink" href="#autodse.explorer.gradient.ParamWPointBatch.param" title="Permalink to this definition">¶</a></dt>
+<dd><p>The manipulated parameter. It can also be none if we only want to store
+a batch of points.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.gradient.ParamWPointBatch.batches">
+<code class="descname">batches</code><a class="headerlink" href="#autodse.explorer.gradient.ParamWPointBatch.batches" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of batches for design points by manipulating the parameter.
+Element in each batch is a tuple of design point key and content.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">batches</code></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">param</code></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.explorer.gradient.gen_point_tag">
+<code class="descclassname">autodse.explorer.gradient.</code><code class="descname">gen_point_tag</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]], param: autodse.parameter.DesignParameter</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#autodse.explorer.gradient.gen_point_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a tag for the given design point with 'pid-value' as its format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> -- The design point to be tagged.</p></li>
+<li><p><strong>param</strong> -- The parameter we interested in.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The tag of the point.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.explorer.gradient.get_batch_name">
+<code class="descclassname">autodse.explorer.gradient.</code><code class="descname">get_batch_name</code><span class="sig-paren">(</span><em>batches: autodse.explorer.gradient.ParamWPointBatch</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#autodse.explorer.gradient.get_batch_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of given batch set.</p>
+<p>It is either the name of the represented parameter or &quot;builtin&quot; if no parameter is specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>batches</strong> -- The parameter with point batches.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The name of batches.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../../genindex.html" class="btn btn-neutral float-right" title="Index" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="exhaustive.html" class="btn btn-neutral float-left" title="autodse.explorer.exhaustive" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

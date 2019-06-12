@@ -1,0 +1,444 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Main &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Config" href="config.html" />
+    <link rel="prev" title="API Reference" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsproc.html">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explorer/index.html">Explorer</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li>Main</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/main.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.main">
+<span id="main"></span><h1>Main<a class="headerlink" href="#module-autodse.main" title="Permalink to this headline">¶</a></h1>
+<p>The main DSE flow that integrates all modules</p>
+<dl class="class">
+<dt id="autodse.main.Main">
+<em class="property">class </em><code class="descclassname">autodse.main.</code><code class="descname">Main</code><a class="headerlink" href="#autodse.main.Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main DSE flow.</p>
+<dl class="attribute">
+<dt id="autodse.main.Main.start_time">
+<code class="descname">start_time</code><a class="headerlink" href="#autodse.main.Main.start_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timestamp when launching the flow.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.args">
+<code class="descname">args</code><a class="headerlink" href="#autodse.main.Main.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flow arguments.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.src_dir">
+<code class="descname">src_dir</code><a class="headerlink" href="#autodse.main.Main.src_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the user source project.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.work_dir">
+<code class="descname">work_dir</code><a class="headerlink" href="#autodse.main.Main.work_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the working space.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.out_dir">
+<code class="descname">out_dir</code><a class="headerlink" href="#autodse.main.Main.out_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the output folder.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.eval_dir">
+<code class="descname">eval_dir</code><a class="headerlink" href="#autodse.main.Main.eval_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the evaluation working space.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.log_dir">
+<code class="descname">log_dir</code><a class="headerlink" href="#autodse.main.Main.log_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of logs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.db_path">
+<code class="descname">db_path</code><a class="headerlink" href="#autodse.main.Main.db_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of persisted database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.cfg_path">
+<code class="descname">cfg_path</code><a class="headerlink" href="#autodse.main.Main.cfg_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the configuration file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.log">
+<code class="descname">log</code><a class="headerlink" href="#autodse.main.Main.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logger.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.config">
+<code class="descname">config</code><a class="headerlink" href="#autodse.main.Main.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary of configurations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.db">
+<code class="descname">db</code><a class="headerlink" href="#autodse.main.Main.db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.evaluator">
+<code class="descname">evaluator</code><a class="headerlink" href="#autodse.main.Main.evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.main.Main.reporter">
+<code class="descname">reporter</code><a class="headerlink" href="#autodse.main.Main.reporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reporter.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="autodse.main.Main.accurate_runner">
+<em class="property">static </em><code class="descname">accurate_runner</code><span class="sig-paren">(</span><em>points: List[Dict[str, Union[str, int]]], db: autodse.database.Database, evaluator: autodse.evaluator.evaluator.Evaluator, config: Dict[str, Any]</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.main.Main.accurate_runner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform phase 2 DSE for a given set of points.</p>
+<p>This is a static method that is supposed to be used for forking explorer threads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> -- A list of target design poitns.</p></li>
+<li><p><strong>db</strong> -- Database.</p></li>
+<li><p><strong>evaluator</strong> -- Evaluator.</p></li>
+<li><p><strong>config</strong> -- Configuration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.check_eval_log">
+<code class="descname">check_eval_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.main.Main.check_eval_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse eval.log and display its errors.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="autodse.main.Main.fast_runner">
+<em class="property">static </em><code class="descname">fast_runner</code><span class="sig-paren">(</span><em>tag: str, ds: Dict[str, autodse.parameter.DesignParameter], db: autodse.database.Database, evaluator: autodse.evaluator.evaluator.Evaluator, config: Dict[str, Any]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.main.Main.fast_runner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform fast DSE for a given design space.</p>
+<p>This is a static method that is supposed to be used for forking explorer threads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> -- A tag of this run.</p></li>
+<li><p><strong>ds</strong> -- Design space.</p></li>
+<li><p><strong>db</strong> -- Database.</p></li>
+<li><p><strong>evaluator</strong> -- Evaluator.</p></li>
+<li><p><strong>config</strong> -- Configuration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.gen_accurate_outputs">
+<code class="descname">gen_accurate_outputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.main.Main.gen_accurate_outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate final outputs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.gen_fast_outputs">
+<code class="descname">gen_fast_outputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[Dict[str, Union[str, int]]]<a class="headerlink" href="#autodse.main.Main.gen_fast_outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate outputs after fast mode.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The best cache in the DB will be cleaned up by this function.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list of design points output by fast mode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.init_workspace">
+<code class="descname">init_workspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional[str]<a class="headerlink" href="#autodse.main.Main.init_workspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the workspace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The backup directory if available.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.launch_accurate">
+<code class="descname">launch_accurate</code><span class="sig-paren">(</span><em>points: List[Dict[str, Union[str, int]]]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.main.Main.launch_accurate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launch accurate exploration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>points</strong> -- A list of target design poitns.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.launch_fast">
+<code class="descname">launch_fast</code><span class="sig-paren">(</span><em>ds_list: List[Dict[str, autodse.parameter.DesignParameter]]</em><span class="sig-paren">)</span> &#x2192; List[Dict[str, Union[str, int]]]<a class="headerlink" href="#autodse.main.Main.launch_fast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launch fast exploration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ds_list</strong> -- A list of design space partitions.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of output design points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.load_config">
+<code class="descname">load_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[str, Any]<a class="headerlink" href="#autodse.main.Main.load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the DSE configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary of configurations.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.main.Main.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.main.Main.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main function of the DSE flow.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.main.arg_parser">
+<code class="descclassname">autodse.main.</code><code class="descname">arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; argparse.Namespace<a class="headerlink" href="#autodse.main.arg_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse user arguments.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="config.html" class="btn btn-neutral float-right" title="Config" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

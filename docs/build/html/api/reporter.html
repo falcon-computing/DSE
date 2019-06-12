@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Reporter &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Util" href="util.html" />
+    <link rel="prev" title="Result" href="result.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsproc.html">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explorer/index.html">Explorer</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li>Reporter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/reporter.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.reporter">
+<span id="reporter"></span><h1>Reporter<a class="headerlink" href="#module-autodse.reporter" title="Permalink to this headline">¶</a></h1>
+<p>The module of reporter.</p>
+<dl class="class">
+<dt id="autodse.reporter.Reporter">
+<em class="property">class </em><code class="descclassname">autodse.reporter.</code><code class="descname">Reporter</code><span class="sig-paren">(</span><em>config: Dict[str, Any], db: autodse.database.Database</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.reporter.Reporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main reporter class</p>
+<dl class="attribute">
+<dt id="autodse.reporter.Reporter.config">
+<code class="descname">config</code><a class="headerlink" href="#autodse.reporter.Reporter.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>DSE configurartion.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.reporter.Reporter.db">
+<code class="descname">db</code><a class="headerlink" href="#autodse.reporter.Reporter.db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.reporter.Reporter.anime_ptr">
+<code class="descname">anime_ptr</code><a class="headerlink" href="#autodse.reporter.Reporter.anime_ptr" title="Permalink to this definition">¶</a></dt>
+<dd><p>The pointer to the current animation character.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.reporter.Reporter.is_first_best">
+<code class="descname">is_first_best</code><a class="headerlink" href="#autodse.reporter.Reporter.is_first_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate if the best log header has been printed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.reporter.Reporter.best_quality">
+<code class="descname">best_quality</code><a class="headerlink" href="#autodse.reporter.Reporter.best_quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>The so far best quality.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.draw_pareto_curve">
+<code class="descname">draw_pareto_curve</code><span class="sig-paren">(</span><em>out_filename: str</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.reporter.Reporter.draw_pareto_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw level 2 (HLS) result distribution and a Pareto curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>out_filename</strong> -- The output filename.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.find_pareto_set">
+<code class="descname">find_pareto_set</code><span class="sig-paren">(</span><em>_data: List[Tuple[float, float, autodse.result.Result]]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[float, float, autodse.result.Result]]<a class="headerlink" href="#autodse.reporter.Reporter.find_pareto_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify the Pareto set in given results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_data</strong> -- All available data with performance and resource as the first two values.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of Pareto point results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.log_best">
+<code class="descname">log_best</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.reporter.Reporter.log_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log the new best result if available</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.log_config">
+<code class="descname">log_config</code><span class="sig-paren">(</span><em>mode: str</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.reporter.Reporter.log_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log important configs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.print_status">
+<code class="descname">print_status</code><span class="sig-paren">(</span><em>timer: float</em>, <em>count: int</em>, <em>phase: int = 1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.reporter.Reporter.print_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pretty print the current exploration status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timer</strong> -- The elapsed time for exploration. If timer is a negative number than
+we are at phase 2 which has no exploration time limitation.</p></li>
+<li><p><strong>count</strong> -- The number of explored points.</p></li>
+<li><p><strong>phase</strong> -- The phase we are working on. Must be either 1 or 2.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.report_output">
+<code class="descname">report_output</code><span class="sig-paren">(</span><em>outputs: List[autodse.result.Result]</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#autodse.reporter.Reporter.report_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report the final output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> -- A list results to be reported and outputed.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The output report.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.reporter.Reporter.report_summary">
+<code class="descname">report_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple[str, str]<a class="headerlink" href="#autodse.reporter.Reporter.report_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summarize the explored points in the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The summary report.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="util.html" class="btn btn-neutral float-right" title="Util" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="result.html" class="btn btn-neutral float-left" title="Result" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

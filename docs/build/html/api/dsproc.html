@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DSProc &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Database" href="database.html" />
+    <link rel="prev" title="Util" href="util.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">Util</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explorer/index.html">Explorer</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li>DSProc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/dsproc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.dsproc.dsproc">
+<span id="dsproc"></span><h1>DSProc<a class="headerlink" href="#module-autodse.dsproc.dsproc" title="Permalink to this headline">¶</a></h1>
+<p>Design Space Processor</p>
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.analyze_child_in_design_space">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">analyze_child_in_design_space</code><span class="sig-paren">(</span><em>params: Dict[str, autodse.parameter.DesignParameter]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.dsproc.dsproc.analyze_child_in_design_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traverse design parameter dependency and build child list for each parameter in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> -- The overall design space</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.check_design_space">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">check_design_space</code><span class="sig-paren">(</span><em>params: Dict[str, autodse.parameter.DesignParameter]</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.dsproc.dsproc.check_design_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check design space for missing dependency and duplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> -- The overall design space.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The number of errors found in the design space.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.compile_design_space">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">compile_design_space</code><span class="sig-paren">(</span><em>user_ds_config: Dict[str, Dict[str, Union[str, int]]], scope_map: Optional[Dict[str, List[str]]]</em><span class="sig-paren">)</span> &#x2192; Optional[Dict[str, autodse.parameter.DesignParameter]]<a class="headerlink" href="#autodse.dsproc.dsproc.compile_design_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile the design space from the config JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user_ds_config</strong> -- The input design space configure loaded from a JSON file.
+Note that the duplicated ID checking should be done when
+loading the JSON file and here we assume no duplications.</p></li>
+<li><p><strong>scope_map</strong> -- The scope map that maps design parameter ID to its scope.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The design space compiled from the kernel code; or None if failed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.count_design_points">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">count_design_points</code><span class="sig-paren">(</span><em>ds: Dict[str, autodse.parameter.DesignParameter]</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.dsproc.dsproc.count_design_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the valid points in a given design space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ds</strong> -- Design space to be counted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of valid design points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.get_dsproc_logger">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">get_dsproc_logger</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; logging.Logger<a class="headerlink" href="#autodse.dsproc.dsproc.get_dsproc_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attach the logger of this module</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.partition">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">partition</code><span class="sig-paren">(</span><em>space: Dict[str, autodse.parameter.DesignParameter], limit: int</em><span class="sig-paren">)</span> &#x2192; Optional[List[Dict[str, autodse.parameter.DesignParameter]]]<a class="headerlink" href="#autodse.dsproc.dsproc.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partition the given design space to at most the limit parts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>space</strong> -- The design space to be partitioned.</p></li>
+<li><p><strong>limit</strong> -- The maximum number of partitions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of design space partitions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autodse.dsproc.dsproc.topo_sort_param_ids">
+<code class="descclassname">autodse.dsproc.dsproc.</code><code class="descname">topo_sort_param_ids</code><span class="sig-paren">(</span><em>space: Dict[str, autodse.parameter.DesignParameter]</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#autodse.dsproc.dsproc.topo_sort_param_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort the parameter IDs topologically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>space</strong> -- The design space to be sorted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The sorted IDs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="database.html" class="btn btn-neutral float-right" title="Database" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="util.html" class="btn btn-neutral float-left" title="Util" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

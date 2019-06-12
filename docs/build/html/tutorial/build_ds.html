@@ -1,0 +1,673 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Prepare a Project with a Design Space &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Run DSE Flow" href="run_dse.html" />
+    <link rel="prev" title="Tutorials" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Prepare a Project with a Design Space</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preparation">Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#define-a-design-space">Define a Design Space</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#positions">Positions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#properties">Properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#configurations">Configurations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="run_dse.html">Run DSE Flow</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Tutorials</a> &raquo;</li>
+        
+      <li>Prepare a Project with a Design Space</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/build_ds.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="prepare-a-project-with-a-design-space">
+<h1>Prepare a Project with a Design Space<a class="headerlink" href="#prepare-a-project-with-a-design-space" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="preparation">
+<h2>Preparation<a class="headerlink" href="#preparation" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>A <cite>self-contained</cite> Merlin project, including host and kernel programs.
+<strong>Please make sure the Merlin project can pass the Merlin transformation
+and HLS before using the DSE</strong>.</p></li>
+<li><p>Define a design space in the kernel program. See <a class="reference internal" href="#define-a-design-space">Define a Design Space</a>
+for details.</p></li>
+<li><p>A configuration file.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The working directory cannot under or cover the source project directory.
+The following cases are disallowed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>project
+|- Makefile
+|- src
+|- work // Cannot under the source project directory!
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>work // Cannot cover the source project directory!
+|- project
+  |- src
+  |- Makefile
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="define-a-design-space">
+<h2>Define a Design Space<a class="headerlink" href="#define-a-design-space" title="Permalink to this headline">¶</a></h2>
+<p>You need to define a valid design space in terms of positions and properties.
+In this section, we will explain why and how to define them along with
+a general matrix multiplication (GEMM) example for demonstration.</p>
+<div class="section" id="positions">
+<h3>Positions<a class="headerlink" href="#positions" title="Permalink to this headline">¶</a></h3>
+<p>Please note that the Merlin DSE only explores the best combination of
+pragma values, so you need to first determine the position of your
+design spaces. For example, you could write parallel and pipeline pragmas
+to the loop that you want to explore. When you are not sure if it is a good
+idea to put the pragma there just put it first, and we will teach you in the
+<a class="reference internal" href="#properties">Properties</a> section about how to add an option to turn off this pragma.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The automatic design space generator is also under development,
+but we suggest constructing a design space for your designs so that you
+could understand more about the search process.</p>
+</div>
+<p>Here we define the positions in the GEMM example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">p</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="o">++</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">q</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">q</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="o">++</span><span class="n">q</span><span class="p">)</span>
+        <span class="n">C</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#pragma ACCEL pipeline auto{K_PIPE}</span>
+<span class="cp">#pragma ACCEL parallel factor=auto{K_PAR}</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+    <span class="cp">#pragma ACCEL pipeline auto{I_PIPE}</span>
+    <span class="cp">#pragma ACCEL parallel factor=auto{I_PAR}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="cp">#pragma ACCEL pipeline auto{J_PIPE}</span>
+        <span class="cp">#pragma ACCEL parallel factor=auto{J_PAR}</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">j</span><span class="p">];</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>We can see from above example that we added 6 Merlin pragmas to a 3-level
+loop nest but left the most important pragma attribute undetermined.
+Instead, we use <code class="docutils literal notranslate"><span class="pre">auto{param_id}</span></code> to define design space parameters and
+the valid combinations of those 6 parameters form a design space.
+The parameter ID is just like a unique variable name and can be defined
+by yourself. Note that in this example we did not add any pragma to the first
+loop for initializing array C because it looks not very important.</p>
+<p>After the positions and parameters have been determined,
+we move to the next step to define their properties.</p>
+</div>
+<div class="section" id="properties">
+<h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
+<p>For each design parameter ID defined in the kernel program, we need to provide
+the corresponding property in the config JSON file with the following fields:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;&lt;param_id&gt;&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(10)]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;0 if x &lt; 64 else 1&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>options (required)</dt><dd><ul class="simple">
+<li><p>This field describes the possible options of the design parameter.
+The syntax matches Python list comprehension which is easy to learn
+<a class="reference external" href="https://www.pythonforbeginners.com/basics/list-comprehensions-in-python">here</a>.</p></li>
+<li><p>Users should use single quotes to represent the constant string in
+the representation. For example:
+<code class="docutils literal notranslate"><span class="pre">&quot;options&quot;:</span> <span class="pre">&quot;[x**2</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range(10)</span> <span class="pre">if</span> <span class="pre">x</span> <span class="pre">==</span> <span class="pre">0</span> <span class="pre">or</span> <span class="pre">ID2</span> <span class="pre">==</span> <span class="pre">'off']&quot;</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">ID2</span></code> is another design parameter and it may be <code class="docutils literal notranslate"><span class="pre">&quot;off&quot;</span></code>
+sometimes.</p></li>
+<li><p>The condition part in the list comprehension is optional and can depend
+on itself (e.g., <code class="docutils literal notranslate"><span class="pre">[x</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range</span> <span class="pre">if</span> <span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">5]</span></code>) or other parameters
+(e.g., <code class="docutils literal notranslate"><span class="pre">[x</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range</span> <span class="pre">if</span> <span class="pre">x</span> <span class="pre">==</span> <span class="pre">0</span> <span class="pre">or</span> <span class="pre">ID2</span> <span class="pre">&lt;</span> <span class="pre">5]</span></code>).</p></li>
+<li><p>The user has to guarantee the available option is always not empty.
+In other words, <code class="docutils literal notranslate"><span class="pre">[x</span> <span class="pre">for</span> <span class="pre">x</span> <span class="pre">in</span> <span class="pre">range(10)</span> <span class="pre">if</span> <span class="pre">ID2</span> <span class="pre">&lt;</span> <span class="pre">5]</span></code> is invalid because
+the available option would be <code class="docutils literal notranslate"><span class="pre">&lt;null&gt;</span></code> when <code class="docutils literal notranslate"><span class="pre">ID2</span></code> is larger than 5.</p></li>
+</ul>
+</dd>
+<dt>order (optional)</dt><dd><ul class="simple">
+<li><p>This field describes the preference of searching order for
+this parameter. The syntax matches Python one-line if-statement.</p></li>
+<li><p>This field should return an integer to indicate the priority of options.
+Note that 0 means the highest priority.</p></li>
+<li><p>This is a reference for partitioning the design space and search
+algorithm. The DSE can still perform the search without this field.</p></li>
+</ul>
+</dd>
+<dt>ds_type (suggested)</dt><dd><ul class="simple">
+<li><p>This field describes the design space type of this parameter
+(e.g., <code class="docutils literal notranslate"><span class="pre">PARALLEL</span></code>, <code class="docutils literal notranslate"><span class="pre">PIPELINE</span></code>, <code class="docutils literal notranslate"><span class="pre">INTERFACE</span></code>, etc).</p></li>
+<li><p>This works as a hint to help search algorithm understand the design space
+and improve the search efficiency.</p></li>
+<li><p>This is a reference for partitioning the design space and search
+algorithm. The DSE can still perform the search without this field.</p></li>
+</ul>
+</dd>
+<dt>default (required)</dt><dd><ul class="simple">
+<li><p>The field describes the default value of this design parameter.</p></li>
+<li><p>The data type of this field must match the one in options.</p></li>
+</ul>
+</dd>
+</dl>
+<p>We again define the design space property for the GEMM example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;design-space-definition&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;K_PIPE&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[&#39;off&#39;,&#39;&#39;,&#39;flatten&#39;]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;0 if x == &#39;flatten&#39; else 1&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PIPELINE&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;K_PAR&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(11)]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;0 if x &lt; 64 else 1&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;I_PIPE&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x for x in [&#39;off&#39;,&#39;&#39;,&#39;flatten&#39;] if x==&#39;off&#39; or K_PIPE!=&#39;flatten&#39;]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;0 if x == &#39;flatten&#39; else 1&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PIPELINE&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;I_PAR&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(11) if x==0 or K_PIPE!=&#39;flatten&#39;]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;J_PIPE&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x for x in [&#39;off&#39;,&#39;&#39;] if x==&#39;off&#39; or (K_PIPE!=&#39;flatten&#39; and I_PIPE!=&#39;flatten&#39;)]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PIPELINE&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;J_PAR&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(11) if x==0 or (K_PIPE!=&#39;flatten&#39; and I_PIPE!=&#39;flatten&#39;)]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Some highlights in this design space properties:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">K_PIPE</span></code> and <code class="docutils literal notranslate"><span class="pre">I_PIPE</span></code> have the &quot;order&quot; field. It means we want to explore
+the combinations with their &quot;flatten&quot; option.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">K_PAR</span></code> also has the &quot;order&quot; field. It means we want to explore &lt;64 factors
+prior to other factors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">I_PIPE</span></code> and <code class="docutils literal notranslate"><span class="pre">I_PAR</span></code> has conditions <code class="docutils literal notranslate"><span class="pre">x==?</span> <span class="pre">or</span> <span class="pre">K_PIPE!='flatten'</span></code>,
+which has the following semantics:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">K_PIPE!='flatten'</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">I_PIPE=['off',</span> <span class="pre">'',</span> <span class="pre">'flatten']</span></code> and
+<code class="docutils literal notranslate"><span class="pre">I_PAR=[1,2,4,8,16,32,64,128,256,512,1024]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">K_PIPE=='flatten'</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">I_PIPE=['off']</span></code> and <code class="docutils literal notranslate"><span class="pre">I_PAR=[1]</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>After defining the design space properties, we put it to <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.
+We are almost there! The final step before running the DSE is to add some
+more configurations to control the DSE behavior, describing
+in the next section.</p>
+</div>
+</div>
+<div class="section" id="configurations">
+<h2>Configurations<a class="headerlink" href="#configurations" title="Permalink to this headline">¶</a></h2>
+<p>The DSE config file is in one-level JSON format so all configs are
+key-value pairs. Here we list all available DSE configs. The value with
+<em>def</em> indicates the default option. If no <em>def</em> in the value field, then
+that configuration is required.</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 31%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Configuration</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>project.
+name</p></td>
+<td><p>&quot;project&quot; (def)</p></td>
+<td><p>The name of this project
+used as a tag.</p></td>
+</tr>
+<tr class="row-odd"><td><p>project.
+backup</p></td>
+<td><ul class="simple">
+<li><p>&quot;NO_BACKUP&quot;</p></li>
+<li><p>&quot;BACKUP_ERROR&quot; (def)</p></li>
+<li><p>&quot;BACKUP_ALL&quot;</p></li>
+</ul>
+</td>
+<td><p>What kind of running
+project should be kept.</p></td>
+</tr>
+<tr class="row-even"><td><p>project.
+fast-output-num</p></td>
+<td><p>4 (def)</p></td>
+<td><p>Number of output Merlin
+projects in fast mode.</p></td>
+</tr>
+<tr class="row-odd"><td><p>timeout.
+exploration</p></td>
+<td><p>Integer in minutes</p></td>
+<td><p>The target exploration
+time. Note that the
+actual exploration may
+be longer because we
+will not abandon the
+running jobs.</p></td>
+</tr>
+<tr class="row-even"><td><p>timeout.
+transform</p></td>
+<td><p>Integer in minutes</p></td>
+<td><p>The limit time to
+perform Merlin
+transformation.</p></td>
+</tr>
+<tr class="row-odd"><td><p>timeout.
+hls</p></td>
+<td><p>Integer in minutes</p></td>
+<td><p>The limit time to
+perform HLS.</p></td>
+</tr>
+<tr class="row-even"><td><p>timeout.
+bitgen</p></td>
+<td><p>Integer in minutes</p></td>
+<td><p>The limit time to
+perform P&amp;R.</p></td>
+</tr>
+<tr class="row-odd"><td><p>evaluate.
+command.
+transformation</p></td>
+<td><p>Command string</p></td>
+<td><p>The command for running
+Merlin transformation.</p></td>
+</tr>
+<tr class="row-even"><td><p>evaluate.
+command.
+hls</p></td>
+<td><p>Command string</p></td>
+<td><p>The command for running
+HLS.</p></td>
+</tr>
+<tr class="row-odd"><td><p>evaluate.
+command.
+bitgen</p></td>
+<td><p>Command string</p></td>
+<td><p>The command for running
+P&amp;R.</p></td>
+</tr>
+<tr class="row-even"><td><p>evaluate.
+max-util.
+BRAM</p></td>
+<td><p>0.8 (def)</p></td>
+<td><p>The maximum allowed
+utilization of BRAM.</p></td>
+</tr>
+<tr class="row-odd"><td><p>evaluate.
+max-util.
+DSP</p></td>
+<td><p>0.8 (def)</p></td>
+<td><p>The maximum allowed
+utilization of DSP.</p></td>
+</tr>
+<tr class="row-even"><td><p>evaluate.
+max-util.
+LUT</p></td>
+<td><p>0.8 (def)</p></td>
+<td><p>The maximum allowed
+utilization of LUT.</p></td>
+</tr>
+<tr class="row-odd"><td><p>evaluate.
+max-util.
+FF</p></td>
+<td><p>0.8 (def)</p></td>
+<td><p>The maximum allowed
+utilization of FF.</p></td>
+</tr>
+<tr class="row-even"><td><p>search.
+algorithm.
+name</p></td>
+<td><p>&quot;gradient&quot; (def)
+&quot;exhaustive&quot;</p></td>
+<td><p>The search algorithm
+to be used.</p></td>
+</tr>
+<tr class="row-odd"><td><p>search.
+algorithm.
+exhaustive.
+batch-size</p></td>
+<td><p>8 (def)</p></td>
+<td><p>The batch size of
+exhaustive search
+algorithm.</p></td>
+</tr>
+<tr class="row-even"><td><p>search.
+algorithm.
+gradient.
+latency-threshold</p></td>
+<td><p>64 (def)</p></td>
+<td><p>The minimum latency
+threshold we want the
+gradient algorithm to
+improve.</p></td>
+</tr>
+<tr class="row-odd"><td><p>search.
+algorithm.
+gradient.
+fine-grained-first</p></td>
+<td><p>true (def)</p></td>
+<td><p>Improve the performance
+from the innermost loop.</p></td>
+</tr>
+<tr class="row-even"><td><p>search.
+algorithm.
+gradient.
+quality-type</p></td>
+<td><p>&quot;performance&quot; (def)
+&quot;finite-difference&quot;
+&quot;resource-efficiency&quot;</p></td>
+<td><p>The quality function of
+gradient search.
+Perf.: 1/(latency or runtime);
+FD: Delta Perf / Resource Util;
+RE: Perf/ Resource Util</p></td>
+</tr>
+<tr class="row-odd"><td><p>design-space.
+max-part-num</p></td>
+<td><p>4 (def)</p></td>
+<td><p>The maximum no. allowed
+design space partitions.</p></td>
+</tr>
+<tr class="row-even"><td><p>design-space.
+definition</p></td>
+<td><p>Dictionary</p></td>
+<td><p>The design space
+definition.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Again, this is one possible <code class="docutils literal notranslate"><span class="pre">config.json</span></code> for the GEMM example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;project.name&quot;</span><span class="p">:</span> <span class="s2">&quot;gemm-blocked&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;project.backup&quot;</span><span class="p">:</span> <span class="s2">&quot;BACKUP_ERROR&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;project.output-num&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="nt">&quot;timeout.exploration&quot;</span><span class="p">:</span> <span class="mi">240</span><span class="p">,</span>
+    <span class="nt">&quot;timeout.transform&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="nt">&quot;timeout.hls&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="nt">&quot;timeout.bitgen&quot;</span><span class="p">:</span> <span class="mi">480</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.command.transform&quot;</span><span class="p">:</span> <span class="s2">&quot;make mcc_acc&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.command.hls&quot;</span><span class="p">:</span> <span class="s2">&quot;make mcc_estimate&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.command.bitgen&quot;</span><span class="p">:</span> <span class="s2">&quot;make mcc_bitgen&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.estimate-mode&quot;</span><span class="p">:</span> <span class="s2">&quot;FAST&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.worker-per-part&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.max-util.BRAM&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.max-util.DSP&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.max-util.LUT&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+    <span class="nt">&quot;evaluate.max-util.FF&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
+    <span class="nt">&quot;search.algorithm.name&quot;</span><span class="p">:</span> <span class="s2">&quot;gradient&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;search.algorithm.gradient.latency-threshold&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="nt">&quot;search.algorithm.gradient.fine-grained-first&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;search.algorithm.gradient.quality-type&quot;</span><span class="p">:</span> <span class="s2">&quot;performance&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;design-space.max-part-num&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="nt">&quot;design-space-definition&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;K_PIPE&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[&#39;off&#39;,&#39;&#39;,&#39;flatten&#39;]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;0 if x == &#39;flatten&#39; else 1&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PIPELINE&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;K_PAR&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(11)]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;I_PIPE&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x for x in [&#39;off&#39;,&#39;&#39;,&#39;flatten&#39;] if x==&#39;off&#39; or K_PIPE!=&#39;flatten&#39;]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;0 if x == &#39;flatten&#39; else 1&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PIPELINE&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;I_PAR&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(11) if x==0 or K_PIPE!=&#39;flatten&#39;]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;J_PIPE&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x for x in [&#39;off&#39;,&#39;&#39;] if x==&#39;off&#39; or (K_PIPE!=&#39;flatten&#39; and I_PIPE!=&#39;flatten&#39;)]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PIPELINE&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">},</span>
+        <span class="nt">&quot;J_PAR&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;options&quot;</span><span class="p">:</span> <span class="s2">&quot;[x**2 for x in range(11) if x==0 or (K_PIPE!=&#39;flatten&#39; and I_PIPE!=&#39;flatten&#39;)]&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;ds_type&quot;</span><span class="p">:</span> <span class="s2">&quot;PARALLEL&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="run_dse.html" class="btn btn-neutral float-right" title="Run DSE Flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

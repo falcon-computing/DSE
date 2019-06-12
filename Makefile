@@ -28,4 +28,4 @@ doc:
 	make -C docs clean html
 
 clean:
-	rm -rf .coverage *.xml *.log *.pyc *.tox *.egg-info tests/temp* tests/*.pdf
+	rm -rf .coverage *.xml *.log *.pyc *.egg-info tests/temp* tests/*.pdf

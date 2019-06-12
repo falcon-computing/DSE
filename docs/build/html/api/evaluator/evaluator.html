@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>autodse.evaluator.evaluator &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="autodse.evaluator.scheduler" href="scheduler.html" />
+    <link rel="prev" title="autodse.evaluator.analyzer" href="analyzer.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dsproc.html">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../database.html">Database</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Evaluator</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="analyzer.html">autodse.evaluator.analyzer</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">autodse.evaluator.evaluator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.html">autodse.evaluator.scheduler</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../explorer/index.html">Explorer</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Evaluator</a> &raquo;</li>
+        
+      <li>autodse.evaluator.evaluator</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api/evaluator/evaluator.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.evaluator.evaluator">
+<span id="autodse-evaluator-evaluator"></span><h1>autodse.evaluator.evaluator<a class="headerlink" href="#module-autodse.evaluator.evaluator" title="Permalink to this headline">¶</a></h1>
+<p>The main module of evaluator.</p>
+<dl class="class">
+<dt id="autodse.evaluator.evaluator.BackupMode">
+<em class="property">class </em><code class="descclassname">autodse.evaluator.evaluator.</code><code class="descname">BackupMode</code><a class="headerlink" href="#autodse.evaluator.evaluator.BackupMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.evaluator.evaluator.Evaluator">
+<em class="property">class </em><code class="descclassname">autodse.evaluator.evaluator.</code><code class="descname">Evaluator</code><span class="sig-paren">(</span><em>src_path: str, work_path: str, db: autodse.database.Database, scheduler: autodse.evaluator.scheduler.Scheduler, analyzer_cls: Type[autodse.evaluator.analyzer.Analyzer], backup_mode: autodse.evaluator.evaluator.BackupMode, dse_config: Dict[str, Any], temp_prefix: str = 'eval'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base evaluator class.</p>
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.log">
+<code class="descname">log</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logger.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.db">
+<code class="descname">db</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.src_path">
+<code class="descname">src_path</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.src_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path to the user source project.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.work_path">
+<code class="descname">work_path</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.work_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The working space.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.temp_dir_prefix">
+<code class="descname">temp_dir_prefix</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.temp_dir_prefix" title="Permalink to this definition">¶</a></dt>
+<dd><p>The prefix for temporary directories.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.scheduler">
+<code class="descname">scheduler</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scheduler.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.backup_mode">
+<code class="descname">backup_mode</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.backup_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Backup mode. It is either NO_BACKUP, BACKUP_ERROR, or BACKUP_ALL.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.config">
+<code class="descname">config</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configuration.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.analyzer">
+<code class="descname">analyzer</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.analyzer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyzer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.timeouts">
+<code class="descname">timeouts</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.timeouts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeout dictionary for each evaluation level (in minutes).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.commands">
+<code class="descname">commands</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command dictionary for each evaluation level.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.src_files">
+<code class="descname">src_files</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.src_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>The source files that contains design parameters.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.evaluator.evaluator.Evaluator.auto_map">
+<code class="descname">auto_map</code><a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.auto_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary to map source file name and line to design parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.apply_design_point">
+<code class="descname">apply_design_point</code><span class="sig-paren">(</span><em>job: autodse.result.Job, point: Dict[str, Union[str, int]]</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.apply_design_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the given design point to the source code in job path.</p>
+<p>When success, change job status to &quot;APPLIED&quot; and return true.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job</strong> -- The job object with status INIT to be applied</p></li>
+<li><p><strong>point</strong> -- The design point that indicates specific values to design parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Indicate if the application was success or not.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.create_job">
+<code class="descname">create_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional[autodse.result.Job]<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.create_job" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new folder and copy source code for a design point to be evaluated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A created Job object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.set_command">
+<code class="descname">set_command</code><span class="sig-paren">(</span><em>config: Dict[str, str]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.set_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set command to a specific evaluation mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> -- A mode-command pair to specify the command to be executed for each mode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.set_timeout">
+<code class="descname">set_timeout</code><span class="sig-paren">(</span><em>config: Dict[str, int]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.set_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set timeout to a specific evaluation mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> -- A mode-timeout pair to specify the timeout in minutes for each mode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.submit">
+<code class="descname">submit</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job], eval_lv: int</em><span class="sig-paren">)</span> &#x2192; List[Tuple[str, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.submit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit a list of jobs for evaluation and get desired result files.</p>
+<p>1) When this method returns, the wanted result files should be available locally
+except for duplicated jobs. 2) All results will be committed to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>job</strong> -- The job object to be submitted.</p></li>
+<li><p><strong>eval_lv</strong> -- The evaluation level (1-3).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Results of jobs mapped by their keys.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.submit_lv1">
+<code class="descname">submit_lv1</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[autodse.result.Job, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.submit_lv1" title="Permalink to this definition">¶</a></dt>
+<dd><p>The level 1 job evaluation flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>job</strong> -- The job object to be submitted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result to each job. The ret_code in each result should be PASS if the evaluation
+was done successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.submit_lv2">
+<code class="descname">submit_lv2</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[autodse.result.Job, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.submit_lv2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The level 2 job evaluation flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>job</strong> -- The job object to be submitted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result to each job. The ret_code in each result should be PASS if the evaluation
+was done successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.Evaluator.submit_lv3">
+<code class="descname">submit_lv3</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[autodse.result.Job, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.Evaluator.submit_lv3" title="Permalink to this definition">¶</a></dt>
+<dd><p>The level 3 job evaluation flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>job</strong> -- The job object to be submitted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result to each job. The ret_code in each result should be PASS if the evaluation
+was done successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.evaluator.evaluator.MerlinEvaluator">
+<em class="property">class </em><code class="descclassname">autodse.evaluator.evaluator.</code><code class="descname">MerlinEvaluator</code><span class="sig-paren">(</span><em>src_path: str, work_path: str, db: autodse.database.Database, scheduler: autodse.evaluator.scheduler.Scheduler, analyzer_cls: Type[autodse.evaluator.analyzer.MerlinAnalyzer], backup_mode: autodse.evaluator.evaluator.BackupMode, dse_config: Dict[str, Any]</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.evaluator.evaluator.MerlinEvaluator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate Merlin compiler projects</p>
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.MerlinEvaluator.build_scope_map">
+<code class="descname">build_scope_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.evaluator.evaluator.MerlinEvaluator.build_scope_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the scope map that maps auto positions to the scope in source code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Indicate if the build was success or not.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.MerlinEvaluator.dup_hls_result">
+<code class="descname">dup_hls_result</code><span class="sig-paren">(</span><em>result: autodse.result.HLSResult</em><span class="sig-paren">)</span> &#x2192; autodse.result.HLSResult<a class="headerlink" href="#autodse.evaluator.evaluator.MerlinEvaluator.dup_hls_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone the given HLS result and mark as duplicated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>result</strong> -- The HLS result to be duplicated</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The duplicated result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.MerlinEvaluator.submit_lv1">
+<code class="descname">submit_lv1</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[autodse.result.Job, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.MerlinEvaluator.submit_lv1" title="Permalink to this definition">¶</a></dt>
+<dd><p>The level 1 job evaluation flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>job</strong> -- The job object to be submitted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result to each job. The ret_code in each result should be PASS if the evaluation
+was done successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.MerlinEvaluator.submit_lv2">
+<code class="descname">submit_lv2</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[autodse.result.Job, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.MerlinEvaluator.submit_lv2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The level 2 job evaluation flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>job</strong> -- The job object to be submitted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result to each job. The ret_code in each result should be PASS if the evaluation
+was done successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.evaluator.evaluator.MerlinEvaluator.submit_lv3">
+<code class="descname">submit_lv3</code><span class="sig-paren">(</span><em>jobs: List[autodse.result.Job]</em><span class="sig-paren">)</span> &#x2192; List[Tuple[autodse.result.Job, autodse.result.Result]]<a class="headerlink" href="#autodse.evaluator.evaluator.MerlinEvaluator.submit_lv3" title="Permalink to this definition">¶</a></dt>
+<dd><p>The level 3 job evaluation flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>job</strong> -- The job object to be submitted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result to each job. The ret_code in each result should be PASS if the evaluation
+was done successfully.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="scheduler.html" class="btn btn-neutral float-right" title="autodse.evaluator.scheduler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="analyzer.html" class="btn btn-neutral float-left" title="autodse.evaluator.analyzer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

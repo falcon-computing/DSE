@@ -1,10 +1,10 @@
 Merlin Design Space Exploration Infrastructure
 ==============================================
 
-## How To Use
+## Documentation
 
 The guide, tutorials, and reference APIs are in the provided documents.
-Follow [Document Generation](#document-generation) to generate documents.
+Visit [Merlin DSE Document](https://falcon-computing.github.io/Merlin_DSE) for details.
 
 ## Execution
 

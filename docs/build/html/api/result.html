@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Result &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reporter" href="reporter.html" />
+    <link rel="prev" title="Parameter" href="parameter.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter.html">Parameter</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsproc.html">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explorer/index.html">Explorer</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li>Result</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/result.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.result">
+<span id="result"></span><h1>Result<a class="headerlink" href="#module-autodse.result" title="Permalink to this headline">¶</a></h1>
+<p>The definition of evaluation results</p>
+<dl class="class">
+<dt id="autodse.result.BitgenResult">
+<em class="property">class </em><code class="descclassname">autodse.result.</code><code class="descname">BitgenResult</code><span class="sig-paren">(</span><em>ret_code_str: str = 'PASS'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.result.BitgenResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>The result after bit-stream generation</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.result.HLSResult">
+<em class="property">class </em><code class="descclassname">autodse.result.</code><code class="descname">HLSResult</code><span class="sig-paren">(</span><em>ret_code_str: str = 'PASS'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.result.HLSResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>The result after running the HLS</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.result.HierPathNode">
+<em class="property">class </em><code class="descclassname">autodse.result.</code><code class="descname">HierPathNode</code><a class="headerlink" href="#autodse.result.HierPathNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>The datastructure of hierarchy path node</p>
+<dl class="attribute">
+<dt id="autodse.result.HierPathNode.is_compute_bound">
+<code class="descname">is_compute_bound</code><a class="headerlink" href="#autodse.result.HierPathNode.is_compute_bound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.result.HierPathNode.latency">
+<code class="descname">latency</code><a class="headerlink" href="#autodse.result.HierPathNode.latency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.result.HierPathNode.nid">
+<code class="descname">nid</code><a class="headerlink" href="#autodse.result.HierPathNode.nid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.result.Job">
+<em class="property">class </em><code class="descclassname">autodse.result.</code><code class="descname">Job</code><span class="sig-paren">(</span><em>path: str</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.result.Job" title="Permalink to this definition">¶</a></dt>
+<dd><p>The info and properties of a job</p>
+<dl class="class">
+<dt id="autodse.result.Job.Status">
+<em class="property">class </em><code class="descname">Status</code><a class="headerlink" href="#autodse.result.Job.Status" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.result.MerlinResult">
+<em class="property">class </em><code class="descclassname">autodse.result.</code><code class="descname">MerlinResult</code><span class="sig-paren">(</span><em>ret_code_str: str = 'PASS'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.result.MerlinResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>The result after running Merlin transformations</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.result.Result">
+<em class="property">class </em><code class="descclassname">autodse.result.</code><code class="descname">Result</code><span class="sig-paren">(</span><em>ret_code_str: str = 'PASS'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.result.Result" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base module of evaluation result</p>
+<dl class="class">
+<dt id="autodse.result.Result.RetCode">
+<em class="property">class </em><code class="descname">RetCode</code><a class="headerlink" href="#autodse.result.Result.RetCode" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reporter.html" class="btn btn-neutral float-right" title="Reporter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="parameter.html" class="btn btn-neutral float-left" title="Parameter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

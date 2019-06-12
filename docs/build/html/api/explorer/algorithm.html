@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>autodse.explorer.algorithm &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="autodse.explorer.algorithmfactory" href="algorithmfactory.html" />
+    <link rel="prev" title="autodse.explorer.explorer" href="explorer.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dsproc.html">DSProc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Explorer</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="explorer.html">autodse.explorer.explorer</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">autodse.explorer.algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="algorithmfactory.html">autodse.explorer.algorithmfactory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exhaustive.html">autodse.explorer.exhaustive</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gradient.html">autodse.explorer.gradient</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Explorer</a> &raquo;</li>
+        
+      <li>autodse.explorer.algorithm</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api/explorer/algorithm.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.explorer.algorithm">
+<span id="autodse-explorer-algorithm"></span><h1>autodse.explorer.algorithm<a class="headerlink" href="#module-autodse.explorer.algorithm" title="Permalink to this headline">¶</a></h1>
+<p>The main module of search algorithm.</p>
+<dl class="class">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm">
+<em class="property">class </em><code class="descclassname">autodse.explorer.algorithm.</code><code class="descname">SearchAlgorithm</code><span class="sig-paren">(</span><em>ds: Dict[str, autodse.parameter.DesignParameter], log_file_name: str = 'algo.log'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class of search algorithms.</p>
+<p>The base serach algorithm includes a set of functions to manipulate design points and another
+set of function propotypes for search algorithms to implement.</p>
+<dl class="attribute">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.ds">
+<code class="descname">ds</code><a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Design space.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.log">
+<code class="descname">log</code><a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>The logger.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.clone_point">
+<em class="property">static </em><code class="descname">clone_point</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]]</em><span class="sig-paren">)</span> &#x2192; Dict[str, Union[str, int]]<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.clone_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone the given design point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>point</strong> -- The design point to be cloned.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A cloned design point with same values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.gen">
+<code class="descname">gen</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Generator[[List[Dict[str, Union[str, int]]], Optional[Dict[str, autodse.result.Result]]], None]<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main generator function of search algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A generator that keeps producing design points for exploration.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.gen_options">
+<code class="descname">gen_options</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]], pid: str</em><span class="sig-paren">)</span> &#x2192; List[Union[int, str]]<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.gen_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate available options of the target design parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> -- The current design point.</p></li>
+<li><p><strong>pid</strong> -- The target design parameter ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of available options.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.get_order">
+<code class="descname">get_order</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]], pid: str</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.get_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the order of the current value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> -- The current design point.</p></li>
+<li><p><strong>pid</strong> -- The target design parameter ID.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The order.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.move_by">
+<code class="descname">move_by</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]], pid: str, step: int = 1</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.move_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move N steps of pid parameter's value in a design point in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> -- The design point to be manipulated.</p></li>
+<li><p><strong>pid</strong> -- The target design parameter.</p></li>
+<li><p><strong>step</strong> -- The steps to move. Note that step can be positive or negatie,
+but we will not move cirulatory even the step is too large.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The actual move steps.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.update_child">
+<code class="descname">update_child</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]], pid: str</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.update_child" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check values of affect parameters and update them in place if it is invalid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> -- The current design point.</p></li>
+<li><p><strong>pid</strong> -- The design parameter ID that just be changed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.explorer.algorithm.SearchAlgorithm.validate_value">
+<code class="descname">validate_value</code><span class="sig-paren">(</span><em>point: Dict[str, Union[str, int]], pid: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.explorer.algorithm.SearchAlgorithm.validate_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the current value is valid and set it to the closest value if not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> -- The current design point.</p></li>
+<li><p><strong>pid</strong> -- The design parameter ID that just be changed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the value is changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="algorithmfactory.html" class="btn btn-neutral float-right" title="autodse.explorer.algorithmfactory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="explorer.html" class="btn btn-neutral float-left" title="autodse.explorer.explorer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

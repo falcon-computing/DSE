@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Code Quality Assurance &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="System and Modules" href="system_modules.html" />
+    <link rel="prev" title="Developer Guide" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Code Quality Assurance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#coding-style">Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-checking">Type Checking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#auto-formatting">Auto-Formatting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-test-and-code-coverage">Unit Test and Code Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="system_modules.html">System and Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="codebase_walkthrough.html">Walkthrough Codebase with an Example</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Developer Guide</a> &raquo;</li>
+        
+      <li>Code Quality Assurance</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/dev/code_quality.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="code-quality-assurance">
+<h1>Code Quality Assurance<a class="headerlink" href="#code-quality-assurance" title="Permalink to this headline">¶</a></h1>
+<p>This page explains how to maintain the code quality
+of this repository. Currently, we do not have an automation
+to assure the following rules are satisfied, but this should
+be covered in the future.</p>
+<div class="section" id="coding-style">
+<h2>Coding Style<a class="headerlink" href="#coding-style" title="Permalink to this headline">¶</a></h2>
+<p>This system is implemented in Python 3.6 and we basically follow
+<a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP8</a> standard
+to unify the coding style. In addition, the following guides are defined
+by ourselves:</p>
+<ul class="simple">
+<li><p>The max length of each line is 100 characters.</p></li>
+<li><p>The indent size is 4 spaces and no tabs are allowed.</p></li>
+</ul>
+<p>Specifically, we use <cite>pylint</cite> for coding style validation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make lint
+</pre></div>
+</div>
+<p>Look into the command in the Makefile, we can find that it uses a rc file
+under <cite>tests/lint/pylintrc</cite>. This file defines all coding style rules
+that will be checked by pylint.
+<strong>We require a perfect score rated by pylint and do not allow any
+pylint messages.</strong> It means everything specified in the rc file must be
+strictly followed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The rc file is slightly modified based on
+<a class="reference external" href="https://github.com/dmlc/tvm">TVM</a>
+but it can be changed based on the usage. Please discuss with
+the team before making any change to the file.</p>
+</div>
+</div>
+<div class="section" id="type-checking">
+<h2>Type Checking<a class="headerlink" href="#type-checking" title="Permalink to this headline">¶</a></h2>
+<p>It is important to statically check types before running a Python package,
+because Python is basically type-free. Therefore, type annotation
+was introduced in Python 3 to help both developers and checking tools resolve
+as many type issues as possible before actual launching the program.
+In Merlin DSE, we use <cite>mypy</cite> to statically check types.
+<strong>We also do not allow any warning and error messages from mypy,
+but it is fine if they are from third-party packages.</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make <span class="nb">type</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>mypy</cite> checks types passively. It will not check types if no
+type annotations in Python file. As a result, please make sure
+to at least add type annotations to method arguments, and then
+<cite>mypy</cite> will be triggered and provide further information for missing
+type annotations to other variables.</p>
+</div>
+</div>
+<div class="section" id="auto-formatting">
+<h2>Auto-Formatting<a class="headerlink" href="#auto-formatting" title="Permalink to this headline">¶</a></h2>
+<p>We use <cite>yapf</cite>, an auto-formatting package open source by Google, to auto-format
+the code. Everyone should run this command before committing any changes.
+The formatting style is defined at <cite>tests/lint/yapf_style.cfg</cite>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make format
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is possible to have conflicts between yapf style and pylint style,
+so please make sure they are conflict-free when making changes to
+either files.</p>
+</div>
+</div>
+<div class="section" id="unit-test-and-code-coverage">
+<h2>Unit Test and Code Coverage<a class="headerlink" href="#unit-test-and-code-coverage" title="Permalink to this headline">¶</a></h2>
+<p>We use <cite>pytest</cite> as the unit test framework and test code coverage.
+Use the following command to simply run all unit tests:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make unit_test
+</pre></div>
+</div>
+<p>The unit test should take less than one minute and you will see a handy report
+to indicate the test results. If one or more tests were failed, you should
+go back to fix the problem and run the test again. Note that when you run
+the test again, it will only run the failed tests as we specified <cite>--lf</cite> in
+the Makefile.</p>
+<p>In addition, we also use <cite>pytest</cite> to measure the code coverage:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make cov
+</pre></div>
+</div>
+<p>The console output will indicate the number and percentage of
+coverage statements in each file and an overall coverage rate.
+Although we have not set a required coverage rate, it would
+be good to achieve more than 85% or 90% for an entire package.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="system_modules.html" class="btn btn-neutral float-right" title="System and Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Developer Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Run DSE Flow &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer Guide" href="../dev/index.html" />
+    <link rel="prev" title="Prepare a Project with a Design Space" href="build_ds.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="build_ds.html">Prepare a Project with a Design Space</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Run DSE Flow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docker-environment-recommend">Docker Environment (Recommend)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#execution">Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#host-machine">Host Machine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Tutorials</a> &raquo;</li>
+        
+      <li>Run DSE Flow</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorial/run_dse.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="run-dse-flow">
+<h1>Run DSE Flow<a class="headerlink" href="#run-dse-flow" title="Permalink to this headline">¶</a></h1>
+<p>This page explains how to run the DSE flow and read its reports and logs.</p>
+<div class="section" id="docker-environment-recommend">
+<h2>Docker Environment (Recommend)<a class="headerlink" href="#docker-environment-recommend" title="Permalink to this headline">¶</a></h2>
+<p>DSE infrastructure provides a Dockerfile that has all required environment
+ready. It is highly suggested run DSE in the docker container to enjoy the
+following advantages:</p>
+<ul class="simple">
+<li><p>No worries about the DSE environment, Merlin compiler environment, and even
+vendor tool environment anymore.</p></li>
+<li><p>Easy-to-use builtin commands (see instructions below).</p></li>
+<li><p>All processes, including DSE processes, Merlin processes and vendor tool
+processes, are guaranteed to be terminated when the docker container is
+terminated.</p></li>
+</ul>
+<div class="section" id="setup">
+<h3>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Build Merlin docker image and make sure the image <code class="docutils literal notranslate"><span class="pre">melrin:latest</span></code>
+is available in &quot;docker image ls&quot;.</p></li>
+<li><p>Build DSE docker image by running <code class="docutils literal notranslate"><span class="pre">./docker-build.sh</span></code>
+and make sure the image <code class="docutils literal notranslate"><span class="pre">merlin-dse:latest</span></code> is available in
+<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">image</span> <span class="pre">ls</span></code>.</p></li>
+<li><p>Create a new container by running <code class="docutils literal notranslate"><span class="pre">./docker/docker-run.sh</span> <span class="pre">/bin/bash</span></code>.
+Note that you need to be at the directory that contains both Merlin project
+and working directory when launching the container.</p></li>
+</ol>
+</div>
+<div class="section" id="execution">
+<h3>Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h3>
+<p>After entering to the container, you do not need to set up anything but can
+directly use the builtin commands as follows to make use of the DSE.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You will still need to write a Python command to launch the DSE if you
+would like to use more advance run-time arguments
+(e.g., <code class="docutils literal notranslate"><span class="pre">--disable-animation</span></code>).
+See the following for detail arguments.</p>
+</div>
+<dl>
+<dt>Design Space Checker</dt><dd><p>This command checks if your design space definition has any problems to
+save your time; otherwise you may wait for several hours of DSE and
+found that it did nothing due to an invalid design space definition.</p>
+<p>There have two checking modes to be used: fast and complete mode:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>fast:</dt><dd><p>Check the syntax and data type of design space definition in
+the config file. It usually takes a second.</p>
+</dd>
+<dt>complete:</dt><dd><p>Check not only design space definition in config file
+but the kernel code. The errors such as missing/misspell
+parameter name or incorrect execution commands will be caught
+by this checking. Since it really runs HLS for one design point,
+it may take up to 30 minutes.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The docker builtin commend is used as follows:</p>
+</dd>
+</dl>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>checkds &lt;<span class="nb">source</span> project dir&gt; &lt;working dir&gt; &lt;config file&gt; &lt;fast<span class="p">|</span>complete&gt;
+</pre></div>
+</div>
+<dl>
+<dt>Design Space Exploration</dt><dd><p>This command launches the DSE. There have two modes to be used:
+fast and accurate mode:</p>
+<dl class="simple">
+<dt>fast:</dt><dd><p>Perform DSE with HLS result and output a number of points with high QoR
+in terms of HLS cycles.</p>
+</dd>
+<dt>accurate:</dt><dd><p>Perform fast mode, generates bit-streams for its outputs, and mark
+the one with the best QoR in terms of HLS cycle and working frequency.</p>
+</dd>
+</dl>
+<p>The docker commend is used as follows:</p>
+</dd>
+</dl>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>autodse &lt;<span class="nb">source</span> project dir&gt; &lt;working dir&gt; &lt;config file&gt; &lt;fast<span class="p">|</span>accurate&gt; <span class="o">[</span>&lt;database file&gt;<span class="o">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="host-machine">
+<h2>Host Machine<a class="headerlink" href="#host-machine" title="Permalink to this headline">¶</a></h2>
+<p>Since the DSE flow is implemented as a standard Python package,
+we can also execute it using Python interpreter directly:</p>
+<ol class="arabic">
+<li><p>Make sure Python 3.6+ is available.</p></li>
+<li><p>Setup DSE package by running <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">setup.py</span></code>. This will install
+dependent packages and deploy our <code class="docutils literal notranslate"><span class="pre">autodse</span></code> package in the machine.
+Alternatively, you can also manually install dependent packages and add
+the directory that contains <code class="docutils literal notranslate"><span class="pre">autodse</span></code> to <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>.</p></li>
+<li><p>Run the design space checker to make sure the design space definition is
+valid:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m autodse --src-dir &lt;<span class="nb">source</span> project dir&gt; --work-dir &lt;working dir&gt; --config &lt;config file&gt; --mode &lt;fast-check<span class="p">|</span>complete-check&gt; <span class="o">[</span>--disable-animation<span class="o">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Run the DSE by launching the package. Note that the optional argument
+<code class="docutils literal notranslate"><span class="pre">disable-animation</span></code> will use dots instead of animation to indicate
+the DSE is still running.</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m autodse --src-dir &lt;<span class="nb">source</span> project dir&gt; --work-dir &lt;working dir&gt; --config &lt;config file&gt; --db &lt;database file&gt; --mode &lt;fast-dse<span class="p">|</span>accurate-dse&gt; <span class="o">[</span>--disable-animation<span class="o">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h2>
+<p>After the DSE is done, you will find some files in the working directory:</p>
+<dl>
+<dt>summary_fast.rpt</dt><dd><p>The summary file that tells you how many points have been explored in the
+fast mode and their results. It also provides the detail of each point
+so that you could know more about the search process and your design.</p>
+</dd>
+<dt>summary_accurate.rpt</dt><dd><p>The summary file that tells you how many points have been processed in
+the accurate mode and their results. It also provides the detail of each
+point so that you could know more about the search process and your design.</p>
+</dd>
+<dt>output</dt><dd><p>The most important directory that contains the DSE output.</p>
+<dl>
+<dt>best</dt><dd><p>The symbolic link after the accurate mode pointing to the output
+project with the best design.</p>
+</dd>
+<dt>fast</dt><dd><p>The output of fast mode. It includes a report file <code class="docutils literal notranslate"><span class="pre">output.rpt</span></code>
+telling you how many points we output and what are their quality.
+Each output is a valid Merlin project so you could continue working
+with it using the Merlin compiler.</p>
+<p>The output of fast mode also includes <code class="docutils literal notranslate"><span class="pre">result_dist.pdf</span></code> that draws
+valid HLS result on a performance-area chart. The chart also depicts
+a Pareto curve and shows Pareto efficient design points in the explored
+space.</p>
+</dd>
+<dt>accurate</dt><dd><p>The output of accurate mode. It includes a report file <code class="docutils literal notranslate"><span class="pre">output.rpt</span></code>
+telling you how many points we perform P&amp;R and what are their quality
+including working frequency and actual resource utilization.
+The bit-stream is also available is the point could pass P&amp;R.</p>
+</dd>
+</dl>
+</dd>
+<dt>logs</dt><dd><p>All DSE log files, including the logs of overall execution flow, evaluator,
+explorer and the search algorithm.</p>
+<dl class="simple">
+<dt>dse.log</dt><dd><p>The backup of all messages shown on the console.</p>
+</dd>
+<dt>eval.log</dt><dd><p>The log of evaluation, including how many jobs have be submitted and
+if they encounter any issues during the evaluation.</p>
+</dd>
+<dt>partX_expr.log</dt><dd><p>The log of explorer of design space partition X. It logged the time to
+find a better design point in the partition.</p>
+</dd>
+<dt>partX_algo.log</dt><dd><p>The log of search algorithm of design space partition X. The format
+and contents highly depend on the search algorithm. For example,
+<code class="docutils literal notranslate"><span class="pre">exhaustive</span></code> simply logs all explored points; <code class="docutils literal notranslate"><span class="pre">gradient</span></code> logs
+the process of design bottleneck analysis and important parameter
+identification. This log could be helpful for users to understand
+what DSE has done and if its exploration process makes sense or not.</p>
+</dd>
+</dl>
+</dd>
+<dt>results.db</dt><dd><p>The dumped database with all evaluated results. You can simply reuse this
+database to continue launching the DSE if you want to explore using
+the fast mode again with more time.</p>
+</dd>
+<dt>bak_OOOOO</dt><dd><p>The backup directory that contains all files in the working directory
+before launching the exploration.</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../dev/index.html" class="btn btn-neutral float-right" title="Developer Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="build_ds.html" class="btn btn-neutral float-left" title="Prepare a Project with a Design Space" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

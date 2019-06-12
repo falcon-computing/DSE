@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>System and Modules &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Walkthrough Codebase with an Example" href="codebase_walkthrough.html" />
+    <link rel="prev" title="Code Quality Assurance" href="code_quality.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="code_quality.html">Code Quality Assurance</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">System and Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#design-space-processor">Design Space Processor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evaluator">Evaluator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scheduler">Scheduler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analyzer">Analyzer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#explorer">Explorer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm">Algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database">Database</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="codebase_walkthrough.html">Walkthrough Codebase with an Example</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Developer Guide</a> &raquo;</li>
+        
+      <li>System and Modules</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/dev/system_modules.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="system-and-modules">
+<h1>System and Modules<a class="headerlink" href="#system-and-modules" title="Permalink to this headline">¶</a></h1>
+<p>This page introduces the Merlin DSE system and connections between modules.
+The Merlin DSE infrastructure is composed of several building blocks.
+We list them along with their tasks.</p>
+<div class="section" id="design-space-processor">
+<h2>Design Space Processor<a class="headerlink" href="#design-space-processor" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>A set of static methods.</p></li>
+<li><p>Take the design space definition in user input <code class="docutils literal notranslate"><span class="pre">config.json</span></code>.</p></li>
+<li><p>Parse and check design space.</p></li>
+<li><p>Partition and prune the design space.</p></li>
+</ul>
+</div>
+<div class="section" id="evaluator">
+<h2>Evaluator<a class="headerlink" href="#evaluator" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Create and initialize jobs.</p></li>
+<li><p>Apply design point to a job.</p></li>
+<li><p>3 level evaluation modes. Level 1 is the fastest but the most
+inaccurate mode, and vice versa.</p></li>
+<li><p>Submit jobs to the <a class="reference internal" href="#scheduler">Scheduler</a>.</p></li>
+<li><p>Analyze results by calling <a class="reference internal" href="#analyzer">Analyzer</a>.</p></li>
+<li><p>Commit results to the <a class="reference internal" href="#database">Database</a>.</p></li>
+</ul>
+<dl class="simple">
+<dt>MerlinEvaluator</dt><dd><ul class="simple">
+<li><p>Level 1: Run Merlin transformation and parse <code class="docutils literal notranslate"><span class="pre">merlin.log</span></code> to
+check if Merlin transformation was success or not.</p></li>
+<li><p>Level 2: Run HLS and parse <code class="docutils literal notranslate"><span class="pre">merlin.log</span></code> and <code class="docutils literal notranslate"><span class="pre">perf_est.json</span></code> to
+analyze performance bottleneck.</p></li>
+<li><p>Level 3: Run P&amp;R to generate bitstream and parse <code class="docutils literal notranslate"><span class="pre">merlin.log</span></code> for
+working frequency and resource utilization.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="scheduler">
+<h2>Scheduler<a class="headerlink" href="#scheduler" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Receive and execute jobs.</p></li>
+</ul>
+<dl class="simple">
+<dt>PythonSubprocessScheduler</dt><dd><ul class="simple">
+<li><p>Single node multithread.</p></li>
+<li><p>Use Python subprocess package.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="analyzer">
+<h2>Analyzer<a class="headerlink" href="#analyzer" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Define required files for analysis</p></li>
+</ul>
+<dl class="simple">
+<dt>MerlinAnalyzer</dt><dd><ul class="simple">
+<li><p>Analyze <code class="docutils literal notranslate"><span class="pre">merlin.log</span></code> for flow details.</p></li>
+<li><p>Analyze Merlin report for QoR.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="explorer">
+<h2>Explorer<a class="headerlink" href="#explorer" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Launch search algorithm.</p></li>
+<li><p>Submit design points to <a class="reference internal" href="#evaluator">Evaluator</a>.</p></li>
+<li><p>Feedback results to the <a class="reference internal" href="#algorithm">Algorithm</a>.</p></li>
+</ul>
+<dl class="simple">
+<dt>FastExplorer</dt><dd><ul class="simple">
+<li><p>Use level 1 evaluation for design points and skip the points
+with <code class="docutils literal notranslate"><span class="pre">EARLY_REJECT</span></code> status, because they encountered the failure
+of Merlin transformation due to an ineffective pragma combination.</p></li>
+<li><p>Use level 2 evaluation for rest design points.</p></li>
+</ul>
+</dd>
+<dt>AccurateExplorer</dt><dd><ul class="simple">
+<li><p>Use level 3 evaluation for all points.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="algorithm">
+<h2>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Search design space.</p></li>
+<li><p>Output a set of points iteratively.</p></li>
+<li><p>Receive evaluation results.</p></li>
+</ul>
+<dl class="simple">
+<dt>Exhaustive</dt><dd><ul class="simple">
+<li><p>DFS search design space.</p></li>
+</ul>
+</dd>
+<dt>Gradient</dt><dd><ul class="simple">
+<li><p>Start from the default design point (search tree level 0).</p></li>
+<li><p>Receive QoR and the design bottleneck from <a class="reference internal" href="#explorer">Explorer</a>.</p></li>
+<li><p>Map the design bottleneck to design parameters and determine the
+search order.</p></li>
+<li><p>Start from the design parameter with the highest order,
+search all its options in parallel. The available options are
+appended to the next level in the search tree.</p></li>
+<li><p>Repeat the process until the search tree is empty or the search time
+limit.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="database">
+<h2>Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Load existed data</p></li>
+<li><p>Query, commit, persist</p></li>
+<li><p>Maintain the best QoR cache for reporting.</p></li>
+</ul>
+<dl class="simple">
+<dt>Redis Database</dt><dd><ul class="simple">
+<li><p>Widely-used NoSQL database</p></li>
+<li><p>Lightweight and thread safe</p></li>
+<li><p>Optimized efficiency</p></li>
+</ul>
+</dd>
+<dt>Pickle Database</dt><dd><ul class="simple">
+<li><p>The simplest NoSQL database implementation for Python.</p></li>
+<li><p>Do not have builtin thread safe mechanism so we implemented it using
+Python thread lock.</p></li>
+<li><p>Low efficiency.</p></li>
+<li><p>Mainly for unit test.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="codebase_walkthrough.html" class="btn btn-neutral float-right" title="Walkthrough Codebase with an Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="code_quality.html" class="btn btn-neutral float-left" title="Code Quality Assurance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

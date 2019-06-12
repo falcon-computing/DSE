@@ -1,0 +1,663 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python3" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python3" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Database &mdash; autodse beta documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Evaluator" href="evaluator/index.html" />
+    <link rel="prev" title="DSProc" href="dsproc.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodse
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorials</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../dev/index.html">Developer Guide</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter.html">Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="result.html">Result</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reporter.html">Reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">Util</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsproc.html">DSProc</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluator/index.html">Evaluator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explorer/index.html">Explorer</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodse</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+        
+      <li>Database</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/database.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autodse.database">
+<span id="database"></span><h1>Database<a class="headerlink" href="#module-autodse.database" title="Permalink to this headline">¶</a></h1>
+<p>The module of result database.</p>
+<dl class="class">
+<dt id="autodse.database.Database">
+<em class="property">class </em><code class="descclassname">autodse.database.</code><code class="descname">Database</code><span class="sig-paren">(</span><em>name: str</em>, <em>db_file_path: Optional[str] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.database.Database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class of result database</p>
+<dl class="attribute">
+<dt id="autodse.database.Database.db_id">
+<code class="descname">db_id</code><a class="headerlink" href="#autodse.database.Database.db_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A unique ID of this database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.database.Database.log">
+<code class="descname">log</code><a class="headerlink" href="#autodse.database.Database.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logger</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.database.Database.db_file_path">
+<code class="descname">db_file_path</code><a class="headerlink" href="#autodse.database.Database.db_file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to persist the database.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.database.Database.best_cache">
+<code class="descname">best_cache</code><a class="headerlink" href="#autodse.database.Database.best_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>A priority queue for best results.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.database.Database.code_hash_map">
+<code class="descname">code_hash_map</code><a class="headerlink" href="#autodse.database.Database.code_hash_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary to map code hash to the corresponding HLS result.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.add_code_hash">
+<code class="descname">add_code_hash</code><span class="sig-paren">(</span><em>code_hash: str</em>, <em>key: str</em><span class="sig-paren">)</span> &#x2192; Optional[str]<a class="headerlink" href="#autodse.database.Database.add_code_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new code hash to the map and check if it already exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code_hash</strong> -- The code hash to be added.</p></li>
+<li><p><strong>key</strong> -- The key of the design point.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None if the code hash is new; otherwise the key with the same code hash.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.batch_commit">
+<code class="descname">batch_commit</code><span class="sig-paren">(</span><em>pairs: List[Tuple[str, Any]]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.Database.batch_commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit a set of new results to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pairs</strong> -- A list of key-result pairs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.batch_commit_impl">
+<code class="descname">batch_commit_impl</code><span class="sig-paren">(</span><em>pairs: List[Tuple[str, Any]]</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.database.Database.batch_commit_impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch commit function implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pairs</strong> -- A list of key-result pairs.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Indicate the number of committed data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.batch_query">
+<code class="descname">batch_query</code><span class="sig-paren">(</span><em>keys: List[str]</em><span class="sig-paren">)</span> &#x2192; List[Optional[Any]]<a class="headerlink" href="#autodse.database.Database.batch_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query for a list of the values by the given key list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> -- The key of a design point.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result object of the corresponding key, or None if the key is unavailable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.commit">
+<code class="descname">commit</code><span class="sig-paren">(</span><em>key: str</em>, <em>result: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.Database.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit a new result to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> -- The key of a design point.</p></li>
+<li><p><strong>result</strong> -- The result to be committed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.commit_impl">
+<code class="descname">commit_impl</code><span class="sig-paren">(</span><em>key: str</em>, <em>result: Any</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.database.Database.commit_impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit function implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> -- The key of a design point.</p></li>
+<li><p><strong>result</strong> -- The result to be committed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the commit was success; otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.count">
+<code class="descname">count</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.database.Database.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count total number of data points in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Total number of data points</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.init_best_cache">
+<code class="descname">init_best_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.Database.init_best_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the best cache using the loaded data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.init_code_hash_map">
+<code class="descname">init_code_hash_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.Database.init_code_hash_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the code hash set using the loaded data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.Database.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load existing data from the given database and update the best cahce (if available).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.persist">
+<code class="descname">persist</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.database.Database.persist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persist the DB by dumping it to a pickle file and close the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the dumping and close was success; otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>key: str</em><span class="sig-paren">)</span> &#x2192; Optional[Any]<a class="headerlink" href="#autodse.database.Database.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query for the value by the given key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> -- The key of a design point.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result object of the corresponding key, or None if the key is unavailable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.query_all">
+<code class="descname">query_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[Any]<a class="headerlink" href="#autodse.database.Database.query_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query all values in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>All data in the database</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.query_keys">
+<code class="descname">query_keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#autodse.database.Database.query_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all keys</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.Database.update_best">
+<code class="descname">update_best</code><span class="sig-paren">(</span><em>result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.Database.update_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the new result has the best QoR and update it if so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We allow value overwritten in the database for the performance issue,
+although it should not happen during the search. However, the best cache
+may keep the overrided result so this could be a potential issue.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>result</strong> -- The new result to be checked.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.database.PickleDatabase">
+<em class="property">class </em><code class="descclassname">autodse.database.</code><code class="descname">PickleDatabase</code><span class="sig-paren">(</span><em>name: str</em>, <em>db_file_path: Optional[str] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.database.PickleDatabase" title="Permalink to this definition">¶</a></dt>
+<dd><p>The database implementation using PickleDB.</p>
+<p>This is an alternative when other databases are unavailable in the system.
+Note that it is discouraged to use this database for DSE due to poor performance
+and the lack of multi-node support.</p>
+<dl class="attribute">
+<dt id="autodse.database.PickleDatabase.lock">
+<code class="descname">lock</code><a class="headerlink" href="#autodse.database.PickleDatabase.lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>The thread lock to achieve thread-safe.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autodse.database.PickleDatabase.database">
+<code class="descname">database</code><a class="headerlink" href="#autodse.database.PickleDatabase.database" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Pickle database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.batch_commit_impl">
+<code class="descname">batch_commit_impl</code><span class="sig-paren">(</span><em>pairs: List[Tuple[str, Any]]</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.database.PickleDatabase.batch_commit_impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch commit function implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pairs</strong> -- A list of key-result pairs.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Indicate the number of committed data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.batch_query">
+<code class="descname">batch_query</code><span class="sig-paren">(</span><em>keys: List[str]</em><span class="sig-paren">)</span> &#x2192; List[Optional[Any]]<a class="headerlink" href="#autodse.database.PickleDatabase.batch_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query for a list of the values by the given key list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> -- The key of a design point.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result object of the corresponding key, or None if the key is unavailable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.commit_impl">
+<code class="descname">commit_impl</code><span class="sig-paren">(</span><em>key: str</em>, <em>result: autodse.result.Result</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.database.PickleDatabase.commit_impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit function implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> -- The key of a design point.</p></li>
+<li><p><strong>result</strong> -- The result to be committed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the commit was success; otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.count">
+<code class="descname">count</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.database.PickleDatabase.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count total number of data points in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Total number of data points</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.PickleDatabase.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load existing data from the given database and update the best cahce (if available).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.persist">
+<code class="descname">persist</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.database.PickleDatabase.persist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persist the DB by dumping it to a pickle file and close the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the dumping and close was success; otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>key: str</em><span class="sig-paren">)</span> &#x2192; Optional[Any]<a class="headerlink" href="#autodse.database.PickleDatabase.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query for the value by the given key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> -- The key of a design point.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result object of the corresponding key, or None if the key is unavailable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.PickleDatabase.query_keys">
+<code class="descname">query_keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#autodse.database.PickleDatabase.query_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all keys</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autodse.database.RedisDatabase">
+<em class="property">class </em><code class="descclassname">autodse.database.</code><code class="descname">RedisDatabase</code><span class="sig-paren">(</span><em>name: str</em>, <em>db_file_path: Optional[str] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.database.RedisDatabase" title="Permalink to this definition">¶</a></dt>
+<dd><p>The database implementation using Redis database.</p>
+<dl class="attribute">
+<dt id="autodse.database.RedisDatabase.database">
+<code class="descname">database</code><a class="headerlink" href="#autodse.database.RedisDatabase.database" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Redis database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.batch_commit_impl">
+<code class="descname">batch_commit_impl</code><span class="sig-paren">(</span><em>pairs: List[Tuple[str, Any]]</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.database.RedisDatabase.batch_commit_impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch commit function implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pairs</strong> -- A list of key-result pairs.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Indicate the number of committed data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.batch_query">
+<code class="descname">batch_query</code><span class="sig-paren">(</span><em>keys: List[str]</em><span class="sig-paren">)</span> &#x2192; List[Optional[Any]]<a class="headerlink" href="#autodse.database.RedisDatabase.batch_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query for a list of the values by the given key list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> -- The key of a design point.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result object of the corresponding key, or None if the key is unavailable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.commit_impl">
+<code class="descname">commit_impl</code><span class="sig-paren">(</span><em>key: str</em>, <em>result: Any</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.database.RedisDatabase.commit_impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit function implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> -- The key of a design point.</p></li>
+<li><p><strong>result</strong> -- The result to be committed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the commit was success; otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.count">
+<code class="descname">count</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#autodse.database.RedisDatabase.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count total number of data points in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Total number of data points</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#autodse.database.RedisDatabase.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load existing data from the given database and update the best cahce (if available).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.persist">
+<code class="descname">persist</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#autodse.database.RedisDatabase.persist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Persist the DB by dumping it to a pickle file and close the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the dumping and close was success; otherwise False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>key: str</em><span class="sig-paren">)</span> &#x2192; Optional[Any]<a class="headerlink" href="#autodse.database.RedisDatabase.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query for the value by the given key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> -- The key of a design point.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The result object of the corresponding key, or None if the key is unavailable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autodse.database.RedisDatabase.query_keys">
+<code class="descname">query_keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#autodse.database.RedisDatabase.query_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all keys</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="evaluator/index.html" class="btn btn-neutral float-right" title="Evaluator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dsproc.html" class="btn btn-neutral float-left" title="DSProc" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Falcon Computing Solutions, Inc
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
