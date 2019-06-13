@@ -296,7 +296,8 @@ class Main():
 
         # Sort the results by 1) quality and 2) geomean of resource util and take the first N
         results: List[Result] = [
-            r for r in self.db.query_all() if isinstance(r, HLSResult) and r.valid
+            r for r in self.db.query_all()
+            if isinstance(r, HLSResult) and r.valid and r.ret_code != Result.RetCode.DUPLICATED
         ]
         results.sort(key=lambda r: (r.quality, 1.0 / geomean(
             [v for k, v in r.res_util.items() if k.startswith('util')])),

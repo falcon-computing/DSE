@@ -439,7 +439,7 @@ class MerlinEvaluator(Evaluator):
             else:
                 results[job_key].ret_code = ret_code
 
-        # Mark duplicated jobs so that it will not be added to the best cache
+        # Mark duplicated jobs so that it will not be considered as an output
         for job in dup_list:
             results[job.key].ret_code = Result.RetCode.DUPLICATED
 
