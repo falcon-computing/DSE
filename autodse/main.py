@@ -465,6 +465,9 @@ class Main():
             # Make a symbolic link for the best one
             os.symlink(best_path, os.path.join(self.out_dir, 'best'))
 
+        # Draw result distribution with Pareto curve
+        self.reporter.draw_pareto_curve(os.path.join(out_accurate_dir, 'result_dist.pdf'))
+
     def launch_accurate(self, points: List[DesignPoint]) -> None:
         """Launch accurate exploration.
 

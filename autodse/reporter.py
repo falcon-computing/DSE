@@ -300,27 +300,62 @@ class Reporter():
         """
         import matplotlib.pyplot as plt
 
-        keys = [k for k in self.db.query_keys() if k.startswith('lv2')]
-        data: List[Tuple[float, float, Result]] = [
+        lv2_keys = [k for k in self.db.query_keys() if k.startswith('lv2')]
+        lv2_data: List[Tuple[float, float, Result]] = [
             (r.perf, sum([v for k, v in r.res_util.items() if k.startswith('util')]), r)
-            for r in self.db.batch_query(keys) if r is not None and r.valid
+            for r in self.db.batch_query(lv2_keys) if r is not None and r.valid
         ]
-        if not data:
+        if not lv2_data:
             self.log.warning('Skip drawing Pareto curve due to no data')
             return
+        lv3_keys = [k for k in self.db.query_keys() if k.startswith('lv3')]
+        lv3_pairs = list(zip(lv3_keys, self.db.batch_query(lv3_keys)))
 
-        pareto = self.find_pareto_set(data)
+        lv2_pareto = self.find_pareto_set(lv2_data)
 
         # Draw the figure
         plt.title('Valid Result Distribution (Ignored Duplications)')
         plt.xlabel('HLS Cycle')
         plt.ylabel('Sum of Resource Utilizations')
-        plt.plot([p[0] for p in data], [p[1] for p in data],
+
+        # Draw valid HLS results
+        plt.plot([p[0] for p in lv2_data], [p[1] for p in lv2_data],
                  'k.',
-                 label='Valid HLS Results ({})'.format(len(data)))
-        plt.plot([p[0] for p in pareto], [p[1] for p in pareto],
+                 label='Valid HLS Results ({})'.format(len(lv2_data)))
+
+        # Draw Pareto curve
+        plt.plot([p[0] for p in lv2_pareto], [p[1] for p in lv2_pareto],
                  'bo-',
-                 label='Pareto Points ({})'.format(len(pareto)))
+                 label='Pareto Points ({})'.format(len(lv2_pareto)))
+
+        # Mark P&R points
+        if lv3_pairs:
+            lv3_data: List[Tuple[float, float, str]] = []
+
+            # Find the corresponding HLS result
+            for key, lv3_result in lv3_pairs:
+                lv2_result = self.db.query(key.replace('lv3', 'lv2'))
+                if not lv2_result:
+                    continue
+
+                lv3_data.append(
+                    (lv2_result.perf,
+                     sum([v for k, v in lv2_result.res_util.items()
+                          if k.startswith('util')]), '{0:.2f}MHz'.format(lv3_result.freq)
+                     if isinstance(lv3_result, BitgenResult) and lv3_result.valid else 'failed'))
+
+            plt.plot([p[0] for p in lv3_data], [p[1] for p in lv3_data],
+                     'rx',
+                     label='P&R Results ({})'.format(len(lv3_data)))
+
+            for data in lv3_data:
+                plt.annotate(data[2],
+                             xy=(data[0], data[1]),
+                             xycoords='data',
+                             xytext=(5, 0),
+                             textcoords='offset points',
+                             fontsize=8)
+
         plt.legend()
         plt.tight_layout()
         plt.savefig(out_filename)
