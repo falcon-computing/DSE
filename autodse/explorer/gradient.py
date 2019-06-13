@@ -77,6 +77,8 @@ class GradientAlgorithm(SearchAlgorithm):
                  latency_thd: float = 64,
                  fg_first: bool = True,
                  quality_type: str = 'resource-efficiency',
+                 comp_order: List[str] = ['PARALLEL', 'PIPELINE'],
+                 comm_order: List[str] = ['INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING'],
                  log_file_name: str = 'algo.log'):
         """Constructor of gradient algorithm.
 
@@ -93,8 +95,8 @@ class GradientAlgorithm(SearchAlgorithm):
         self.quality_type = quality_type
 
         # TODO: Customizable
-        self.comp_order = ['PARALLEL', 'PIPELINE']
-        self.comm_order = ['INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING']
+        self.comp_order = comp_order
+        self.comm_order = comm_order
 
         # Build scope map
         self.scope2param: Dict[str, List[DesignParameter]] = {}

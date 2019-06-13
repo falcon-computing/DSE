@@ -268,7 +268,7 @@
 
 <dl class="class">
 <dt id="autodse.explorer.gradient.GradientAlgorithm">
-<em class="property">class </em><code class="descclassname">autodse.explorer.gradient.</code><code class="descname">GradientAlgorithm</code><span class="sig-paren">(</span><em>ds: Dict[str, autodse.parameter.DesignParameter], latency_thd: float = 64, fg_first: bool = True, quality_type: str = 'resource-efficiency', log_file_name: str = 'algo.log'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">autodse.explorer.gradient.</code><code class="descname">GradientAlgorithm</code><span class="sig-paren">(</span><em>ds: Dict[str, autodse.parameter.DesignParameter], latency_thd: float = 64, fg_first: bool = True, quality_type: str = 'resource-efficiency', comp_order: List[str] = ['PARALLEL', 'PIPELINE'], comm_order: List[str] = ['INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING'], log_file_name: str = 'algo.log'</em><span class="sig-paren">)</span><a class="headerlink" href="#autodse.explorer.gradient.GradientAlgorithm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Explore the design space according to gradient.</p>
 <p>We leverage hotspot analysis to locate a small set of high impact parameters and prior to
 them in order to deliver high QoR results at the early stage of exploration.</p>

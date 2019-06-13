@@ -290,6 +290,16 @@ that configuration is required.
 | quality-type       |                       | FD: Delta Perf / Resource Util;|
 |                    |                       | RE: Perf/ Resource Util        |
 +--------------------+-----------------------+--------------------------------+
+| search.            | ["PARALLEL",          | The search order of design     |
+| algorithm.         |  "PIPELINE"] (def)    | parameter type when the        |
+| gradient.          |                       | performance bottlenck is       |
+| compute-bound-order|                       | compute bound.                 |
++--------------------+-----------------------+--------------------------------+
+| search.            | ["INTERFACE",         | The search order of design     |
+| algorithm.         |  "CACHE",             | parameter type when the        |
+| gradient.          |  "PIPELINE",          | performance bottlenck is       |
+| memory-bound-order |  "TILING"] (def)      | memory bound.                  |
++--------------------+-----------------------+--------------------------------+
 | design-space.      | 4 (def)               | The maximum no. allowed        |
 | max-part-num       |                       | design space partitions.       |
 +--------------------+-----------------------+--------------------------------+

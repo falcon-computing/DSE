@@ -82,6 +82,14 @@ CONFIG_SETTING: Dict[str, Dict[str, Any]] = {
         'default': 'performance',
         'options': ['finite-difference', 'performance', 'resource-efficiency']
     },
+    'search.algorithm.gradient.compute-bound-order': {
+        'require': False,
+        'default': ['PARALLEL', 'PIPELINE']
+    },
+    'search.algorithm.gradient.memory-bound-order': {
+        'require': False,
+        'default': ['INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING']
+    },
     'timeout.exploration': {
         'require': True,
     },

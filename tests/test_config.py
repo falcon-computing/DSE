@@ -41,6 +41,7 @@ def test_build_config():
 
     # The most concise valid config that contains only required fields
     user_config['timeout.exploration'] = '240'
+    user_config['search.algorithm.gradient.compute-bound-order'] = ['PIPELINE', 'PARALLEL', 'TILE']
 
     config = build_config(user_config)
     assert config is not None
@@ -55,6 +56,14 @@ def test_build_config():
     assert 'command' in config['evaluate']
     assert 'hls' in config['evaluate']['command']
     assert config['evaluate']['command']['hls'] == 'make mcc_estimate'
+    assert 'search' in config
+    assert 'algorithm' in config['search']
+    assert 'gradient' in config['search']['algorithm']
+    assert 'compute-bound-order' in config['search']['algorithm']['gradient']
+    assert isinstance(config['search']['algorithm']['gradient']['compute-bound-order'], list)
+    assert config['search']['algorithm']['gradient']['compute-bound-order'] == [
+        'PIPELINE', 'PARALLEL', 'TILE'
+    ]
 
     # The most comprehensive config
     user_config['project.name'] = 'test_project'

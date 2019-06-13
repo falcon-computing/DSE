@@ -20,9 +20,7 @@ def test_gradient(test_dir):
         'search': {
             'algorithm': {
                 'name': 'gradient',
-                'gradient': {
-                    'batch-size': 8
-                }
+                'gradient': {}
             }
         },
         'design-space': {
@@ -61,11 +59,11 @@ def test_gradient(test_dir):
     }
 
     scope_map = {
-        'B': 'L_0_0_0_47_2_0_3',
-        'CGPAR1': 'L_0_0_0_47_2_0_3',
-        'CGPIP1': 'L_0_0_0_47_2_0_3',
-        'CGPAR2': 'L_0_0_0_47_2_0_3_3_3',
-        'CGPIP2': 'L_0_0_0_47_2_0_3_3_3'
+        'B': ['L_0_0_0_47_2_0_3'],
+        'CGPAR1': ['L_0_0_0_47_2_0_3'],
+        'CGPIP1': ['L_0_0_0_47_2_0_3'],
+        'CGPAR2': ['L_0_0_0_47_2_0_3_3_3'],
+        'CGPIP2': ['L_0_0_0_47_2_0_3_3_3']
     }
 
     db = PickleDatabase('test', '{0}/temp_fixture/db/1.db'.format(test_dir))
