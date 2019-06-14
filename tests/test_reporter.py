@@ -89,6 +89,6 @@ def test_reporter(test_dir, capsys):
     assert len(reporter.find_pareto_set(data)) == 5
 
     # Test draw Pareto
-    reporter.draw_pareto_curve('{0}/pareto.pdf'.format(test_dir))
+    reporter.draw_pareto_curve('{0}/pareto.pdf'.format(test_dir), True)
 
     LOG.info('=== Testing reporter end')

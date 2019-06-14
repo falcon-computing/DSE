@@ -77,8 +77,8 @@ class GradientAlgorithm(SearchAlgorithm):
                  latency_thd: float = 64,
                  fg_first: bool = True,
                  quality_type: str = 'resource-efficiency',
-                 comp_order: List[str] = ['PARALLEL', 'PIPELINE'],
-                 comm_order: List[str] = ['INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING'],
+                 comp_order: Optional[List[str]] = None,
+                 comm_order: Optional[List[str]] = None,
                  log_file_name: str = 'algo.log'):
         """Constructor of gradient algorithm.
 
@@ -87,6 +87,8 @@ class GradientAlgorithm(SearchAlgorithm):
             latency_thd: Latency threshold.
             fg_first: If the gradient should focus on fine-grained loops first.
             quality_type: The metric to judge result qualities.
+            comp_order: The design parameter order for compute-bound bottleneck.
+            comm_order: The design parameter order for memory-bound bottleneck.
             log_file_name: Name of the log file.
         """
         super(GradientAlgorithm, self).__init__(ds, log_file_name)
@@ -94,9 +96,10 @@ class GradientAlgorithm(SearchAlgorithm):
         self.fg_first = fg_first
         self.quality_type = quality_type
 
-        # TODO: Customizable
-        self.comp_order = comp_order
-        self.comm_order = comm_order
+        self.comp_order = comp_order if comp_order else ['PARALLEL', 'PIPELINE']
+        self.comm_order = comm_order if comm_order else [
+            'INTERFACE', 'CACHE', 'PIPELINE', 'TILE', 'TILING'
+        ]
 
         # Build scope map
         self.scope2param: Dict[str, List[DesignParameter]] = {}

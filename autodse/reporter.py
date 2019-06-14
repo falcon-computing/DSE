@@ -292,13 +292,17 @@ class Reporter():
             pareto.append(pivot)
         return pareto
 
-    def draw_pareto_curve(self, out_filename: str) -> None:
+    def draw_pareto_curve(self, out_filename: str, mark_lv3: bool = False) -> None:
         """Draw level 2 (HLS) result distribution and a Pareto curve.
 
         Args:
             out_filename: The output filename.
+            mark_lv3: Mark level 3 evaluation result if any.
         """
         import matplotlib.pyplot as plt
+
+        # Create a new figure
+        plt.figure()
 
         lv2_keys = [k for k in self.db.query_keys() if k.startswith('lv2')]
         lv2_data: List[Tuple[float, float, Result]] = [
@@ -329,7 +333,7 @@ class Reporter():
                  label='Pareto Points ({})'.format(len(lv2_pareto)))
 
         # Mark P&R points
-        if lv3_pairs:
+        if mark_lv3 and lv3_pairs:
             lv3_data: List[Tuple[float, float, str]] = []
 
             # Find the corresponding HLS result

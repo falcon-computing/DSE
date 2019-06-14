@@ -226,17 +226,10 @@ class Evaluator():
             self.log.error('Incorrect evaluation %d. Expect 1-3', eval_lv)
             raise RuntimeError()
 
-        # Submit and commit results to the database
+        # Submit jobs
         job_n_results = submitter(jobs)
         for job, result in job_n_results:
             result.point = job.point
-
-        self.log.debug('Committing %d results', len(job_n_results))
-        self.db.batch_commit([('{0}:{1}'.format(result_prefix, job.key), result)
-                              for job, result in job_n_results])
-        for job, _ in job_n_results:
-            self.log.debug('Committed %s:%s', result_prefix, job.key)
-        self.log.info('Results are committed to the database')
 
         # Backup jobs if needed
         if self.backup_mode == BackupMode.NO_BACKUP:
@@ -252,6 +245,15 @@ class Evaluator():
             for job, result in job_n_results:
                 if os.path.exists(job.path):
                     result.path = job.path
+
+        # Commit results to database
+        self.log.debug('Committing %d results', len(job_n_results))
+        self.db.batch_commit([('{0}:{1}'.format(result_prefix, job.key), result)
+                              for job, result in job_n_results])
+        for job, _ in job_n_results:
+            self.log.debug('Committed %s:%s', result_prefix, job.key)
+        self.log.info('Results are committed to the database')
+
         return [(job.key, result) for job, result in job_n_results]
 
     def submit_lv1(self, jobs: List[Job]) -> List[Tuple[Job, Result]]:

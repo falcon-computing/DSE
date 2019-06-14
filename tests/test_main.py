@@ -140,5 +140,5 @@ def test_main(test_dir, mocker):
         assert os.path.exists('{0}/temp_main_work/result.db'.format(test_dir))
         assert os.path.exists('{0}/temp_main_work/output/accurate'.format(test_dir))
         assert os.path.exists('{0}/temp_main_work/output/accurate/output.rpt'.format(test_dir))
-        assert os.path.exists('{0}/temp_main_work/output/accurate/2'.format(test_dir))
+        assert os.path.exists('{0}/temp_main_work/output/accurate/3'.format(test_dir))
         assert os.path.exists('{0}/temp_main_work/output/best'.format(test_dir))

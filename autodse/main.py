@@ -444,7 +444,7 @@ class Main():
 
         # Fetch accurate results and sort by quality
         keys: List[str] = [k for k in self.db.query_keys() if k.startswith('lv3:')]
-        results: List[Result] = [r for r in self.db.batch_query(keys) if r.valid]
+        results: List[Result] = [r for r in self.db.batch_query(keys)]
         for result in results:
             assert result.point is not None
             assert result.path is not None
@@ -452,9 +452,11 @@ class Main():
             copy_dir(result.path, output_path)
             result.path = str(idx)
             output.append(result)
-            if result.quality > best_quality:
+            if best_quality == -float('inf') or result.quality > best_quality:
                 best_quality = result.quality
-                best_path = output_path
+
+                # The relative path for creating a symbolic link
+                best_path = os.path.join('./accurate', str(idx))
             idx += 1
 
         rpt = self.reporter.report_output(output)
@@ -463,10 +465,11 @@ class Main():
                 filep.write(rpt)
 
             # Make a symbolic link for the best one
-            os.symlink(best_path, os.path.join(self.out_dir, 'best'))
+            if best_path:
+                os.symlink(best_path, os.path.join(self.out_dir, 'best'))
 
         # Draw result distribution with Pareto curve
-        self.reporter.draw_pareto_curve(os.path.join(out_accurate_dir, 'result_dist.pdf'))
+        self.reporter.draw_pareto_curve(os.path.join(out_accurate_dir, 'result_dist.pdf'), True)
 
     def launch_accurate(self, points: List[DesignPoint]) -> None:
         """Launch accurate exploration.
