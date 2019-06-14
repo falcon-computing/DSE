@@ -3,6 +3,7 @@ The module of result database.
 """
 import os
 import pickle
+import sys
 from queue import PriorityQueue
 from threading import Lock
 from time import time
@@ -124,7 +125,8 @@ class Database():
 
         if not self.commit_impl(key, result):
             self.log.error('Failed to commit results to the database')
-            raise RuntimeError()
+            print('Error: Database connection error')
+            sys.exit(1)
 
         if isinstance(result, Result):
             self.update_best(result)
@@ -138,7 +140,8 @@ class Database():
 
         if self.batch_commit_impl(pairs) != len(pairs):
             self.log.error('Failed to commit results to the database')
-            raise RuntimeError()
+            print('Error: Database connection error')
+            sys.exit(1)
 
         # Update the best result
         for _, result in pairs:
@@ -248,8 +251,9 @@ class RedisDatabase(Database):
         # Check the connection
         try:
             self.database.client_list()
-        except redis.ConnectionError:
-            raise RuntimeError()
+        except redis.ConnectionError as err:
+            print('Error: Failed to connect to Redis database: {}'.format(str(err)))
+            sys.exit(1)
 
     def load(self) -> None:
         #pylint:disable=missing-docstring
@@ -261,8 +265,8 @@ class RedisDatabase(Database):
                 try:
                     data = pickle.load(filep)
                 except ValueError as err:
-                    self.log.error('Failed to initialize the database: %s', str(err))
-                    raise RuntimeError()
+                    print('Failed to initialize the database: {}'.format(str(err)))
+                    sys.exit(1)
             self.log.info('Load %d data from an existing database', len(data))
             self.database.hmset(self.db_id, data)
 
@@ -366,8 +370,8 @@ class PickleDatabase(Database):
             # Note that we cannot enable auto dump since we will pickle all data before persisting
             self.database: pickledb.PickleDB = pickledb.load(self.db_file_path, False)
         except ValueError as err:
-            self.log.error('Failed to initialize the database: %s', str(err))
-            raise RuntimeError()
+            print('Error: Failed to initialize the database: {}'.format(str(err)))
+            sys.exit(1)
 
     def load(self) -> None:
         #pylint:disable=missing-docstring
@@ -380,8 +384,8 @@ class PickleDatabase(Database):
                 self.database.set(key, obj)
             self.log.info('Load %d data from an existing database', self.count())
         except ValueError as err:
-            self.log.error('Failed to load the data from the database: %s', str(err))
-            raise RuntimeError()
+            print('Failed to load the data from the database: {}'.format(str(err)))
+            sys.exit(1)
 
         self.init_best_cache()
         self.init_code_hash_map()

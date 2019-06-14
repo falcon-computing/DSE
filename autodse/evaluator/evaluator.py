@@ -4,6 +4,7 @@ The main module of evaluator.
 import os
 import re
 import shutil
+import sys
 import tempfile
 from copy import deepcopy
 from enum import Enum
@@ -111,8 +112,8 @@ class Evaluator():
                     self.src_files.append(os.path.relpath(file_abs_path, src_path))
 
         if not self.src_files:
-            self.log.error('Cannot find any kernel files with auto pragma.')
-            raise RuntimeError()
+            print('Error: Cannot find any kernel files with auto pragma.')
+            sys.exit(1)
 
         self.log.info('Source files with design parameters:')
         for file_name in self.src_files:

@@ -41,7 +41,7 @@ def test_evaluator_phase1(required_args, test_dir, mocker):
     LOG.debug('=== Testing evaluator phase 1 start')
 
     # Initialization failure due to no auto pragmas
-    with pytest.raises(RuntimeError):
+    with pytest.raises(SystemExit):
         eval_ins = Evaluator('{0}/temp_fixture/eval_src0'.format(test_dir),
                              '{0}/temp_eval_work'.format(test_dir), required_args['db'],
                              required_args['scheduler'], required_args['analyzer_cls'],

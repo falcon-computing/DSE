@@ -1,6 +1,7 @@
 """
 The main module of search algorithm.
 """
+import sys
 from typing import Dict, Generator, List, Optional, Union
 
 from ..logger import get_algo_logger
@@ -39,7 +40,8 @@ class SearchAlgorithm():
         if options is None:
             self.log.error('Failed to evaluate %s with dep %s', self.ds[pid].option_expr,
                            str(dep_values))
-            raise RuntimeError()
+            print('Error: failed to manipulate design points')
+            sys.exit(1)
 
         return options
 
@@ -127,7 +129,8 @@ class SearchAlgorithm():
             self.log.error(
                 'Fail to identify the index of value %s of parameter %s at design point %s: %s',
                 point[pid], pid, str(point), str(err))
-            raise RuntimeError()
+            print('Error: failed to manipulate design points')
+            sys.exit(1)
 
         target = idx + step
         if target >= len(options):
