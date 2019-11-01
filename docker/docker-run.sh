@@ -103,7 +103,7 @@ options="$options -e LM_LICENSE_FILE=""$LM_LICENSE_FILE"""
 echo "INFO: CMD"
 echo docker run \
     $options \
-    -v "${script_dir}/..":"/local" \
+    -v "$PWD":"/local" \
     -w="/local" \
     -e "WITH_DOCKER=1" \
     --rm \
@@ -112,7 +112,7 @@ echo docker run \
 
 if ! docker run \
      $options \
-     -v "${script_dir}/..":"/local" \
+     -v "$PWD":"/local" \
      -w="/local" \
      -e "WITH_DOCKER=1" \
      --rm \
