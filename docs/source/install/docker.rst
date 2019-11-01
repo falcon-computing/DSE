@@ -30,4 +30,4 @@ can access your project and working space.
 
 .. code:: bash
 
-    /path/to/MerlinDSE/docker/docker-run.sh /bin/bash
+    /path/to/MerlinDSE/docker/docker-run.sh -i /bin/bash
