@@ -169,29 +169,29 @@ class FastExplorer(Explorer):
             duplicated_iters = 0
 
             # Evaluate design points using level 1 to fast check if it is suitable for HLS
-            self.log.debug('Evaluating %d design points: Level 1', len(jobs))
-            pending: List[Job] = []
-            for key, result in self.evaluator.submit(jobs, 1):
-                if result.ret_code == Result.RetCode.PASS:
-                    job = self.create_job_and_apply_point(result.point)
-                    if job:
-                        pending.append(job)
-                    else:
-                        return
-                else:
-                    results[key] = result
+            # self.log.debug('Evaluating %d design points: Level 1', len(jobs))
+            # pending: List[Job] = []
+            # for key, result in self.evaluator.submit(jobs, 1):
+            #     if result.ret_code == Result.RetCode.PASS:
+            #         job = self.create_job_and_apply_point(result.point)
+            #         if job:
+            #             pending.append(job)
+            #         else:
+            #             return
+            #     else:
+            #         results[key] = result
 
-            if pending:
-                # Evaluate design points using level 2 that runs HLS
-                self.log.debug('Evaluating %d design points: Level 2', len(pending))
-                for key, result in self.evaluator.submit(pending, 2):
-                    self.update_best(result)
-                    results[key] = result
-            else:
-                self.log.info('All points are stopped at level 1')
+            # if pending:
+            #     # Evaluate design points using level 2 that runs HLS
+            #     self.log.debug('Evaluating %d design points: Level 2', len(pending))
+            #     for key, result in self.evaluator.submit(pending, 1):
+            #         self.update_best(result)
+            #         results[key] = result
+            # else:
+            #     self.log.info('All points are stopped at level 1')
 
-            self.explored_point += len(jobs)
-            self.db.commit('meta-expr-cnt-{0}'.format(self.tag), self.explored_point)
+            # self.explored_point += len(jobs)
+            # self.db.commit('meta-expr-cnt-{0}'.format(self.tag), self.explored_point)
 
         self.log.info('Explored %d points', self.explored_point)
 
