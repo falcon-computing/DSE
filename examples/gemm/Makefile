@@ -1,6 +1,6 @@
 # Choose target FPGA platform vendor
-#VENDOR=XILINX
-VENDOR=INTEL
+VENDOR=XILINX
+#VENDOR=INTEL
 
 # Host Code Compilation settings
 HOST_SRC_FILES=./src/harness.cpp ./src/local_support.cpp ./src/support.cpp
