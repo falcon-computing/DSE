@@ -57,13 +57,12 @@ if [ "$#" -lt 1 ]; then
   exit 1
 fi
 
-# force to build the image even if it already exist
 if [ -z "$image" ]; then
   image="merlin-dse:$docker_tag"
 fi
 
 merlin_home=$(readlink -f $script_dir/../)
-script=$(echo $(readlink -f $1) | sed -e "s|$merlin_home|/opt/merlin|")
+script=$1
 shift
 
 if [ -z "$use_root" ]; then
