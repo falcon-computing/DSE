@@ -206,5 +206,4 @@ def get_default_point(ds: DesignSpace) -> DesignPoint:
     point: DesignPoint = {}
     for pid, param in ds.items():
         point[pid] = param.default
-
     return point

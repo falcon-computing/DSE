@@ -1,6 +1,6 @@
 # Choose target FPGA platform vendor
-#VENDOR=XILINX
-VENDOR=INTEL
+VENDOR=XILINX
+#VENDOR=INTEL
 
 # Host Code Compilation settings
 HOST_SRC_FILES=./src/harness.cpp ./src/local_support.cpp ./src/support.cpp
@@ -11,7 +11,7 @@ ACC_EXE=test_accgemmb
 EXE_ARGS=./data/input.data ./data/check.data
 
 CXX=g++
-CXX_INC_DIRS=-I ../src -I ./ -I $(MACH_COMMON_DIR)
+CXX_INC_DIRS=-I ./src -I ./ -I $(MACH_COMMON_DIR)
 CXX_FLAGS+= $(CXX_INC_DIRS) -Wall -g
 #CXX_FLAGS+= -Wall
 #CXX_FLAGS+= -g

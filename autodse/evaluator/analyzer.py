@@ -106,8 +106,8 @@ class MerlinAnalyzer(Analyzer):
 
         log = Analyzer.get_analyzer_logger()
 
-        report_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin')
-        hier_path = os.path.join(report_path, 'hierarchy.json')
+        report_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/')
+        hier_path = os.path.join(report_path, 'perf_est.json')
         if not os.path.exists(hier_path):
             log.error('Cannot find hierarchy file from Merlin report for analysis')
             return None
@@ -314,7 +314,7 @@ class MerlinAnalyzer(Analyzer):
         # Merlin HLS report analysis
         report_path = os.path.join(job.path, '.merlin_prj/run/implement/exec/hls/report_merlin')
         topo_path = os.path.join(report_path, 'gen_token/topo_info.json')
-        info_path = os.path.join(report_path, 'final_info.json')
+        info_path = os.path.join(report_path, 'final_report/src/perf_est.json')
         if not os.path.exists(info_path):
             log.debug('Cannot find Merlin report files for analysis')
             return None
@@ -546,9 +546,9 @@ class MerlinAnalyzer(Analyzer):
             return ['merlin.log', '.merlin_prj/run/implement/export/lc']
         if mode == 'hls':
             return [
-                'merlin.log', '.merlin_prj/run/implement/exec/hls/report_merlin/final_info.json',
+                'merlin.log', '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/perf_est.json',
                 '.merlin_prj/run/implement/exec/hls/report_merlin/gen_token/topo_info.json',
-                '.merlin_prj/run/implement/exec/hls/report_merlin/hierarchy.json'
+                '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/hierarchy.json'
             ]
         if mode == 'bitgen':
             return ['merlin.log', '*.mco', '*.aocx', '*.h', '*.so']

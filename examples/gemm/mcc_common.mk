@@ -13,7 +13,7 @@ MAKEFLAGS += --no-print-directory
 ifeq ($(VENDOR),XILINX)
     ifeq ($(DEVICE),)
         #DEVICE=xilinx:adm-pcie-ku3:2ddr-xpr:4.0###
-        DEVICE=xilinx_vcu1525_dynamic_5_1
+        DEVICE=xilinx_u250_xdma_201830_1
     endif
     PLATFORM=sdaccel::$(DEVICE)
     BIN_EXT=xclbin
