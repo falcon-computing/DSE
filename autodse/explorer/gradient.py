@@ -159,8 +159,6 @@ class GradientAlgorithm(SearchAlgorithm):
                     for param in self.scope2param['GLOBAL']:
                         scope_params.add(param)
 
-                print(self.scope2param)
-                print(node.nid)
                 # The parameters to this scope
                 if node.nid in self.scope2param:
                     for param in self.scope2param[node.nid]:
@@ -206,7 +204,6 @@ class GradientAlgorithm(SearchAlgorithm):
             # as we will use it as a stack.
             cand_params.reverse()
 
-        print(cand_params)  
         return cand_params
 
     def gen_child_points(self, root_point: DesignPoint,

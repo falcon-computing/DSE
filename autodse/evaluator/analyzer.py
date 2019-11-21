@@ -76,14 +76,14 @@ class MerlinAnalyzer(Analyzer):
             if key == 'stmts':
                 pending: List[str] = []
                 for stmt in val:
-                    if 'src_topo_id' in stmt and stmt['src_topo_id'].startswith('L'):
+                    if 'org_identifier' in stmt and stmt['org_identifier'].startswith('L'):
                         # Map the pending design parameters to the current scope
                         for auto in pending:
-                            scope_map[auto].append(stmt['src_topo_id'])
+                            scope_map[auto].append(stmt['org_identifier'])
                         pending = []
-                    elif 'src_filename' in stmt and 'src_line' in stmt:
+                    elif 'filename' in stmt and 'line' in stmt:
                         # Collect the design parameters for the current scope
-                        pos_key = '{0}:{1}'.format(stmt['src_filename'], stmt['src_line'])
+                        pos_key = '{0}:{1}'.format(stmt['filename'], stmt['line'])
                         if pos_key in auto_map:
                             pending += auto_map[pos_key]
             elif isinstance(val, dict):
