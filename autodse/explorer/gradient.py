@@ -125,7 +125,7 @@ class GradientAlgorithm(SearchAlgorithm):
 
         # First set candidates as all tunable parameters
         cand_params = [param for pid, param in self.ds.items() if pid not in tuned]
-
+        
         if isinstance(result, MerlinResult) and result.ret_code == Result.RetCode.EARLY_REJECT:
             # We may improve the QoR from the early-rejected point if it was reject by memory burst
             if all([msg.find('Memory burst NOT inferred') != -1 for msg in result.criticals]):
