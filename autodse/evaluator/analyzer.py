@@ -546,9 +546,10 @@ class MerlinAnalyzer(Analyzer):
             return ['merlin.log', '.merlin_prj/run/implement/export/lc']
         if mode == 'hls':
             return [
-                'merlin.log', '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/perf_est.json',
+                'merlin.log',
                 '.merlin_prj/run/implement/exec/hls/report_merlin/gen_token/topo_info.json',
-                '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/hierarchy.json'
+                '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/hierarchy.json',
+                '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/src/perf_est.json'
             ]
         if mode == 'bitgen':
             return ['merlin.log', '*.mco', '*.aocx', '*.h', '*.so']
