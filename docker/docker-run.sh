@@ -37,7 +37,7 @@ while [[ $# -gt 0 ]]; do
     if [ -z "image" ]; then
       echo "ERROR: empty image"
       exit 2
-    else 
+    else
       echo "INFO: using image $image"
     fi
     shift
@@ -61,19 +61,62 @@ if [ -z "$image" ]; then
   image="merlin-dse:$docker_tag"
 fi
 
-merlin_home=$(readlink -f $script_dir/../)
-script=$1
-shift
-
 if [ -z "$use_root" ]; then
   options="$options -u $(id -u):$(id -g)"
-else 
+else
   options="$options --privileged"
 fi
 
-# module load
-module load $(cat $merlin_home/set_env/aocl_env)
-module load $(cat $merlin_home/set_env/sdx_env)
+# find mountpoint for pwd
+function get_base {
+  local dir="$1";
+  while [ ! $(dirname $dir) = "/" ]; do
+    dir=$(dirname $dir);
+    if mountpoint $dir &> /dev/null; then
+      break;
+    fi;
+  done;
+  echo $dir;
+}
+
+declare -A illegal_base
+illegal_base["/bin"]=1
+illegal_base["/dev"]=1
+illegal_base["/etc"]=1
+illegal_base["/lib"]=1
+illegal_base["/lib64"]=1
+illegal_base["/media"]=1
+illegal_base["/mnt"]=1
+illegal_base["/opt"]=1
+illegal_base["/proc"]=1
+illegal_base["/root"]=1
+illegal_base["/run"]=1
+illegal_base["/sbin"]=1
+illegal_base["/srv"]=1
+illegal_base["/sys"]=1
+illegal_base["/usr"]=1
+illegal_base["/var"]=1
+
+function legal_base {
+  local dir="$1";
+  while [ ! $(dirname $dir) = "/" ]; do
+    tmp_dir=$(dirname $dir)
+    if [ ${illegal_base[$tmp_dir]} ]; then
+      break;
+    fi;
+    dir=$tmp_dir;
+    if mountpoint $dir &> /dev/null; then
+      break;
+    fi;
+  done;
+  if [ ${illegal_base[$dir]} ]; then
+    echo "Error: $dir illegal path"
+    exit 1
+  fi
+  echo $dir;
+}
+
+declare -A mounted_base
 
 # handle vendor tools
 function add_env {
@@ -83,7 +126,11 @@ function add_env {
     echo "Error: $val env variable is invalid"
     exit 1
   fi
-  options="$options -v $val:$val" 
+  baseval=$(legal_base $val)
+  if [ ! ${mounted_base[$baseval]} ]; then
+    options="$options -v $baseval:$baseval"
+    mounted_base[$baseval]=1
+  fi
   options="$options -e "$var=$val""
 }
 
@@ -95,29 +142,72 @@ if [ -z "$XILINX_SDK" ]; then
 fi
 add_env XILINX_SDK
 
-add_env ALTERA_QUARTUS_HOME
+#add_env ALTERA_QUARTUS_HOME
 
-options="$options -e LM_LICENSE_FILE=""$LM_LICENSE_FILE"""
+function add_license {
+  local var=$1;
+  local val="${!var}";
+  if [ -z "$val" ]; then
+    return
+  fi
+  local vals=$(echo "$val" | tr ":" "\n")
+  local realval=""
+  for vv in $vals; do
+    if [ ! -f $vv ]; then
+      realval=$realval:$vv
+      continue
+    fi
+    local realvv=$(realpath $vv)
+    realval=$realval:$realvv
+    if [ -f "$realvv" ]; then
+      local baseval=$(legal_base $realvv)
+      if [ ! ${mounted_base[$baseval]} ]; then
+        options="$options -v $baseval:$baseval"
+        mounted_base[$baseval]=1
+      fi
+    fi
+  done
+  options="$options -e "$var=$realval""
+}
 
-echo "INFO: CMD"
-echo docker run \
-    $options \
-    -v "$PWD":"/local" \
-    -w="/local" \
-    -e "WITH_DOCKER=1" \
-    --rm \
-    $image \
-    $script $@
+add_license LM_LICENSE_FILE
+add_license FALCONLM_LICENSE_FILE
+add_license XILINXD_LICENSE_FILE
 
-if ! docker run \
-     $options \
-     -v "$PWD":"/local" \
-     -w="/local" \
-     -e "WITH_DOCKER=1" \
-     --rm \
-     $image \
-     $script $@ ; then
-  $script_dir/docker-clean.sh
+#options="$options -v $script_dir/../license:/opt/merlin/license"
+#options="$options -e LM_LICENSE_FILE=$LM_LICENSE_FILE:/opt/merlin/license/license.lic:$PWD/license.lic"
+#options="$options -e FALCONLM_LICENSE_FILE=$FALCONLM_LICENSE_FILE"
+#options="$options -e XILINXD_LICENSE_FILE=$XILINXD_LICENSE_FILE"
+options="$options -e MERLIN_AUTO_DEVICE_XILINX=$MERLIN_AUTO_DEVICE_XILINX"
+options="$options -e MERLIN_AUTO_DEVICE_INTEL=$MERLIN_AUTO_DEVICE_INTEL"
+
+base_dir=$(get_base $PWD)
+if [ ${illegal_base[$base_dir]+abc} ]; then
+  echo "[merlin-cmd] ERROR: running from $PWD is not supported, please run from a different directory"
   exit 1
 fi
+
+# Xilinx tool license needs
+options="$options --net host"
+
+echo " \
+docker run \
+    $options \
+    -v "$base_dir":"$base_dir" \
+    -w="$PWD" \
+    -e "WITH_DOCKER=1" \
+    --rm \
+    -t \
+    $image \
+    $@ "
+
+docker run \
+    $options \
+    -v "$base_dir":"$base_dir" \
+    -w="$PWD" \
+    -e "WITH_DOCKER=1" \
+    --rm \
+    -t \
+    $image \
+    $@
 
