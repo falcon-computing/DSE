@@ -1,10 +1,10 @@
 {
     "project.name": "gemm-blocked",
     "project.backup": "BACKUP_ERROR",
-    "project.fast-output-num": 4,
-    "timeout.exploration": 30,
+    "project.fast-output-num": 16,
+    "timeout.exploration": 120,
     "timeout.transform": 5,
-    "timeout.hls": 20,
+    "timeout.hls": 60,
     "timeout.bitgen": 480,
     "evaluate.command.transform": "make mcc_acc",
     "evaluate.command.hls": "make mcc_estimate",
@@ -19,7 +19,7 @@
     "search.algorithm.gradient.latency-threshold": 64,
     "search.algorithm.gradient.fine-grained-first": true,
     "search.algorithm.gradient.quality-type": "performance",
-    "design-space.max-part-num": 4,
+    "design-space.max-part-num": 16,
     "design-space.definition": {
         "B": {
             "options": "[64,256,512]",
@@ -27,7 +27,7 @@
             "default": 64
         },
         "PARI": {
-            "options": "[1,2,4,8,16,32,64,128]",
+            "options": "[1,2,4,8,128]",
             "ds_type": "PARALLEL",
             "default": 1
         },
@@ -38,7 +38,7 @@
             "default": "off"
         },
         "PARK": {
-            "options": "[x for x in [1,2,4,8] if x==1 or PIPI=='off']",
+            "options": "[x for x in [1,4,8] if x==1 or PIPI=='off']",
             "ds_type": "PARALLEL",
             "default": 1
         },
