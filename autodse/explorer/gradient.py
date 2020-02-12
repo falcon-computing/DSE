@@ -125,7 +125,7 @@ class GradientAlgorithm(SearchAlgorithm):
 
         # First set candidates as all tunable parameters
         cand_params = [param for pid, param in self.ds.items() if pid not in tuned]
-        
+ 
         if isinstance(result, MerlinResult) and result.ret_code == Result.RetCode.EARLY_REJECT:
             # We may improve the QoR from the early-rejected point if it was reject by memory burst
             if all([msg.find('Memory burst NOT inferred') != -1 for msg in result.criticals]):
@@ -203,7 +203,6 @@ class GradientAlgorithm(SearchAlgorithm):
             # Reverse the list so that the high priority goes to the tail
             # as we will use it as a stack.
             cand_params.reverse()
-
         return cand_params
 
     def gen_child_points(self, root_point: DesignPoint,
@@ -357,7 +356,6 @@ class GradientAlgorithm(SearchAlgorithm):
         Returns:
             The quality value (negative finite differnece). Larger the better.
         """
-
         if (new_result.perf / ref_result.perf) > 1.05:
             # Performance is too worse to be considered
             return -float('inf')
@@ -440,6 +438,8 @@ class GradientAlgorithm(SearchAlgorithm):
 
             # Get the focus parameters to be tuned
             # Note: the child is a stack so we always pick the top (last) value.
+            if not curr_node.child:
+                break
             param_w_points = curr_node.child[-1]
 
             self.log.info('Working Node:')
@@ -482,13 +482,11 @@ class GradientAlgorithm(SearchAlgorithm):
                     new_tuned = set(tuned)
                     if param_w_points.param:
                         new_tuned.add(param_w_points.param.name)
-
                     # Identify the hotspot
                     focus_params = self.get_hotspot_params(result, new_tuned)
                     if not focus_params:
                         self.log.info('-> No tunable parameters, abandon')
                         continue
-
                     # Gnerate next points and add to the tree
                     child = self.gen_child_points(result.point, focus_params)
                     pq.heappush(

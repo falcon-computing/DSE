@@ -27,7 +27,7 @@ AUTODSE=1
 KERNEL_NAME=bbgemm_kernel
 KERNEL_SRC_FILES=./src/gemm.cpp
 KERNEL_INC_DIR=$(CXX_INC_DIRS)
-CMP_OPT=-d11
+CMP_OPT=-d11 --attribute auto_parallel=off --attribute loop_flatten=off
 LNK_OPT=-d11
 
 include ./mcc_common.mk

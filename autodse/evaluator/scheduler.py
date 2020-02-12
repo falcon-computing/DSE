@@ -61,7 +61,6 @@ class PythonSubprocessScheduler(Scheduler):
         Returns:
             This function is slient and will not check if the backup was success or not.
         """
-
         log = get_eval_logger('Scheduler')
         if not file_list:
             shutil.rmtree(dst_path)
