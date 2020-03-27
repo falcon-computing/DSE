@@ -438,12 +438,23 @@ class MerlinAnalyzer(Analyzer):
 
         if node['topo_id'] in cycles:
             org_id = cycles[node['topo_id']]['org_identifier']
-            total = (float_or_zero(cycles[node['topo_id']]['CYCLE_TOT'])
-                     if 'CYCLE_TOT' in cycles[node['topo_id']] else 0)
-            unit = (float_or_zero(cycles[node['topo_id']]['CYCLE_UNIT'])
-                    if 'CYCLE_UNIT' in cycles[node['topo_id']] else 0)
-            comm = (float_or_zero(cycles[node['topo_id']]['CYCLE_BURST'])
-                    if 'CYCLE_BURST' in cycles[node['topo_id']] else 0)
+            if 'flatten' in cycles[node['topo_id']] and    \
+               'flatten-id' in cycles[node['topo_id']] and \
+                cycles[node['topo_id']]['flatten'] == 'yes':
+                flatten_id = cycles[node['topo_id']]['flatten-id']
+                total = (float_or_zero(cycles[flatten_id]['CYCLE_TOT'])
+                         if 'CYCLE_TOT' in cycles[flatten_id] else 0)
+                unit = (float_or_zero(cycles[flatten_id]['CYCLE_UNIT'])
+                        if 'CYCLE_UNIT' in cycles[flatten_id] else 0)
+                comm = (float_or_zero(cycles[flatten_id]['CYCLE_BURST'])
+                        if 'CYCLE_BURST' in cycles[flatten_id] else 0)
+            else:
+                total = (float_or_zero(cycles[node['topo_id']]['CYCLE_TOT'])
+                         if 'CYCLE_TOT' in cycles[node['topo_id']] else 0)
+                unit = (float_or_zero(cycles[node['topo_id']]['CYCLE_UNIT'])
+                        if 'CYCLE_UNIT' in cycles[node['topo_id']] else 0)
+                comm = (float_or_zero(cycles[node['topo_id']]['CYCLE_BURST'])
+                        if 'CYCLE_BURST' in cycles[node['topo_id']] else 0)
 
             is_compute_bound = None
             if total == 0:
@@ -549,6 +560,7 @@ class MerlinAnalyzer(Analyzer):
         if mode == 'hls':
             return [
                 'merlin.log',
+                'merlin.rpt',
                 '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/topo_info.json',
                 '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/hierarchy.json',
                 '.merlin_prj/run/implement/exec/hls/report_merlin/final_report/perf_est.json'

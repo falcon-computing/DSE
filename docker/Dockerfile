@@ -15,6 +15,8 @@ COPY ./docker/autodse /usr/local/bin
 RUN chmod +x /usr/local/bin/autodse
 COPY ./docker/checkds /usr/local/bin
 RUN chmod +x /usr/local/bin/checkds
+COPY ./docker/ds_generator /usr/local/bin
+RUN chmod +x /usr/local/bin/ds_generator
 
 COPY ./docker/entrypoint.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/entrypoint.sh

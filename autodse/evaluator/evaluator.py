@@ -175,12 +175,17 @@ class Evaluator():
             with open(os.path.join(job_path, file_name), 'r', errors='replace') as src_file, \
                  open('{0}/applier_temp.txt'.format(job_path), 'w', errors='replace') as dest_file:
                 for line in src_file:
+                    # Assume one pragma per line even though a loop here.
                     for auto, ds_id in re.findall(r'(auto{(.*?)})', line, re.IGNORECASE):
                         if ds_id not in point:
                             self.log.debug('Parameter %s not found in design point', ds_id)
                         else:
                             # Replace "auto{?}" with a specific value
+                            # Only consider Xilinx flow. "off" means not to write out that pragma
+                            # if str(point[ds_id]) != "off":                                 
                             line = line.replace(auto, str(point[ds_id]))
+                            # else:
+                            #    line = ""
                             applied.add(ds_id)
                     dest_file.write(line)
             os.replace('{0}/applier_temp.txt'.format(job_path),
