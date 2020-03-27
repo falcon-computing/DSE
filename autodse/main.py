@@ -300,7 +300,6 @@ class Main():
             if isinstance(r, HLSResult) and r.valid and r.ret_code != Result.RetCode.DUPLICATED
         ]
    
-        print(len(results))
         results.sort(key=lambda r: (r.quality, 1.0 / geomean(
             [v for k, v in r.res_util.items() if k.startswith('util')])),
                      reverse=True)
@@ -318,7 +317,6 @@ class Main():
             output.append(result)
             idx += 1
 
-        print("Here")
         rpt = self.reporter.report_output(output)
         if rpt:
             with open(os.path.join(out_fast_dir, 'output.rpt'), 'w') as filep:

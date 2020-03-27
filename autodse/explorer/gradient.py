@@ -143,6 +143,7 @@ class GradientAlgorithm(SearchAlgorithm):
                     if node.latency >= self.latency_thd:
                         hotspot_scopes[node.nid] = node
             self.log.debug('Hotspot: %s', ', '.join(list(hotspot_scopes.keys())))
+            # print('Hotspot: %s', ', '.join(list(hotspot_scopes.keys())))
 
             scope_params: Set[DesignParameter] = set()
             cand_params_set: Dict[str, DesignParameter] = OrderedDict()
